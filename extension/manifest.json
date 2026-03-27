@@ -1,0 +1,62 @@
+{
+    "manifest_version": 3,
+    "name": "Antigravity Spy V2",
+    "version": "2.0",
+    "description": "Cyber-Augmented Reality Security Toolkit for Antigravity.",
+    "permissions": [
+        "webRequest",
+        "activeTab",
+        "scripting",
+        "storage",
+        "cookies",
+        "debugger"
+    ],
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content/xray.js",
+                "content/interceptor.js",
+                "content/ScannerEngine.js",
+                "content/hud.js",
+                "content/vision.js"
+            ],
+            "css": [
+                "content/xray.css",
+                "content/hud.css"
+            ],
+            "run_at": "document_idle"
+        }
+    ],
+    "action": {
+        "default_popup": "popup/popup.html",
+        "default_title": "Antigravity Mimic"
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' ws://127.0.0.1:8000 http://127.0.0.1:8000 ws://localhost:8000 http://localhost:8000"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "content/xray.css",
+                "content/hud.css",
+                "content/xray.js",
+                "content/xray.js",
+                "content/interceptor.js",
+                "content/hud.js",
+                "content/ScannerEngine.js"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ]
+}

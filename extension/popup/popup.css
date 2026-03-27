@@ -1,0 +1,210 @@
+/* Antigravity Mimic Popup Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 320px;
+    min-height: 400px;
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    background: linear-gradient(180deg, #0a0a1a 0%, #1a1a2e 100%);
+    color: #ffffff;
+}
+
+.popup-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+}
+
+.popup-header {
+    background: linear-gradient(135deg, #8A2BE2, #4B0082);
+    padding: 20px;
+    text-align: center;
+}
+
+.header-icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.popup-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 4px;
+}
+
+.header-subtitle {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+}
+
+.popup-body {
+    flex: 1;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section-label {
+    font-size: 10px;
+    color: #8A2BE2;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.profile-count {
+    background: #8A2BE2;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+}
+
+.current-session {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 12px;
+    border-radius: 10px;
+}
+
+.session-info {
+    display: flex;
+    justify-content: space-between;
+}
+
+.session-domain {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.session-cookies {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.profiles-list {
+    max-height: 180px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 30px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+}
+
+.profile-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 12px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.profile-name {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.profile-meta {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.profile-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.switch-btn,
+.delete-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.switch-btn {
+    background: linear-gradient(135deg, #8A2BE2, #6a1bb2);
+    color: white;
+}
+
+.delete-btn {
+    background: rgba(255, 0, 64, 0.2);
+    color: #ff4060;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn.primary {
+    background: linear-gradient(135deg, #8A2BE2, #6a1bb2);
+    color: white;
+}
+
+.btn.secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.popup-footer {
+    padding: 10px;
+    text-align: center;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 12px;
+    opacity: 0;
+    transition: all 0.3s;
+}
+
+.notification.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.notification.success {
+    background: #00c853;
+    color: white;
+}
+
+.notification.error {
+    background: #ff0040;
+    color: white;
+}

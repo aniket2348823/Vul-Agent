@@ -1,0 +1,30 @@
+{
+    "module_name": "Antigravity IDE Supervisor",
+    "vision": "Autonomous oversight of all development, security, and quality activities within the Antigravity workspace.",
+    "tech_stack": {
+        "frameworks": [
+            "GSD",
+            "Ralph Loop",
+            "TestSprite",
+            "FastAPI"
+        ],
+        "management": "Sovereign Lifecycle"
+    },
+    "supervision_mandates": [
+        "Omnipresent GSD tracking for all IDE work",
+        "Continuous Ralph Loop monitoring for every process",
+        "Headless TestSprite quality gates for every change",
+        "Zero-touch lifecycle persistence"
+    ],
+    "autonomous_actions": {
+        "on_startup": "Initialize IDE Global State & Quality Gates",
+        "on_task": "Cross-reference with ROADMAP.md & Test Plan",
+        "on_idle": "Perform GI5 threat-sync & Automated Testing"
+    },
+    "startup_routine": {
+        "gsd": "ACTIVE_OMNIPRESENT",
+        "ralph": "ALWAYS_ON",
+        "testsprite": "ZERO_PROMPT_HEADLESS",
+        "context": "d:/Antigravity 2/API Endpoint Scanner"
+    }
+}

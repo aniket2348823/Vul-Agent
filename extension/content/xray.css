@@ -1,0 +1,71 @@
+/* Antigravity X-Ray Overlay Styles */
+
+.antigravity-xray-overlay {
+    border: 2px solid #ff0040 !important;
+    border-radius: 4px !important;
+    background: rgba(255, 0, 64, 0.1) !important;
+    animation: xray-pulse 1.5s infinite ease-in-out !important;
+    box-sizing: border-box !important;
+}
+
+.xray-badge {
+    position: absolute !important;
+    top: -22px !important;
+    left: 0 !important;
+    background: linear-gradient(135deg, #ff0040, #ff4080) !important;
+    color: white !important;
+    font-size: 9px !important;
+    font-weight: bold !important;
+    padding: 3px 8px !important;
+    border-radius: 3px !important;
+    font-family: 'Courier New', monospace !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 2px 8px rgba(255, 0, 64, 0.4) !important;
+    white-space: nowrap !important;
+    z-index: 2147483647 !important;
+}
+
+.xray-script-marker {
+    position: fixed !important;
+    top: 10px !important;
+    right: 10px !important;
+    z-index: 2147483647 !important;
+}
+
+.xray-script-marker .xray-badge {
+    position: relative !important;
+    top: 0 !important;
+    display: inline-block !important;
+    margin: 2px !important;
+}
+
+@keyframes xray-pulse {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(255, 0, 64, 0.5),
+                    0 0 10px rgba(255, 0, 64, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(255, 0, 64, 0.8),
+                    0 0 25px rgba(255, 0, 64, 0.5),
+                    0 0 35px rgba(255, 0, 64, 0.3);
+    }
+}
+
+/* Tooltip on hover */
+.xray-badge[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 5px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    font-size: 10px;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    max-width: 300px;
+    z-index: 2147483648;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}

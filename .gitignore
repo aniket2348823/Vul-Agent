@@ -1,0 +1,23 @@
+node_modules/
+__pycache__/
+.git_backup*/
+*.log
+*.lock
+dist/
+build/
+coverage/
+.DS_Store
+.env
+venv/
+
+# Antigravity specific
+reports/
+*.pdf
+stats.json
+test_*.py
+verify_*.py
+manual_launch.py
+keyring.json
+brain/
+*.txt
+testsprite_tests/

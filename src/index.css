@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Smooth Scrolling */
+/* Smooth Scrolling handled by Lenis */
+
+body {
+    background-color: #0d1117;
+    overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0d1117;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #30363d;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #58a6ff;
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+    background: rgba(22, 27, 34, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.glass-panel-fast {
+    background: rgba(22, 27, 34, 0.85);
+    /* Slightly more opaque to compensate for lack of blur */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.glass-table th,
+.glass-table td {
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Animated Stars */
+@keyframes twinkle {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+}
+
+.star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 3s infinite ease-in-out;
+}
+
+/* Aurora Gradient Background Animation */
+@keyframes aurora {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.aurora-bg {
+    background: linear-gradient(-45deg, #0f172a, #1e1a4b, #2d0f38, #0f172a);
+    background-size: 400% 400%;
+    animation: aurora 15s ease infinite;
+}
+
+/* Shadow Glows */
+.shadow-glow {
+    box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
+}
+
+.shadow-glass {
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Input Focus Glow */
+input:focus,
+textarea:focus {
+    box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.3);
+}
+
+/* Button Hover Scale */
+button:active {
+    transform: scale(0.96);
+}
+
+/* Optimization for Animations */
+.will-change-transform {
+    will-change: transform;
+    backface-visibility: hidden;
+}

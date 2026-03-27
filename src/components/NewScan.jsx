@@ -1,0 +1,478 @@
+import React, { useState, useEffect, useRef } from 'react';
+import Navigation from './Navigation';
+import AnimationWrapper from './AnimationWrapper';
+import { motion } from 'framer-motion';
+
+const NewScan = ({ navigate }) => {
+    // ... [STATE] ...
+    const [authType, setAuthType] = useState('Bearer');
+    const [activeScanModules, setActiveScanModules] = useState([
+        { name: 'The Tycoon', desc: 'Financial logic flaws & parameter tampering', selected: true },
+        { name: 'The Escalator', desc: 'Mass Assignment & Privilege Escalation', selected: true },
+        { name: 'The Skipper', desc: 'Workflow bypass & multi-step sequence skipping', selected: true },
+        { name: 'Doppelganger (IDOR)', desc: 'Insecure Direct Object Reference detection', selected: false },
+        { name: 'Chronomancer', desc: 'Race Condition testing for transactional APIs', selected: false },
+        { name: 'SQL Injection Probe', desc: 'Deep injection testing for SQL, NoSQL, GraphQL', selected: false },
+        { name: 'JWT Token Cracker', desc: 'Cryptographic analysis of JSON Web Tokens', selected: false },
+        { name: 'API Fuzzer (REST)', desc: 'High-velocity fuzzing for RESTful endpoints', selected: false },
+        { name: 'Auth Bypass Tester', desc: 'Systematic testing of authentication gates', selected: false }
+    ]);
+    const [isConnected, setIsConnected] = useState(false);
+    const localConnectedRef = useRef(false);
+    const [requestRate, setRequestRate] = useState(450);
+    const [concurrency, setConcurrency] = useState(50);
+    const [estimatedDuration, setEstimatedDuration] = useState(45); // Initial state
+
+    // [NEW] Interception Filters
+    const [interceptionFilters, setInterceptionFilters] = useState([
+        { name: 'Financial Logic', desc: 'Financial logic flaws & tampering', selected: true },
+        { name: 'Privilege Escalation', desc: 'Mass Assignment & role elevation', selected: true },
+        { name: 'PII Data', desc: 'Detects exposed Personally Identifiable Information (PII) in API responses', selected: true },
+        { name: 'Workflow Integrity', desc: 'Workflow bypass & sequence skipping', selected: true },
+        { name: 'Object References (IDOR)', desc: 'Insecure resource access & enumeration', selected: false },
+        { name: 'Concurrency & Timing', desc: 'Race conditions & timing attacks', selected: false },
+        { name: 'Injection & Fuzzing', desc: 'Injection vectors & input fuzzing', selected: false },
+        { name: 'Authentication Gates', desc: 'Auth bypass & token tampering', selected: false }
+    ]);
+
+    // Backend Integration State
+    const [targets, setTargets] = useState("");
+    const [authContent, setAuthContent] = useState("");
+    const [scanTitle, setScanTitle] = useState("Ultimate Precision Blueprint");
+    const wsRef = useRef(null);
+
+    const [isExtensionEnabled, setIsExtensionEnabled] = useState(false); // Default off
+    const [isLaunching, setIsLaunching] = useState(false);
+
+    // --- WebSocket Connection ---
+    useEffect(() => {
+        if (!isExtensionEnabled) {
+            setIsConnected(false);
+            localConnectedRef.current = false;
+            return;
+        }
+
+        // 1. Extension Handshake
+        const handleMessage = (event) => {
+            if (event.data?.type === 'ANTIGRAVITY_EXTENSION_CONNECTED') {
+                console.log("[FRONTEND] Extension Handshake Success (postMessage)");
+                setIsConnected(true);
+                localConnectedRef.current = true;
+            }
+        };
+
+        const handleCustomEvent = () => {
+            console.log("[FRONTEND] Extension Handshake Success (CustomEvent)");
+            setIsConnected(true);
+            localConnectedRef.current = true;
+        };
+
+        window.addEventListener('message', handleMessage);
+        document.addEventListener('ANTIGRAVITY_EXTENSION_HEARTBEAT', handleCustomEvent);
+
+        // Check if already connected via backend state (redundancy)
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            // trigger a check if needed, but usually passive
+        }
+
+        return () => {
+            window.removeEventListener('message', handleMessage);
+            document.removeEventListener('ANTIGRAVITY_EXTENSION_HEARTBEAT', handleCustomEvent);
+        };
+    }, [isExtensionEnabled]);
+
+    useEffect(() => {
+        // 2. Backend WebSocket Connection
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/stream?client_type=ui`;
+
+        wsRef.current = new WebSocket(wsUrl);
+        wsRef.current.onopen = () => console.log("Connected to Backend Stream");
+        wsRef.current.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'RECON_PACKET') {
+                    console.log("Recon Data:", data.payload);
+                    // Filter out our own backend traffic
+                    const url = data.payload.url || "";
+                    const isBackendTraffic = url.includes('127.0.0.1:8000') ||
+                        url.includes('localhost:8000') ||
+                        url.includes('127.0.0.1:5173') ||
+                        url.includes('localhost:5173') ||
+                        url.includes('/api/recon') ||
+                        url.includes('/stream');
+                    if (!isBackendTraffic) {
+                        // [NEW] Resolve 'Waiting' Status Forever: If we are seeing traffic, we ARE connected.
+                        if (isExtensionEnabled && !isConnected) {
+                            setIsConnected(true);
+                            localConnectedRef.current = true;
+                        }
+                        // Target list auto-population removed to fix clipboard/scope expansion bug.
+                    }
+                } else if (data.type === 'ATTACK_HIT') {
+                    console.log("Attack Result:", data.payload);
+                } else if (data.type === 'SPY_STATUS') {
+                    console.log("Spy Status Update:", data.payload);
+                    if (isExtensionEnabled) {
+                        // Prioritize local handshake over backend status
+                        if (data.payload.connected) {
+                            setIsConnected(true);
+                        } else if (!localConnectedRef.current) {
+                            setIsConnected(false);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("WS Parse Error", e);
+            }
+        };
+
+        return () => {
+            if (wsRef.current) wsRef.current.close();
+        };
+    }, [isExtensionEnabled]); // Re-bind listener if enabled state changes to capture it in closure? No, ref is better or just dependency.
+    // Actually, recreating WS on toggle is overkill. Better to keep WS open and just gate the state update.
+    // I'll keep the useEffect dependency simple.
+
+    // Recalculate duration whenever relevant state changes
+    useEffect(() => {
+        // Depth scan = 600s (10 mins), Standard scan = 180s (3 mins)
+        // Deep scan enforced: 600s (10 mins)
+        const durationSeconds = 600;
+        setEstimatedDuration(Math.ceil(durationSeconds / 60));
+    }, [activeScanModules]);
+
+
+    const toggleModule = (index) => {
+        const updated = [...activeScanModules];
+        updated[index].selected = !updated[index].selected;
+        setActiveScanModules(updated);
+    };
+
+    const toggleSwitch = (e, index) => {
+        e.stopPropagation(); // prevent triggering parent row click if needed
+        const updated = [...activeScanModules];
+        updated[index].switchState = !updated[index].switchState;
+        setActiveScanModules(updated);
+    };
+
+    const getAuthBtnClass = (type) =>
+        `rounded-md py-1.5 text-sm font-medium transition-all ${authType === type
+            ? 'bg-[#9b61ff] text-white text-glow shadow-[0_0_10px_rgba(155,97,255,0.4)]'
+            : 'text-gray-400 hover:text-white hover:bg-white/5'
+        }`;
+
+    const getPlaceholder = () => {
+        if (authType === 'API Key') return 'Enter X-API-KEY or similar...';
+        if (authType === 'Basic') return 'username:password base64 string...';
+        return 'Paste your Bearer token...';
+    };
+
+    // --- Launch Action ---
+    const handleLaunch = async () => {
+        // 1. Prepare Configuration
+        // Default to first line of targets for MVP
+        const targetUrl = targets.split('\n')[0].trim();
+        if (!targetUrl) {
+            alert("Please specify a target URL.");
+            return;
+        }
+
+        // Build headers
+        const headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "Antigravity/3.0"
+        };
+        if (authContent) {
+            if (authType === 'Bearer') headers["Authorization"] = `Bearer ${authContent}`;
+            else if (authType === 'API Key') headers["X-API-KEY"] = authContent;
+            else if (authType === 'Basic') headers["Authorization"] = `Basic ${authContent}`;
+        }
+
+        const payload = {
+            target_url: targetUrl, // MATCH BACKEND SCHEMA
+            method: "POST",
+            headers: headers,
+            velocity: parseInt(concurrency, 10),
+            body: "", // Ensure body field exists
+            // [NEW] Configuration
+            modules: activeScanModules.filter(m => m.selected).map(m => m.name),
+            filters: interceptionFilters.filter(f => f.selected).map(f => f.name),
+            duration: 600 // Deep scan natively enforced
+        };
+
+        setIsLaunching(true);
+        const backendHost = '127.0.0.1:8000';
+
+        try {
+            console.log("Launching scan with payload:", payload);
+            // DIRECT LINK TO CORTEX ORCHESTRATOR
+            const response = await fetch(`http://${backendHost}/api/attack/fire`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const json = await response.json();
+
+            if (!response.ok) {
+                console.error("Launch Error:", json);
+                alert(`Failed to launch: ${json.detail || 'Unknown Error'}`);
+                return;
+            }
+
+            console.log("Scan launched with ID:", json.scan_id);
+            // Race Condition Fix: Wait 1s for backend to propagate state to dashboard/scans endpoint
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            navigate('scans');
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            const msg = err.message === 'Failed to fetch'
+                ? "Backend is offline. Please ensure the Antigravity Terminal is running on port 8000."
+                : err.message;
+            alert("Failed to launch scan: " + msg);
+        } finally {
+            setIsLaunching(false);
+        }
+    };
+
+    return (
+        <AnimationWrapper className="text-white min-h-screen w-full overflow-x-hidden relative" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            {/* Background is now global */}
+
+            <div className="relative z-10 flex flex-col min-h-screen">
+
+                <Navigation navigate={navigate} activePage="scans" />
+
+                {/* Main Content Wrapper - Aligned with Navigation */}
+                <div className="flex-grow mx-auto max-w-7xl px-6 lg:px-8 w-full">
+                    <div className="my-12 flex flex-wrap items-center justify-between gap-6">
+                        <div>
+                            <h2 className="text-4xl font-bold tracking-tighter">New Scan Configuration</h2>
+                            <p className="mt-2 text-base text-gray-300">Configure target scope, modules, and performance parameters for a new security assessment.</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            {/* Reports button removed to prevent ghost clicks from previous page */}
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={handleLaunch}
+                                disabled={isLaunching}
+                                className={`glow-element flex h-11 items-center justify-center gap-2 rounded-lg bg-[#9b61ff] px-5 text-base font-semibold text-white transition-opacity hover:opacity-90 ${isLaunching ? 'opacity-70 cursor-wait' : ''}`}
+                            >
+                                <span className="material-symbols-outlined text-xl">rocket_launch</span>
+                                {isLaunching ? 'Launching...' : 'Launch Scan'}
+                            </motion.button>
+                        </div>
+                    </div>
+
+                    <main className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                        <div className="flex flex-col gap-8 lg:col-span-2">
+                            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                                <div className="glassmorphism-card rounded-xl p-6">
+                                    <div className="mb-4 flex items-center gap-3">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black/20"><span className="material-symbols-outlined text-gray-400">settings</span></div>
+                                        <h3 className="text-lg font-semibold">General Information</h3>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <label className="block">
+                                            <span className="text-sm font-medium text-gray-300">SCAN TITLE</span>
+                                            <input
+                                                className="relative z-10 mt-1 block w-full rounded-lg border-0 bg-[#3E425E]/70 p-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-[#9b61ff]"
+                                                placeholder="Ultimate Precision Blueprint"
+                                                type="text"
+                                                value={scanTitle}
+                                                onChange={(e) => setScanTitle(e.target.value)}
+                                            />
+                                        </label>
+                                        <button className="w-full rounded-lg bg-[#3E425E]/70 py-2.5 text-sm font-medium transition-colors hover:bg-[#3E425E]/90">LOAD PRESET</button>
+                                    </div>
+                                </div>
+                                <div className="glassmorphism-card rounded-xl p-6">
+                                    <div className="mb-4 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black/20"><span className="material-symbols-outlined text-gray-400">target</span></div>
+                                            <h3 className="text-lg font-semibold">Target Scope</h3>
+                                        </div>
+                                        {/* Import button removed as requested */}
+                                    </div>
+                                    <textarea
+                                        className="relative z-10 block w-full rounded-lg border-0 bg-[#3E425E]/70 p-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-[#9b61ff]"
+                                        placeholder="Enter IPs, Domains, or CIDR blocks (one per line)..."
+                                        rows="4"
+                                        value={targets || ""}
+                                        onChange={(e) => setTargets(e.target.value)}
+                                    ></textarea>
+                                    <div className="mt-3 flex items-center justify-between">
+                                        <span className="rounded-md bg-[#3E425E]/70 px-2 py-1 text-xs font-medium">{targets.split('\n').filter(t => t.trim()).length} targets defined</span>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                                <div className="space-y-4">
+                                    <h4 className="text-xl font-semibold">Interception Filters</h4>
+                                    {/* Filters Checks */}
+                                    {/* Filters Checks */}
+                                    <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                                        {interceptionFilters.map((item, i) => (
+                                            <div key={i} className="glassmorphism-card flex items-start gap-4 rounded-xl p-4">
+                                                <input
+                                                    checked={item.selected}
+                                                    onChange={() => {
+                                                        const updated = [...interceptionFilters];
+                                                        updated[i].selected = !updated[i].selected;
+                                                        setInterceptionFilters(updated);
+                                                    }}
+                                                    className="mt-1 h-5 w-5 shrink-0 appearance-none rounded-md border-2 border-gray-500 bg-transparent checked:border-[#9b61ff] checked:bg-[#9b61ff] cursor-pointer"
+                                                    type="checkbox"
+                                                />
+                                                <div><h5 className="font-semibold">{item.name}</h5><p className="text-sm text-gray-400">{item.desc}</p></div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h4 className="text-xl font-semibold">Logic Attack Vectors</h4>
+                                    {/* Modules Checks */}
+                                    {/* Modules Checks */}
+                                    <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                                        {activeScanModules.map((item, i) => (
+                                            <div key={i} className="glassmorphism-card flex items-start gap-4 rounded-xl p-4">
+                                                <input
+                                                    checked={item.selected}
+                                                    onChange={() => toggleModule(i)}
+                                                    className="mt-1 h-5 w-5 shrink-0 appearance-none rounded-md border-2 border-gray-500 bg-transparent checked:border-[#9b61ff] checked:bg-[#9b61ff] cursor-pointer"
+                                                    type="checkbox"
+                                                />
+                                                <div className="flex-grow">
+                                                    <div className="flex items-center justify-between">
+                                                        <h5 className="font-semibold">{item.name}</h5>
+                                                        {item.hasSwitch && (
+                                                            <div className="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in ml-2">
+                                                                {/* Functional Toggle Switch */}
+                                                                <div
+                                                                    onClick={(e) => toggleSwitch(e, i)}
+                                                                    className={`w-8 h-4 rounded-full cursor-pointer transition-colors duration-300 ${item.switchState ? 'bg-[#8B5CF6]' : 'bg-gray-600'}`}
+                                                                >
+                                                                    <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform duration-300 ${item.switchState ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm text-gray-400">{item.desc}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            {/* Interception */}
+                            <div className="col-span-1 md:col-span-2">
+                                <div className="glassmorphism-card rounded-xl p-6">
+                                    <div className="mb-4 flex items-center gap-3">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black/20"><span className="material-symbols-outlined text-gray-400 text-sm">wifi_tethering</span></div>
+                                        <h3 className="text-lg font-semibold">Interception Source</h3>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div
+                                            className="flex flex-1 items-center justify-between rounded-lg bg-[#3E425E]/70 px-4 py-3 cursor-default"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
+                                                    <div
+                                                        onClick={() => setIsExtensionEnabled(!isExtensionEnabled)}
+                                                        className={`w-10 h-6 rounded-full cursor-pointer transition-colors duration-300 ${isExtensionEnabled ? 'bg-[#8B5CF6]' : 'bg-gray-600'}`}
+                                                    >
+                                                        <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${isExtensionEnabled ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                                                    </div>
+                                                </div>
+                                                <span className="text-sm font-medium text-white">Live Browser Feed (Chrome Ext)</span>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-sm font-medium ${isConnected ? 'text-green-400' : 'text-red-400'}`}>
+                                                    {isExtensionEnabled ? (isConnected ? 'Connected' : 'Waiting...') : 'Disabled'}
+                                                </span>
+                                                <span className={`h-2 w-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.6)] ${isExtensionEnabled && isConnected ? 'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)]' : 'bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.6)]'}`}></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-8 lg:col-span-1">
+                            <div className="glassmorphism-card rounded-xl p-6">
+                                <div className="mb-4 flex items-center gap-3">
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black/20"><span className="material-symbols-outlined text-[#9b61ff] icon-glow">speed</span></div>
+                                    <h3 className="text-lg font-semibold">Performance</h3>
+                                </div>
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm"><span>Request Rate</span> <span className="rounded-md bg-[#3E425E]/70 px-2 py-0.5 text-xs font-medium">{requestRate} req/s</span></div>
+                                        <input
+                                            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-[#3E425E]/70 accent-[#9b61ff]"
+                                            max="1000"
+                                            min="0"
+                                            type="range"
+                                            value={requestRate}
+                                            onChange={(e) => setRequestRate(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm"><span>Concurrency</span> <span className="rounded-md bg-[#3E425E]/70 px-2 py-0.5 text-xs font-medium">{concurrency} threads</span></div>
+                                        <input
+                                            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-[#3E425E]/70 accent-[#9b61ff]"
+                                            max="100"
+                                            min="1"
+                                            type="range"
+                                            value={concurrency}
+                                            onChange={(e) => setConcurrency(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="glassmorphism-card rounded-xl p-6">
+                                <div className="mb-4 flex items-center gap-3">
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black/20"><span className="material-symbols-outlined text-[#9b61ff] icon-glow">key</span></div>
+                                    <h3 className="text-lg font-semibold">Authentication</h3>
+                                </div>
+                                <div className="grid grid-cols-3 gap-1 rounded-lg bg-[#3E425E]/70 p-1">
+                                    <button onClick={() => setAuthType('Bearer')} className={getAuthBtnClass('Bearer')}>Bearer</button>
+                                    <button onClick={() => setAuthType('API Key')} className={getAuthBtnClass('API Key')}>API Key</button>
+                                    <button onClick={() => setAuthType('Basic')} className={getAuthBtnClass('Basic')}>Basic</button>
+                                </div>
+                                <textarea
+                                    className="mt-4 block w-full rounded-lg border-0 bg-[#3E425E]/70 p-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-[#9b61ff]"
+                                    placeholder={getPlaceholder()}
+                                    rows="3"
+                                    value={authContent}
+                                    onChange={(e) => setAuthContent(e.target.value)}
+                                ></textarea>
+                            </div>
+
+                            <div className="glassmorphism-card rounded-xl p-6 text-center">
+                                <p className="text-lg">ESTIMATED DURATION</p>
+                                <p className="my-2 text-4xl font-bold">~<span className="text-[#9b61ff] text-glow">{estimatedDuration}</span> minutes</p>
+                                <div className="my-4 h-2 w-full rounded-full bg-[#3E425E]/70">
+                                    <div className="h-2 w-3/4 rounded-full bg-[#9b61ff] glow-element"></div>
+                                </div>
+                                <p className="text-sm text-gray-400">Based on {concurrency} threads scanning Active Modules.</p>
+                            </div>
+                        </div>
+                    </main>
+
+                    <footer className="py-8 text-center text-sm text-gray-500">
+                        VigilAgent API Endpoint Scanning System
+                    </footer>
+                </div>
+            </div>
+        </AnimationWrapper>
+    );
+};
+
+export default NewScan;

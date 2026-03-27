@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity Mimic</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <div class="popup-container">
+        <header class="popup-header">
+            <span class="header-icon">🎭</span>
+            <h1>MIMIC</h1>
+            <span class="header-subtitle">Identity Switcher</span>
+        </header>
+
+        <main class="popup-body">
+            <section class="current-session">
+                <div class="section-label">CURRENT SESSION</div>
+                <div class="session-info" id="current-session">
+                    <span class="session-domain" id="current-domain">Loading...</span>
+                    <span class="session-cookies" id="current-cookies">0 cookies</span>
+                </div>
+            </section>
+
+            <section class="profiles-section">
+                <div class="section-header">
+                    <span class="section-label">SAVED PROFILES</span>
+                    <span class="profile-count" id="profile-count">0</span>
+                </div>
+                <div class="profiles-list" id="profiles-list">
+                    <div class="empty-state">No profiles saved yet</div>
+                </div>
+            </section>
+
+            <section class="actions">
+                <button class="btn primary" id="save-profile">
+                    <span>💾</span> Save Current Session
+                </button>
+                <button class="btn secondary" id="clear-all">
+                    <span>🗑️</span> Clear All
+                </button>
+            </section>
+        </main>
+
+        <footer class="popup-footer">
+            <span>Antigravity V2</span>
+        </footer>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
