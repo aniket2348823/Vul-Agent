@@ -1,0 +1,228 @@
+{
+    "scans": [
+        {
+            "id": "4b630fb4-b94d-4192-b323-ba5aded6275d",
+            "status": "Completed",
+            "name": "http://testaspnet.vulnweb.com/",
+            "scope": "http://testaspnet.vulnweb.com/",
+            "modules": [
+                "The Tycoon",
+                "The Escalator",
+                "The Skipper"
+            ],
+            "timestamp": "2026-03-27 16:32:03",
+            "results": [
+                {
+                    "id": "3f461ee5-4720-42ac-ac15-6a7ae64b2919",
+                    "scan_id": "GLOBAL",
+                    "timestamp": "2026-03-27 10:32:10.487756",
+                    "type": "VULN_CONFIRMED",
+                    "source": "agent_theta",
+                    "payload": {
+                        "type": "HIDDEN_TEXT",
+                        "url": "http://127.0.0.1:5173/",
+                        "severity": "Medium",
+                        "data": {
+                            "risk_score": 60,
+                            "threat_type": "Invisible Content Overlay",
+                            "element_api_id": "xgn73jnwu"
+                        },
+                        "description": "Sentinel detected Hidden Text"
+                    }
+                },
+                {
+                    "id": "657d8084-dead-4d49-a1b6-b91186f45d89",
+                    "scan_id": "GLOBAL",
+                    "timestamp": "2026-03-27 10:32:16.215194",
+                    "type": "VULN_CONFIRMED",
+                    "source": "agent_gamma",
+                    "payload": {
+                        "url": "http://testaspnet.vulnweb.com/",
+                        "payload": "0x700x610x790x6c0x6f0x610x640x31",
+                        "description": "\r\n<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" >\r\n<HTML>\r\n\t<HEAD>\r\n\t\t<title>acublog news</title>\r\n\t\t<META http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\">\r\n\t\t<meta content=\"Microsoft Visual Studio .NET 7.1\" name=\"GENERATOR\">\r\n\t\t<meta content=\"C#\" name=\"CODE_LANGUAGE\">\r\n\t\t<meta content=\"JavaScript\" name=\"vs_defaultClientScript\">\r\n\t\t<meta content=\"http://schemas.microsoft.com/intellisense/ie5\" name=\"vs_targetSchema\">\r\n\t\t<LINK href=\"styles.css\" type=\"text/css\" rel=\"stylesheet\">\r\n\t</HEAD>\r\n\t<body>\r\n\t\t<form name=\"Form1\" method=\"post\" action=\"default.aspx?test=0x700x610x790x6c0x6f0x610x640x31\" id=\"Form1\">\r\n<input type=\"hidden\" name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"/wEPDwUKLTEwNTI0MjkwNQ9kFgICAQ9kFgICAQ9kFgQCAQ8WBB4EaHJlZgUKbG9naW4uYXNweB4JaW5uZXJodG1sBQV",
+                        "evidence": "Server threw unhandled logic/syntax error indicating injection vulnerability.",
+                        "confidence": 0.95,
+                        "audit_reasoning": "Deterministic HEURISTIC: Critical anomaly confirmed (server threw unhandled logic/syntax error indicati)."
+                    }
+                },
+                {
+                    "id": "ac03c9ff-0060-4bb7-98e6-dbb4dd9234b4",
+                    "scan_id": "GLOBAL",
+                    "timestamp": "2026-03-27 10:32:21.573473",
+                    "type": "VULN_CONFIRMED",
+                    "source": "agent_gamma",
+                    "payload": {
+                        "url": "http://testaspnet.vulnweb.com/",
+                        "payload": "payload2",
+                        "description": "\r\n<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" >\r\n<HTML>\r\n\t<HEAD>\r\n\t\t<title>acublog news</title>\r\n\t\t<META http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\">\r\n\t\t<meta content=\"Microsoft Visual Studio .NET 7.1\" name=\"GENERATOR\">\r\n\t\t<meta content=\"C#\" name=\"CODE_LANGUAGE\">\r\n\t\t<meta content=\"JavaScript\" name=\"vs_defaultClientScript\">\r\n\t\t<meta content=\"http://schemas.microsoft.com/intellisense/ie5\" name=\"vs_targetSchema\">\r\n\t\t<LINK href=\"styles.css\" type=\"text/css\" rel=\"stylesheet\">\r\n\t</HEAD>\r\n\t<body>\r\n\t\t<form name=\"Form1\" method=\"post\" action=\"default.aspx?test=payload2\" id=\"Form1\">\r\n<input type=\"hidden\" name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"/wEPDwUKLTEwNTI0MjkwNQ9kFgICAQ9kFgICAQ9kFgQCAQ8WBB4EaHJlZgUKbG9naW4uYXNweB4JaW5uZXJodG1sBQVsb2dpbmQCAw8WBB8AZB4HVml",
+                        "evidence": "Server threw unhandled logic/syntax error indicating injection vulnerability.",
+                        "confidence": 0.95,
+                        "audit_reasoning": "Deterministic HEURISTIC: Critical anomaly confirmed (server threw unhandled logic/syntax error indicati)."
+                    }
+                },
+                {
+                    "id": "263e4bc2-821b-4ae9-93b6-4a3278311bdf",
+                    "scan_id": "GLOBAL",
+                    "timestamp": "2026-03-27 10:32:21.662050",
+                    "type": "VULN_CONFIRMED",
+                    "source": "agent_gamma",
+                    "payload": {
+                        "url": "http://testaspnet.vulnweb.com/",
+                        "payload": "0x700x610x790x6c0x6f0x610x640x33",
+                        "description": "\r\n<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" >\r\n<HTML>\r\n\t<HEAD>\r\n\t\t<title>acublog news</title>\r\n\t\t<META http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\">\r\n\t\t<meta content=\"Microsoft Visual Studio .NET 7.1\" name=\"GENERATOR\">\r\n\t\t<meta content=\"C#\" name=\"CODE_LANGUAGE\">\r\n\t\t<meta content=\"JavaScript\" name=\"vs_defaultClientScript\">\r\n\t\t<meta content=\"http://schemas.microsoft.com/intellisense/ie5\" name=\"vs_targetSchema\">\r\n\t\t<LINK href=\"styles.css\" type=\"text/css\" rel=\"stylesheet\">\r\n\t</HEAD>\r\n\t<body>\r\n\t\t<form name=\"Form1\" method=\"post\" action=\"default.aspx?test=0x700x610x790x6c0x6f0x610x640x33\" id=\"Form1\">\r\n<input type=\"hidden\" name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"/wEPDwUKLTEwNTI0MjkwNQ9kFgICAQ9kFgICAQ9kFgQCAQ8WBB4EaHJlZgUKbG9naW4uYXNweB4JaW5uZXJodG1sBQV",
+                        "evidence": "Server threw unhandled logic/syntax error indicating injection vulnerability.",
+                        "confidence": 0.95,
+                        "audit_reasoning": "Deterministic HEURISTIC: Critical anomaly confirmed (server threw unhandled logic/syntax error indicati)."
+                    }
+                },
+                {
+                    "id": "14d4b17f-4804-44b7-9881-f0a117690457",
+                    "scan_id": "GLOBAL",
+                    "timestamp": "2026-03-27 10:32:21.736087",
+                    "type": "VULN_CONFIRMED",
+                    "source": "agent_gamma",
+                    "payload": {
+                        "url": "http://testaspnet.vulnweb.com/",
+                        "payload": "cGF5bG9hZDM=",
+                        "description": "\r\n<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" >\r\n<HTML>\r\n\t<HEAD>\r\n\t\t<title>acublog news</title>\r\n\t\t<META http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\">\r\n\t\t<meta content=\"Microsoft Visual Studio .NET 7.1\" name=\"GENERATOR\">\r\n\t\t<meta content=\"C#\" name=\"CODE_LANGUAGE\">\r\n\t\t<meta content=\"JavaScript\" name=\"vs_defaultClientScript\">\r\n\t\t<meta content=\"http://schemas.microsoft.com/intellisense/ie5\" name=\"vs_targetSchema\">\r\n\t\t<LINK href=\"styles.css\" type=\"text/css\" rel=\"stylesheet\">\r\n\t</HEAD>\r\n\t<body>\r\n\t\t<form name=\"Form1\" method=\"post\" action=\"default.aspx?test=cGF5bG9hZDM%3d\" id=\"Form1\">\r\n<input type=\"hidden\" name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"/wEPDwUKLTEwNTI0MjkwNQ9kFgICAQ9kFgICAQ9kFgQCAQ8WBB4EaHJlZgUKbG9naW4uYXNweB4JaW5uZXJodG1sBQVsb2dpbmQCAw8WBB8AZ",
+                        "evidence": "Server threw unhandled logic/syntax error indicating injection vulnerability.",
+                        "confidence": 0.95,
+                        "audit_reasoning": "Deterministic HEURISTIC: Critical anomaly confirmed (server threw unhandled logic/syntax error indicati)."
+                    }
+                },
+                {
+                    "id": "e7168969-c17f-400b-861e-40c98e399583",
+                    "scan_id": "GLOBAL",
+                    "timestamp": "2026-03-27 10:32:21.737935",
+                    "type": "VULN_CONFIRMED",
+                    "source": "agent_gamma",
+                    "payload": {
+                        "url": "http://testaspnet.vulnweb.com/",
+                        "payload": "0x700x610x790x6c0x6f0x610x640x32",
+                        "description": "\r\n<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" >\r\n<HTML>\r\n\t<HEAD>\r\n\t\t<title>acublog news</title>\r\n\t\t<META http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\">\r\n\t\t<meta content=\"Microsoft Visual Studio .NET 7.1\" name=\"GENERATOR\">\r\n\t\t<meta content=\"C#\" name=\"CODE_LANGUAGE\">\r\n\t\t<meta content=\"JavaScript\" name=\"vs_defaultClientScript\">\r\n\t\t<meta content=\"http://schemas.microsoft.com/intellisense/ie5\" name=\"vs_targetSchema\">\r\n\t\t<LINK href=\"styles.css\" type=\"text/css\" rel=\"stylesheet\">\r\n\t</HEAD>\r\n\t<body>\r\n\t\t<form name=\"Form1\" method=\"post\" action=\"default.aspx?test=0x700x610x790x6c0x6f0x610x640x32\" id=\"Form1\">\r\n<input type=\"hidden\" name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"/wEPDwUKLTEwNTI0MjkwNQ9kFgICAQ9kFgICAQ9kFgQCAQ8WBB4EaHJlZgUKbG9naW4uYXNweB4JaW5uZXJodG1sBQV",
+                        "evidence": "Server threw unhandled logic/syntax error indicating injection vulnerability.",
+                        "confidence": 0.95,
+                        "audit_reasoning": "Deterministic HEURISTIC: Critical anomaly confirmed (server threw unhandled logic/syntax error indicati)."
+                    }
+                },
+                {
+                    "id": "cf13ff17-e311-4005-818c-0e49b8879208",
+                    "scan_id": "GLOBAL",
+                    "timestamp": "2026-03-27 10:32:21.739601",
+                    "type": "VULN_CONFIRMED",
+                    "source": "agent_gamma",
+                    "payload": {
+                        "url": "http://testaspnet.vulnweb.com/",
+                        "payload": "payload1",
+                        "description": "\r\n<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" >\r\n<HTML>\r\n\t<HEAD>\r\n\t\t<title>acublog news</title>\r\n\t\t<META http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\">\r\n\t\t<meta content=\"Microsoft Visual Studio .NET 7.1\" name=\"GENERATOR\">\r\n\t\t<meta content=\"C#\" name=\"CODE_LANGUAGE\">\r\n\t\t<meta content=\"JavaScript\" name=\"vs_defaultClientScript\">\r\n\t\t<meta content=\"http://schemas.microsoft.com/intellisense/ie5\" name=\"vs_targetSchema\">\r\n\t\t<LINK href=\"styles.css\" type=\"text/css\" rel=\"stylesheet\">\r\n\t</HEAD>\r\n\t<body>\r\n\t\t<form name=\"Form1\" method=\"post\" action=\"default.aspx?test=payload1\" id=\"Form1\">\r\n<input type=\"hidden\" name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"/wEPDwUKLTEwNTI0MjkwNQ9kFgICAQ9kFgICAQ9kFgQCAQ8WBB4EaHJlZgUKbG9naW4uYXNweB4JaW5uZXJodG1sBQVsb2dpbmQCAw8WBB8AZB4HVml",
+                        "evidence": "Server threw unhandled logic/syntax error indicating injection vulnerability.",
+                        "confidence": 0.95,
+                        "audit_reasoning": "Deterministic HEURISTIC: Critical anomaly confirmed (server threw unhandled logic/syntax error indicati)."
+                    }
+                },
+                {
+                    "id": "e6e041a0-421e-4fdd-9199-23a3ed64f431",
+                    "scan_id": "GLOBAL",
+                    "timestamp": "2026-03-27 10:32:21.743613",
+                    "type": "VULN_CONFIRMED",
+                    "source": "agent_gamma",
+                    "payload": {
+                        "url": "http://testaspnet.vulnweb.com/",
+                        "payload": "payload3",
+                        "description": "\r\n<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" >\r\n<HTML>\r\n\t<HEAD>\r\n\t\t<title>acublog news</title>\r\n\t\t<META http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\">\r\n\t\t<meta content=\"Microsoft Visual Studio .NET 7.1\" name=\"GENERATOR\">\r\n\t\t<meta content=\"C#\" name=\"CODE_LANGUAGE\">\r\n\t\t<meta content=\"JavaScript\" name=\"vs_defaultClientScript\">\r\n\t\t<meta content=\"http://schemas.microsoft.com/intellisense/ie5\" name=\"vs_targetSchema\">\r\n\t\t<LINK href=\"styles.css\" type=\"text/css\" rel=\"stylesheet\">\r\n\t</HEAD>\r\n\t<body>\r\n\t\t<form name=\"Form1\" method=\"post\" action=\"default.aspx?test=payload3\" id=\"Form1\">\r\n<input type=\"hidden\" name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"/wEPDwUKLTEwNTI0MjkwNQ9kFgICAQ9kFgICAQ9kFgQCAQ8WBB4EaHJlZgUKbG9naW4uYXNweB4JaW5uZXJodG1sBQVsb2dpbmQCAw8WBB8AZB4HVml",
+                        "evidence": "Server threw unhandled logic/syntax error indicating injection vulnerability.",
+                        "confidence": 0.95,
+                        "audit_reasoning": "Deterministic HEURISTIC: Critical anomaly confirmed (server threw unhandled logic/syntax error indicati)."
+                    }
+                },
+                {
+                    "id": "41dfd9cf-cee2-47a4-b2eb-c0912d42ccb6",
+                    "scan_id": "GLOBAL",
+                    "timestamp": "2026-03-27 10:32:21.748826",
+                    "type": "VULN_CONFIRMED",
+                    "source": "agent_gamma",
+                    "payload": {
+                        "url": "http://testaspnet.vulnweb.com/",
+                        "payload": "cGF5bG9hZDI=",
+                        "description": "\r\n<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" >\r\n<HTML>\r\n\t<HEAD>\r\n\t\t<title>acublog news</title>\r\n\t\t<META http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\">\r\n\t\t<meta content=\"Microsoft Visual Studio .NET 7.1\" name=\"GENERATOR\">\r\n\t\t<meta content=\"C#\" name=\"CODE_LANGUAGE\">\r\n\t\t<meta content=\"JavaScript\" name=\"vs_defaultClientScript\">\r\n\t\t<meta content=\"http://schemas.microsoft.com/intellisense/ie5\" name=\"vs_targetSchema\">\r\n\t\t<LINK href=\"styles.css\" type=\"text/css\" rel=\"stylesheet\">\r\n\t</HEAD>\r\n\t<body>\r\n\t\t<form name=\"Form1\" method=\"post\" action=\"default.aspx?test=cGF5bG9hZDI%3d\" id=\"Form1\">\r\n<input type=\"hidden\" name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"/wEPDwUKLTEwNTI0MjkwNQ9kFgICAQ9kFgICAQ9kFgQCAQ8WBB4EaHJlZgUKbG9naW4uYXNweB4JaW5uZXJodG1sBQVsb2dpbmQCAw8WBB8AZ",
+                        "evidence": "Server threw unhandled logic/syntax error indicating injection vulnerability.",
+                        "confidence": 0.95,
+                        "audit_reasoning": "Deterministic HEURISTIC: Critical anomaly confirmed (server threw unhandled logic/syntax error indicati)."
+                    }
+                },
+                {
+                    "id": "ffd33603-0333-4e3d-ae3b-2d25a3fc75fc",
+                    "scan_id": "GLOBAL",
+                    "timestamp": "2026-03-27 10:32:21.756725",
+                    "type": "VULN_CONFIRMED",
+                    "source": "agent_gamma",
+                    "payload": {
+                        "url": "http://testaspnet.vulnweb.com/",
+                        "payload": "cGF5bG9hZDE=",
+                        "description": "\r\n<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" >\r\n<HTML>\r\n\t<HEAD>\r\n\t\t<title>acublog news</title>\r\n\t\t<META http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\">\r\n\t\t<meta content=\"Microsoft Visual Studio .NET 7.1\" name=\"GENERATOR\">\r\n\t\t<meta content=\"C#\" name=\"CODE_LANGUAGE\">\r\n\t\t<meta content=\"JavaScript\" name=\"vs_defaultClientScript\">\r\n\t\t<meta content=\"http://schemas.microsoft.com/intellisense/ie5\" name=\"vs_targetSchema\">\r\n\t\t<LINK href=\"styles.css\" type=\"text/css\" rel=\"stylesheet\">\r\n\t</HEAD>\r\n\t<body>\r\n\t\t<form name=\"Form1\" method=\"post\" action=\"default.aspx?test=cGF5bG9hZDE%3d\" id=\"Form1\">\r\n<input type=\"hidden\" name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"/wEPDwUKLTEwNTI0MjkwNQ9kFgICAQ9kFgICAQ9kFgQCAQ8WBB4EaHJlZgUKbG9naW4uYXNweB4JaW5uZXJodG1sBQVsb2dpbmQCAw8WBB8AZ",
+                        "evidence": "Server threw unhandled logic/syntax error indicating injection vulnerability.",
+                        "confidence": 0.95,
+                        "audit_reasoning": "Deterministic HEURISTIC: Critical anomaly confirmed (server threw unhandled logic/syntax error indicati)."
+                    }
+                },
+                {
+                    "id": "5e6bc027-7d28-4eb3-a256-fcebca8eb1fe",
+                    "scan_id": "GLOBAL",
+                    "timestamp": "2026-03-27 10:32:30.575733",
+                    "type": "VULN_CONFIRMED",
+                    "source": "agent_sigma",
+                    "payload": {
+                        "type": "LOGIC_ESCALATOR",
+                        "url": "http://testaspnet.vulnweb.com/",
+                        "severity": "HIGH",
+                        "payload": "None",
+                        "evidence": "Response contained 'admin' for payload {'is_admin': True}"
+                    }
+                }
+            ],
+            "duration": "600.00s",
+            "report_ready": true
+        }
+    ],
+    "active_scans": 0,
+    "total_scans": 1,
+    "vulnerabilities": 11,
+    "critical": 10,
+    "history": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+    ],
+    "v6_metrics": {
+        "injections_blocked": 1,
+        "deceptive_ui_blocked": 0,
+        "risk_score": 60
+    }
+}

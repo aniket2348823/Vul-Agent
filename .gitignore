@@ -13,11 +13,11 @@ venv/
 # Antigravity specific
 reports/
 *.pdf
-stats.json
-test_*.py
-verify_*.py
-manual_launch.py
-keyring.json
+# stats.json
+# test_*.py
+# verify_*.py
+# manual_launch.py
+# keyring.json
 brain/
-*.txt
+# *.txt
 testsprite_tests/
