@@ -160,10 +160,26 @@ class SecurityReportPDF(FPDF):
         if isinstance(code, list):
             lines = [str(l) for l in code]
         else:
-            lines = str(code).strip().split('\n')
+            # Strip markdown code fences before rendering
+            code_str = str(code).strip()
+            if code_str.startswith('```'):
+                code_str = code_str.split('\n', 1)[-1] if '\n' in code_str else code_str[3:]
+            if code_str.endswith('```'):
+                code_str = code_str[:-3].rstrip()
+            lines = code_str.strip().split('\n')
+            
+        # Page-break safety: check if we have enough space
+        estimated_height = len(lines) * 5 + 10
+        if self.get_y() + estimated_height > 270:
+            self.add_page()
+            self.set_font('Courier', '', 9)
+            self.set_text_color(50, 50, 50)
+            self.set_fill_color(245, 245, 245)
+            self.set_x(15)
             
         for line in lines:
-            self.cell(180, 5, line[:80], fill=True, ln=True)
+            safe_line = self._sanitize_text(line[:75])
+            self.cell(180, 5, safe_line, fill=True, ln=True)
         self.ln(5)
 
     def add_timeline_log(self, events: List[str]):
@@ -193,7 +209,13 @@ class SecurityReportPDF(FPDF):
         curr_y = self.get_y()
         lines = content if isinstance(content, list) else content.strip().split('\n')
         
-        box_height = len(lines) * 5 + 4
+        # Truncate lines to prevent overflow (85 chars max for 186mm at 9pt Courier)
+        safe_lines = []
+        for line in lines:
+            safe = self._sanitize_text(str(line)[:85])
+            safe_lines.append(safe)
+        
+        box_height = len(safe_lines) * 5 + 4
         # Check page break
         if curr_y + box_height > 270:
             self.add_page()
@@ -202,9 +224,9 @@ class SecurityReportPDF(FPDF):
         self.rect(10, curr_y, 190, box_height)
         
         self.set_y(curr_y + 2)
-        for line in lines:
+        for line in safe_lines:
             self.set_x(12)
-            self.cell(186, 5, line[:110], ln=True)
+            self.cell(186, 5, line, ln=True)
         self.set_y(curr_y + box_height + 2)
 
     def add_risk_meter(self, risk_score):
@@ -248,6 +270,11 @@ class SecurityReportPDF(FPDF):
 
     def add_table(self, title: str, headers: List[str], data: List[List[str]], col_widths: List[int]):
         """Forensic table with ACCENT_PURPLE borders as seen in image specimens."""
+        # Page-break safety: check if table header + at least 2 rows fit
+        estimated_height = 8 + (len(data) + 1) * 8 + 10
+        if self.get_y() + min(estimated_height, 50) > 270:
+            self.add_page()
+        
         self.ln(2)
         self.set_font('Arial', 'B', 11)
         self.set_text_color(50, 50, 50)
@@ -264,7 +291,7 @@ class SecurityReportPDF(FPDF):
             self.cell(col_widths[i], 8, header, border=True, fill=True, align='C')
         self.ln()
         
-        # Data
+        # Data — truncate proportional to column width (~2.2 chars per mm at 9pt Courier)
         self.set_font('Courier', '', 9)
         self.set_text_color(0, 0, 0)
         
@@ -272,7 +299,9 @@ class SecurityReportPDF(FPDF):
             if self.get_y() > 270: self.add_page()
             
             for i, cell_data in enumerate(row):
-                 self.cell(col_widths[i], 8, str(cell_data)[:50], border=True)
+                max_chars = max(8, int(col_widths[i] * 2.0))  # ~2 chars per mm
+                safe_text = self._sanitize_text(str(cell_data)[:max_chars])
+                self.cell(col_widths[i], 8, safe_text, border=True)
             self.ln()
         self.ln(5)
 
@@ -362,17 +391,20 @@ class ReportGenerator:
             circuit_breaker_activations = telemetry.get('circuit_breaker_activations', 0)
 
             # ================================================================
-            # DEDUPLICATE FINDINGS
+            # DEDUPLICATE FINDINGS (Hardened V7)
+            # Only include CONFIRMED vulnerabilities (not unverified candidates)
             # ================================================================
-            raw_vuln_events = [e for e in events if any(t in str(e.get('type', '')).upper() for t in ["VULN_CONFIRMED", "VULN_CANDIDATE", "HIDDEN_TEXT", "PROMPT_INJECTION"])]
+            raw_vuln_events = [e for e in events if any(t in str(e.get('type', '')).upper() for t in ["VULN_CONFIRMED", "HIDDEN_TEXT", "PROMPT_INJECTION"])]
             
             grouped_findings = {}
             for v in raw_vuln_events:
                 p = v.get('payload', {})
-                v_type = str(p.get('type', '')).upper()
+                v_type = str(p.get('type', '')).upper().strip()
                 v_url = str(p.get('url', '')).strip().lower()
-                v_data = str(p.get('data', p.get('payload', '')))
-                # Hash-based deduplication
+                # Normalize payload data: lowercase, strip, truncate to 200 chars
+                v_data_raw = str(p.get('data', p.get('payload', '')))
+                v_data = v_data_raw.strip().lower()[:200]
+                # Stronger hash-based deduplication with normalized fields
                 sig = hashlib.sha256(json.dumps({'u': v_url, 't': v_type, 'd': v_data}, sort_keys=True, default=str).encode()).hexdigest()
                 if sig not in grouped_findings:
                     grouped_findings[sig] = v
@@ -558,9 +590,16 @@ class ReportGenerator:
             categories = {}
             for res in enriched_data:
                 categories.setdefault(res['category'], []).append(res)
+            
+            # Remove empty categories to prevent blank pages
+            categories = {k: v for k, v in categories.items() if v}
 
             finding_count = 0
             for cat_idx, (cat_name, cat_findings) in enumerate(categories.items()):
+                # Skip empty categories entirely (prevents blank pages)
+                if not cat_findings:
+                    continue
+                    
                 # Each category starts on a new page (except the very first which is already on the Detailed Findings page)
                 if cat_idx > 0:
                     pdf.add_page()
@@ -659,12 +698,12 @@ class ReportGenerator:
                     pdf.ln(5)
                     
                     # ---- PAYLOAD DECOMPOSITION TABLE (Specimen PS_2 bottom) ----
-                    decomp_row1_value = str(v_data)[:30] if v_data != 'N/A' else 'Injected Payload'
-                    decomp_row1_func = recon.get('root_cause', 'Direct reference to target resource.')[:50]
-                    decomp_row2_value = str(v_evidence)[:30] if v_evidence != 'N/A' else 'Missing'
-                    decomp_row2_func = recon.get('evidence_analysis', 'Application fails to verify authorization.')[:50]
+                    decomp_row1_value = str(v_data)[:25] if v_data != 'N/A' else 'Injected Payload'
+                    decomp_row1_func = recon.get('root_cause', 'Direct reference to target resource.')[:40]
+                    decomp_row2_value = str(v_evidence)[:25] if v_evidence != 'N/A' else 'Missing'
+                    decomp_row2_func = recon.get('evidence_analysis', 'Application fails to verify authorization.')[:40]
                     decomp_row3_value = str(v_status_code)
-                    decomp_row3_func = recon.get('attacker_advantage', 'Server returns data for unauthorized request.')[:50]
+                    decomp_row3_func = recon.get('attacker_advantage', 'Server returns data for unauthorized request.')[:40]
                     pdf.add_table("Table 1: Payload Decomposition", ["Component", "Value", "Technical Function"], [
                         [v_param if v_param != 'N/A' else "Target ID", decomp_row1_value, decomp_row1_func],
                         ["Evidence", decomp_row2_value, decomp_row2_func],
@@ -672,9 +711,10 @@ class ReportGenerator:
                     ], [40, 70, 80])
                     
                     # ---- PAYLOAD SPECIFICATIONS BOX (Specimen PS_3 top) ----
+                    raw_payload_display = str(v_data)[:60] if v_data else 'N/A'
                     pdf.add_snapshot_box([
                         f"Vector Category: {finding_name}",
-                        f"Raw Payload:     {v_data}",
+                        f"Raw Payload:     {raw_payload_display}",
                         f"Encoded:         {str(v_data).encode().hex()[:40]}",
                         f"Encoding Type:   None"
                     ], "Payload Specifications")
@@ -720,8 +760,10 @@ class ReportGenerator:
                     
                     # ---- RECOMMENDED CODE FIX ----
                     pdf.add_subsection_title("Recommended Code Fix:")
-                    code_fix = summary.get('code_fix') if summary else remedy
-                    pdf.add_code_block(code_fix or "# Remediation: Use secure coding patterns.")
+                    code_fix = summary.get('code_fix') if summary else None
+                    if not code_fix or len(str(code_fix).strip()) < 10:
+                        code_fix = remedy if remedy and len(str(remedy).strip()) > 10 else "# Remediation: Use secure coding patterns."
+                    pdf.add_code_block(code_fix)
 
 
             # ================================================================

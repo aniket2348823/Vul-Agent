@@ -16,11 +16,20 @@ def get_display_limit(rps):
         return 400
 
 def should_emit(event: Dict[str, Any], rps: float) -> bool:
-    # Priority: Always show anomalies or high severity
-    if event.get("anomaly") or event.get("severity") in ["high", "CRITICAL", "HIGH"]:
+    # Priority: Always show anomalies or high severity — NEVER drop these
+    if event.get("anomaly") or event.get("severity") in ["high", "CRITICAL", "HIGH", "MEDIUM"]:
         return True
     
-    # Adaptive sampling for low priority
+    # Always show if result indicates a security event
+    result = str(event.get("result", "")).upper()
+    if any(kw in result for kw in ["ERROR", "INJECTION", "BYPASS", "LEAK", "BLOCKED", "SENSITIVE", "API"]):
+        return True
+    
+    # Low RPS: show everything
+    if rps <= 100:
+        return True
+    
+    # Adaptive sampling for low priority events at high RPS
     display_limit = get_display_limit(rps)
     display_rate = display_limit / max(rps, 1)
     
@@ -46,7 +55,27 @@ async def publish_request_event(data: Dict[str, Any]):
         current_rps = getattr(manager, 'recent_rps', 0)
         
         if should_emit(data, current_rps):
-            # Format for original Dashboard.jsx
+            # Determine severity from event data
+            raw_severity = str(data.get("severity", "")).upper()
+            if not raw_severity or raw_severity == "NONE":
+                # Derive severity from result/anomaly
+                result_str = str(data.get("result", "")).upper()
+                if data.get("anomaly") or any(kw in result_str for kw in ["INJECTION", "BYPASS", "LEAK", "ERROR"]):
+                    raw_severity = "HIGH"
+                elif "BLOCKED" in result_str:
+                    raw_severity = "MEDIUM"
+                elif "API" in result_str or "SENSITIVE" in result_str:
+                    raw_severity = "MEDIUM"
+                else:
+                    raw_severity = "INFO"
+
+            # Determine risk score from severity if not provided
+            risk_score = data.get("risk_score")
+            if risk_score is None or risk_score == 0:
+                risk_map = {"CRITICAL": 95, "HIGH": 75, "MEDIUM": 50, "LOW": 25, "INFO": 10}
+                risk_score = risk_map.get(raw_severity, 15)
+
+            # Format for Dashboard.jsx
             url_raw = str(data.get("url", data.get("endpoint", "Unknown")))
             formatted_event = {
                 "type": "LIVE_THREAT_LOG",
@@ -57,8 +86,8 @@ async def publish_request_event(data: Dict[str, Any]):
                     "method": data.get("method", "GET"),
                     "endpoint": data.get("endpoint", url_raw[-40:]),
                     "url": url_raw,
-                    "severity": str(data.get("severity", "medium")).upper(),
-                    "risk_score": data.get("risk_score", 15),
+                    "severity": raw_severity,
+                    "risk_score": risk_score,
                     "status": data.get("status", 0),
                     "anomaly": data.get("anomaly", False),
                     "result": data.get("result", "OK")
@@ -99,10 +128,10 @@ class SocketManager:
             self.packet_count = 0
 
     async def _process_batch_queue(self):
-        """Batches messages and sends to UI at 20-30 FPS (50ms interval)."""
+        """Batches messages and sends to UI at ~50 FPS (20ms interval) for snappier real-time feel."""
         while True:
             try:
-                await asyncio.sleep(0.05) 
+                await asyncio.sleep(0.02)  # 20ms for faster real-time delivery
                 if self.message_queue:
                     batch = self.message_queue.copy()
                     self.message_queue.clear()

@@ -532,30 +532,58 @@ No markdown. No headers. Just the analysis."""
         HYBRID: Generate professional vulnerability details for the PDF report.
         """
         # CORE 2: Phi-4 AI generation (Professional Report Engine)
-        prompt = f"""You are a senior cybersecurity forensic analyst.
-Analyze this security finding and generate a structured JSON report for executives and engineers.
+        prompt = f"""You are a senior cybersecurity forensic analyst writing a professional penetration test report.
+Analyze this security finding and generate a structured JSON report.
 
-VULNERABILITY: {vuln_type}
+VULNERABILITY TYPE: {vuln_type}
 ENDPOINT: {url}
-PAYLOAD: {payload[:200]}
+PAYLOAD USED: {payload[:200]}
 
-JSON SCHEMA (STRICT):
+JSON SCHEMA (STRICT — follow this exactly):
 {{
-  "name": "Professional Title (e.g. Broken Object Level Authorization)",
+  "name": "Professional vulnerability title (e.g. SQL Injection via User Input)",
   "severity": "Low | Medium | High | Critical",
-  "exploitability": "Short description of how easy it is to exploit and complexity",
-  "business_impact": "Direct strategic and financial impact on the business",
-  "description": ["Actionable Bullet 1", "Actionable Bullet 2", "Actionable Bullet 3"],
-  "impact": ["Strategic Impact 1", "Strategic Impact 2", "Strategic Impact 3"],
-  "remediation": ["Remediation Step 1", "Remediation Step 2", "Remediation Step 3"],
-  "code_fix": "Single line secure code suggestion"
+  "exploitability": "How easy this is to exploit (1-2 sentences)",
+  "business_impact": "Direct business and financial impact (1-2 sentences)",
+  "description": [
+    "Clear technical description of what was found",
+    "How the vulnerability manifests in this specific endpoint",
+    "What conditions enable exploitation"
+  ],
+  "impact": [
+    "Strategic Impact: specific consequence on business operations",
+    "Financial Impact: monetary or regulatory risk",
+    "Technical Impact: effect on system integrity or data"
+  ],
+  "remediation": [
+    "Primary fix: specific action to resolve vulnerability",
+    "Secondary fix: defense-in-depth measure",
+    "Monitoring: detection and alerting recommendation"
+  ],
+  "code_fix": "def secure_query(user_input):\n    cursor.execute('SELECT * FROM users WHERE id = %s', (user_input,))\n    return cursor.fetchone()"
 }}
+
+IMPORTANT RULES FOR code_fix:
+- MUST be actual working code, NOT English text or descriptions
+- Include function definition, imports if needed, and secure implementation
+- For SQL Injection: use parameterized queries
+- For XSS: use output encoding (html.escape or equivalent)
+- For IDOR: use authorization checks
+- For Auth Bypass: use proper token validation
+- For Path Traversal: use os.path.realpath with base directory validation
+- NEVER output vague text like "use a library" or "implement validation"
+
 Output ONLY valid JSON. No markdown. No explanations."""
 
-        result = await self._call_ollama(prompt, temperature=0.1, max_tokens=1000, scan_ctx=scan_ctx, model_override="phi4-mini")
+        result = await self._call_ollama(prompt, temperature=0.1, max_tokens=1500, scan_ctx=scan_ctx, model_override="phi4-mini")
         data = self._extract_json(result)
         
         if data and isinstance(data, dict) and "name" in data:
+            # Validate code_fix is actual code, not English text
+            code_fix = data.get('code_fix', '')
+            if code_fix and not any(kw in code_fix for kw in ['def ', 'function ', 'import ', 'const ', 'var ', 'class ', '=', '(', '{', 'return', 'if ', 'for ']):
+                # LLM returned English text instead of code — generate a proper code fix
+                data['code_fix'] = self._generate_fallback_code_fix(vuln_type)
             return data
             
         # Robust Fallback
@@ -568,17 +596,124 @@ Output ONLY valid JSON. No markdown. No explanations."""
                 "Evidence suggests the application processed a malicious test vector."
             ],
             "impact": [
-                "Unauthorized interaction with system logic or data storage.",
-                "Potential exposure of sensitive internal application state.",
-                "Risk of escalation if combined with other workflow anomalies."
+                "Strategic Impact: Loss of customer trust, regulatory fines for non-compliance with privacy laws",
+                "Financial Impact: Costs associated with remediation efforts and possible legal actions",
+                "Technical Impact: Unauthorized access to system resources or data exposure"
             ],
             "remediation": [
-                "Implement strict server-side input validation (Allow-list).",
+                "Implement strict server-side input validation (Allow-list approach).",
                 "Apply context-aware output encoding to all dynamic data.",
-                "Ensure principle of least privilege is applied to service roles."
+                "Deploy Web Application Firewall (WAF) rules for this attack vector."
             ],
-            "code_fix": "# Remediation: Ensure all inputs are validated against a strict schema."
+            "code_fix": self._generate_fallback_code_fix(vuln_type)
         }
+
+    def _generate_fallback_code_fix(self, vuln_type: str) -> str:
+        """Generate deterministic secure code fix for common vulnerability types."""
+        vt = vuln_type.upper()
+        if 'SQL' in vt or 'INJECTION' in vt:
+            return (
+                "import sqlite3\n"
+                "\n"
+                "def secure_query(db_path, user_input):\n"
+                "    conn = sqlite3.connect(db_path)\n"
+                "    cursor = conn.cursor()\n"
+                "    # Use parameterized query to prevent SQL injection\n"
+                "    cursor.execute(\n"
+                "        'SELECT * FROM users WHERE id = ?',\n"
+                "        (user_input,)\n"
+                "    )\n"
+                "    return cursor.fetchall()"
+            )
+        elif 'XSS' in vt or 'CROSS_SITE' in vt or 'SCRIPT' in vt:
+            return (
+                "import html\n"
+                "from markupsafe import escape\n"
+                "\n"
+                "def sanitize_output(user_input):\n"
+                "    # Encode special HTML characters\n"
+                "    safe_output = html.escape(str(user_input))\n"
+                "    return safe_output\n"
+                "\n"
+                "# In templates, use auto-escaping:\n"
+                "# {{ user_input | e }}"
+            )
+        elif 'IDOR' in vt or 'DIRECT_OBJECT' in vt or 'ACCESS' in vt:
+            return (
+                "def get_resource(resource_id, current_user):\n"
+                "    resource = db.query(Resource).get(resource_id)\n"
+                "    if resource is None:\n"
+                "        raise HTTPException(404)\n"
+                "    # Authorization check: verify ownership\n"
+                "    if resource.owner_id != current_user.id:\n"
+                "        raise HTTPException(403, 'Forbidden')\n"
+                "    return resource"
+            )
+        elif 'AUTH' in vt or 'JWT' in vt or 'TOKEN' in vt:
+            return (
+                "import jwt\n"
+                "from datetime import datetime, timedelta\n"
+                "\n"
+                "def verify_token(token, secret_key):\n"
+                "    try:\n"
+                "        payload = jwt.decode(\n"
+                "            token, secret_key,\n"
+                "            algorithms=['HS256']\n"
+                "        )\n"
+                "        if payload['exp'] < datetime.utcnow():\n"
+                "            raise ValueError('Token expired')\n"
+                "        return payload\n"
+                "    except jwt.InvalidTokenError:\n"
+                "        raise HTTPException(401, 'Invalid token')"
+            )
+        elif 'PATH' in vt or 'TRAVERSAL' in vt or 'LFI' in vt:
+            return (
+                "import os\n"
+                "\n"
+                "SAFE_BASE = '/var/www/uploads'\n"
+                "\n"
+                "def safe_file_access(user_path):\n"
+                "    # Resolve and validate against base directory\n"
+                "    full_path = os.path.realpath(\n"
+                "        os.path.join(SAFE_BASE, user_path)\n"
+                "    )\n"
+                "    if not full_path.startswith(SAFE_BASE):\n"
+                "        raise HTTPException(403, 'Path traversal')\n"
+                "    return open(full_path, 'r').read()"
+            )
+        elif 'SSRF' in vt:
+            return (
+                "from urllib.parse import urlparse\n"
+                "import ipaddress\n"
+                "\n"
+                "BLOCKED_RANGES = ['127.0.0.0/8', '10.0.0.0/8',\n"
+                "                  '172.16.0.0/12', '192.168.0.0/16']\n"
+                "\n"
+                "def validate_url(url):\n"
+                "    parsed = urlparse(url)\n"
+                "    ip = ipaddress.ip_address(parsed.hostname)\n"
+                "    for blocked in BLOCKED_RANGES:\n"
+                "        if ip in ipaddress.ip_network(blocked):\n"
+                "            raise ValueError('Internal URL blocked')\n"
+                "    return url"
+            )
+        else:
+            return (
+                "from functools import wraps\n"
+                "\n"
+                "def validate_input(schema):\n"
+                "    def decorator(func):\n"
+                "        @wraps(func)\n"
+                "        def wrapper(*args, **kwargs):\n"
+                "            # Validate all inputs against schema\n"
+                "            for key, value in kwargs.items():\n"
+                "                if key in schema:\n"
+                "                    if not schema[key](value):\n"
+                "                        raise ValueError(f'Invalid {key}')\n"
+                "            return func(*args, **kwargs)\n"
+                "        return wrapper\n"
+                "    return decorator"
+            )
 
     # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     # HYBRID AGENT METHODS
@@ -1871,17 +2006,24 @@ Each bullet should be one sentence. No numbering, no dashes, just the text.
         # Fast GI5 keyword path first
         vt = vuln_type.upper()
         keyword_map = {
-            "Injection & Fuzzing": ["SQL", "INJECTION", "FUZZ", "XSS", "SSTI"],
-            "Concurrency & Timing": ["RACE", "CONCUR", "TIMING", "CHRONO"],
-            "Object References (IDOR)": ["IDOR", "ACCESS", "DIRECT"],
-            "Authentication Gates": ["AUTH", "JWT", "TOKEN", "LOGIN"],
-            "Financial Logic": ["FINANCE", "PAYMENT", "BALANCE", "TYCOON"],
-            "Privilege Escalation": ["PRIVILEGE", "ADMIN", "ROLE", "ESCALAT"],
-            "Workflow Integrity": ["WORKFLOW", "STEP", "SKIP"],
-            "Deceptive Content (V6 Vision)": ["HIDDEN", "PROMPT", "TEXT", "DARK_PATTERN"]
+            "Injection & Fuzzing": ["SQL", "INJECTION", "FUZZ", "XSS", "SSTI", "COMMAND", "LDAP", "XPATH", "NOSQL", "TEMPLATE"],
+            "Concurrency & Timing": ["RACE", "CONCUR", "TIMING", "CHRONO", "TOCTOU"],
+            "Object References (IDOR)": ["IDOR", "DIRECT", "BOLA", "OBJECT_REF"],
+            "Authentication Gates": ["AUTH", "JWT", "TOKEN", "LOGIN", "SESSION", "CREDENTIAL", "PASSWORD", "BROKEN_AUTH", "CSRF"],
+            "Financial Logic": ["FINANCE", "PAYMENT", "BALANCE", "TYCOON", "PRICE", "DISCOUNT", "COUPON", "ARITHMETIC"],
+            "Privilege Escalation": ["PRIVILEGE", "ADMIN", "ROLE", "ESCALAT", "UNAUTHORIZED"],
+            "Workflow Integrity": ["WORKFLOW", "STEP", "SKIP", "LOGIC", "BUSINESS"],
+            "Information Disclosure": ["INFORMATION", "DISCLOSURE", "DATA_EXPOSURE", "SENSITIVE", "LEAK", "EXPOSURE", "PATH_TRAVERSAL", "TRAVERSAL", "LFI", "SSRF", "OPEN_REDIRECT", "REDIRECT"],
+            "Deceptive Content (V6 Vision)": ["HIDDEN", "PROMPT", "TEXT", "DARK_PATTERN", "DECEPTIVE", "PHISHING"]
         }
         for category, keywords in keyword_map.items():
             if any(k in vt for k in keywords):
+                return category
+
+        # Also check with underscores removed for compound types
+        vt_clean = vt.replace('_', ' ')
+        for category, keywords in keyword_map.items():
+            if any(k in vt_clean for k in keywords):
                 return category
 
         # CORE 2: Granite for unknown types
@@ -1889,14 +2031,14 @@ Each bullet should be one sentence. No numbering, no dashes, just the text.
 TYPE: {vuln_type}
 DESCRIPTION: {description[:100]}
 
-Choose ONE category from: Injection & Fuzzing, Concurrency & Timing, Object References (IDOR), Authentication Gates, Financial Logic, Privilege Escalation, Workflow Integrity, Deceptive Content (V6 Vision), Uncategorized
+Choose ONE category from: Injection & Fuzzing, Concurrency & Timing, Object References (IDOR), Authentication Gates, Financial Logic, Privilege Escalation, Workflow Integrity, Information Disclosure, Deceptive Content (V6 Vision), Uncategorized
 
 Respond with ONLY the category name."""
 
         result = await self._call_ollama(prompt, temperature=0.1, max_tokens=64)
         if not self._is_error(result):
             return result.strip()
-        return "Uncategorized"
+        return "Injection & Fuzzing"
 
     # â”€â”€â”€ CVSS: AI Score Adjustment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -1976,47 +2118,87 @@ Respond with ONLY the choice."""
         """
         AI: Reconstruct exactly WHY an attack succeeded based on evidence.
         Outputs technical "Forensic Analysis" for the PDF report.
+        Uses phi4-mini for better reasoning quality.
         """
-        prompt = f"""You are a senior forensic security analyst.
-Analyze this successful attack:
-VULNERABILITY: {vuln_type}
+        prompt = f"""You are a senior forensic security analyst reconstructing a successful security exploit.
+
+VULNERABILITY TYPE: {vuln_type}
 TARGET URL: {url}
-PAYLOAD: {payload[:200]}
-RESPONSE: {self._compress_context(response_snippet, 300)}
+PAYLOAD SENT: {payload[:200]}
+SERVER RESPONSE (excerpt): {self._compress_context(response_snippet, 300)}
 
-Provide a detailed forensic reconstruction with:
-1. "root_cause": One sentence on the underlying code failure.
-2. "evidence_analysis": One sentence explaining how the response confirms the vulnerability.
-3. "attacker_advantage": One sentence on what an attacker gains.
+Provide a precise forensic reconstruction. Each field must be ONE specific, technical sentence:
 
-Output ONLY valid JSON."""
+1. "root_cause": The specific code-level failure that allowed this exploit (e.g. "User input is concatenated directly into SQL query string without parameterization")
+2. "evidence_analysis": How the server response proves the vulnerability exists (e.g. "The server returned database error messages containing table schema information")
+3. "attacker_advantage": The concrete capability an attacker gains (e.g. "An attacker can extract all user records including passwords from the database")
 
-        result = await self._call_ollama(prompt, temperature=0.1, max_tokens=300, scan_ctx=scan_ctx)
+Output ONLY valid JSON with these 3 fields. No markdown. No extra text."""
+
+        result = await self._call_ollama(prompt, temperature=0.1, max_tokens=400, scan_ctx=scan_ctx, model_override="phi4-mini")
         try:
             if "```json" in result:
                 result = result.split("```json")[1].split("```")[0].strip()
-            return json.loads(result)
-        except Exception:return {
-                "root_cause": "Insufficient input validation or output encoding on the server-side.",
-                "evidence_analysis": "The application processed the malicious payload and exhibited anomalous behavior in the response.",
-                "attacker_advantage": "An attacker can leverage this endpoint to compromise user data or system integrity."
-            }
+            elif "```" in result:
+                result = result.split("```")[1].split("```")[0].strip()
+            parsed = json.loads(result)
+            # Validate all 3 required fields exist
+            if all(k in parsed for k in ['root_cause', 'evidence_analysis', 'attacker_advantage']):
+                return parsed
+        except Exception:
+            pass
+        
+        return {
+            "root_cause": f"Insufficient input validation or output encoding on the server-side for {vuln_type} attack vectors.",
+            "evidence_analysis": "The application processed the malicious payload and exhibited anomalous behavior in the response.",
+            "attacker_advantage": f"An attacker can leverage this {vuln_type} endpoint to compromise user data or system integrity."
+        }
 
     async def generate_remediation_code(self, vuln_type: str, tech_stack: str = "Generic", scan_ctx=None) -> str:
         """
         AI: Generate tech-stack specific secure code snippets.
+        Uses phi4-mini for better code generation quality.
         """
-        prompt = f"""Generate a secure, production-ready code snippet to fix this vulnerability:
+        prompt = f"""Generate a secure, production-ready code fix for this vulnerability.
+
 VULNERABILITY: {vuln_type}
 TECH STACK: {tech_stack}
 
-The snippet should be concise and follow industry best practices (e.g., OWASP).
-Output ONLY the code block. No explanations."""
+RULES:
+- Output ONLY working code, no English explanations
+- Include necessary imports
+- Follow OWASP secure coding guidelines
+- Code must be copy-pasteable into a real project
+- Use Python unless tech_stack specifies otherwise
 
-        result = await self._call_ollama(prompt, temperature=0.1, max_tokens=300, scan_ctx=scan_ctx)
+EXAMPLE (for SQL Injection):
+import sqlite3
+
+def secure_query(db, user_input):
+    cursor = db.cursor()
+    cursor.execute('SELECT * FROM users WHERE id = ?', (user_input,))
+    return cursor.fetchall()
+
+Now generate the fix for {vuln_type}. Output ONLY the code."""
+
+        result = await self._call_ollama(prompt, temperature=0.1, max_tokens=500, scan_ctx=scan_ctx, model_override="phi4-mini")
         if self._is_error(result):
-            return "# Remediation: Use parameterized queries and context-aware encoding."
-        return result
+            # Use deterministic fallback
+            return self._generate_fallback_code_fix(vuln_type)
+        
+        # Clean the result — strip markdown fences if present
+        cleaned = result.strip()
+        if cleaned.startswith('```'):
+            cleaned = cleaned.split('\n', 1)[-1] if '\n' in cleaned else cleaned[3:]
+        if cleaned.endswith('```'):
+            cleaned = cleaned[:-3].rstrip()
+        
+        # Validate it looks like actual code, not English text
+        if cleaned and any(kw in cleaned for kw in ['def ', 'function ', 'import ', 'const ', 'var ', 'class ', '=', '(', 'return']):
+            return cleaned
+        
+        # If LLM returned English description, use fallback
+        return self._generate_fallback_code_fix(vuln_type)
 
     async def analyze_attack_paths(self, findings_summary: str, scan_ctx=None) -> str:
         """

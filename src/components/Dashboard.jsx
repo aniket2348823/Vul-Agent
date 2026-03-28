@@ -173,30 +173,23 @@ const Dashboard = ({ navigate }) => {
 
                     nextState.v6_metrics = newMetrics;
 
-                    // --- SCAN-AWARE FEED FILTERING (FIXED: Uses refs for current values) ---
-                    // During active scan: ONLY show requests that are related to the scan target
+                    // --- SCAN-AWARE FEED FILTERING (V7 FIX: Show all events during active scan) ---
+                    // During active scan: Show ALL scanner events (they're all relevant to the current operation)
                     // When no scan is active: don't show noise
                     let shouldAddToFeed = false;
 
                     const currentScanActive = scanActiveRef.current;
                     const currentTargetUrl = scanTargetUrlRef.current;
 
-                    if (currentScanActive && currentTargetUrl) {
-                        const eventUrl = (threat.url || '').toLowerCase();
-                        const targetDomain = extractDomain(currentTargetUrl);
-
-                        // STRICT: Only show if event URL contains the target domain
-                        // OR if it's a system-level event from the scanner itself (job dispatch, etc)
-                        const isTargetRelated = (
-                            (targetDomain && eventUrl.includes(targetDomain)) ||
-                            eventUrl.includes(currentTargetUrl.toLowerCase()) ||
-                            // Allow system-level scanner events (they reference the target)
-                            data.type === 'VULN_CONFIRMED' ||
-                            data.type === 'LIVE_ATTACK_FEED'
-                        );
-                        shouldAddToFeed = isTargetRelated;
+                    if (currentScanActive) {
+                        // During active scan: show ALL events from agents
+                        // These are ALL related to the current scan operation
+                        shouldAddToFeed = true;
+                    } else if (data.type === 'VULN_CONFIRMED') {
+                        // Always show confirmed vulns even when no scan is active
+                        shouldAddToFeed = true;
                     }
-                    // When no scan is active, don't add noise to the cleared feed
+                    // When no scan is active and event is not a confirmed vuln, don't add noise
 
                     if (shouldAddToFeed) {
                         const updatedFeed = [threat, ...(nextState.threat_feed || [])];
