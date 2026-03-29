@@ -7,6 +7,7 @@ from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskTarget, 
 from backend.ai.cortex import CortexEngine
 import json
 import aiohttp
+from backend.core.graph_engine import graph_engine
 
 # Import Arsenals
 from backend.modules.tech.sqli import SQLInjectionProbe
@@ -113,6 +114,14 @@ class SigmaAgent(BaseAgent):
         
         if module_id in self.arsenal:
             print(f"[{self.name}] [PLAN] Orchestrating '{module_id}' execution on {packet.target.url}")
+            
+            # STAGE 11: HYBRID GRAPH ENGINE PREDICTION
+            predictions = graph_engine.predict_next(module_id, packet.target.url)
+            if predictions:
+                top_pred = predictions[0]
+                print(f"[{self.name}] [GRAPH AI] Intelligence predicts {top_pred['suggestion']} is {top_pred['confidence']}% likely next.")
+                # We could mutate the packet here to chain modules, but for safety we just log the intelligence advantage for now.
+                
             module = self.arsenal[module_id]
             
             # 1. PLAN: Generate target payloads

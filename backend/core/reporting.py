@@ -7,8 +7,8 @@ import json
 from fpdf import FPDF
 # Hybrid AI Engine for intelligent reporting
 from backend.ai.cortex import CortexEngine
-
-cortex = CortexEngine()
+from backend.core.chain_analyzer import ChainAnalyzer
+from backend.core.graph_engine import graph_engine
 
 class SecurityReportPDF(FPDF):
     """
@@ -765,6 +765,42 @@ class ReportGenerator:
                         code_fix = remedy if remedy and len(str(remedy).strip()) > 10 else "# Remediation: Use secure coding patterns."
                     pdf.add_code_block(code_fix)
 
+
+            # ================================================================
+            # MODULE XI: DFS ATTACK CHAIN EXTRACTION & GRAPH-AI LEARNING
+            # ================================================================
+            analyzer = ChainAnalyzer(vuln_events)
+            raw_chains = analyzer.build_chains()
+            
+            if raw_chains:
+                pdf.add_page()
+                pdf.add_section_title("Attack Chain Trajectories", pdf.PURE_RED)
+                pdf.set_font('Arial', 'I', 11)
+                pdf.multi_cell(0, 6, "Analysis of how isolated vulnerabilities form multi-step exploit chains, correlating target vectors for severe logic abuse.")
+                pdf.add_spacer(5)
+
+                for c_idx, chain in enumerate(raw_chains[:5]): # Cap at top 5 critical chains
+                    score = analyzer.score_chain(chain)
+                    
+                    # 1. Update Persistent Graph with DFS Chain
+                    graph_engine.learn_from_chain(chain)
+                    
+                    pdf.set_font('Arial', 'B', 14)
+                    pdf.set_text_color(*pdf.DARK_BLUE)
+                    pdf.cell(0, 10, f"Chain #{c_idx+1}: Score [{score}/100]", ln=True)
+                    
+                    # 2. Re-Route text out of LLM
+                    path_str = " -> ".join([f"{n['type']} ({n['endpoint'][:20]}...)" for n in chain])
+                    pdf.set_font('Courier', 'B', 10)
+                    pdf.multi_cell(0, 5, path_str)
+                    pdf.ln(5)
+                    
+                    # 3. Request LLM Narrative explicitly (Phi4-mini)
+                    # We pass the JSON structure of the chain to ollama
+                    chain_narrative = await cortex.explain_attack_chain(chain) 
+                    
+                    pdf.add_explainability_panel(chain_narrative)
+                    pdf.add_spacer(10)
 
             # ================================================================
             # FINAL PAGE: SCAN TIMELINE (Specimen PS_4)
