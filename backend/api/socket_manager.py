@@ -106,35 +106,58 @@ class SocketManager:
         self.logger = logging.getLogger("Antigravity.SocketManager")
         
         self.last_spy_activity = 0.0
-        self.message_queue = []
+        self.message_queue = collections.deque(maxlen=5000) # Memory Guard: Cap overflow
         self._batch_task = None
         
         # [NEW] RPS Tracking for Adaptive Sampling
         self.packet_count = 0
         self.recent_rps = 0
         self._rps_task = None
+        self._running = False
+
 
     def _start_tasks(self):
+        if self._running: return
+        self._running = True
         if self._batch_task is None:
             self._batch_task = asyncio.create_task(self._process_batch_queue())
         if self._rps_task is None:
             self._rps_task = asyncio.create_task(self._track_rps())
 
+    async def stop_tasks(self):
+        """Cleanup Lifecycle: Stop background monitoring tasks."""
+        self._running = False
+        if self._batch_task:
+            self._batch_task.cancel()
+            self._batch_task = None
+        if self._rps_task:
+            self._rps_task.cancel()
+            self._rps_task = None
+
+
     async def _track_rps(self):
         """Calculates RPS every second for adaptive sampling."""
-        while True:
+        while self._running:
             await asyncio.sleep(1.0)
             self.recent_rps = self.packet_count
             self.packet_count = 0
 
     async def _process_batch_queue(self):
-        """Batches messages and sends to UI at ~50 FPS (20ms interval) for snappier real-time feel."""
-        while True:
+        """Batches messages and sends to UI at ~50 FPS."""
+        while self._running:
+
             try:
-                await asyncio.sleep(0.02)  # 20ms for faster real-time delivery
+                await asyncio.sleep(0.02)
                 if self.message_queue:
-                    batch = self.message_queue.copy()
-                    self.message_queue.clear()
+                    # Thread-safe dequeue of all items
+                    batch = []
+                    while self.message_queue:
+                        try:
+                            batch.append(self.message_queue.popleft())
+                        except IndexError: break
+                    
+                    if not batch: continue
+
                     
                     def sanitize_bytes(obj):
                         if isinstance(obj, bytes):

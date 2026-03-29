@@ -5,7 +5,7 @@ import collections
 from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskPriority, ModuleConfig
 # Hybrid AI Engine
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 
 class GammaAgent(BaseAgent):
     """
@@ -19,7 +19,7 @@ class GammaAgent(BaseAgent):
         super().__init__("agent_gamma", bus)
         # Arsenal stripped. Gamma is now purely a tactical router.
         # Hybrid AI Engine for anomaly classification
-        self.cortex = CortexEngine()
+        self.cortex = get_cortex_engine()
 
     async def setup(self):
         self.bus.subscribe(EventType.VULN_CANDIDATE, self.audit_candidate)
@@ -31,7 +31,7 @@ class GammaAgent(BaseAgent):
         """
         payload = event.payload
         
-        print(f"[{self.name}] 🧪 Auditing Candidate Exploit on {payload.get('url', 'Unknown')}")
+        print(f"[{self.name}] Auditing Candidate Exploit on {payload.get('url', 'Unknown')}")
         
         # Broadcast to Dashboard: Audit started
         await self.bus.publish(HiveEvent(

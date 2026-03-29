@@ -2,9 +2,9 @@ import aiohttp
 from backend.core.base import BaseArsenalModule
 from backend.core.protocol import JobPacket, ResultPacket, Vulnerability, AgentID, TaskTarget
 # Hybrid AI Engine
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 
-cortex = CortexEngine()
+cortex = get_cortex_engine()
 
 class TheSkipper(BaseArsenalModule):
     """

@@ -60,8 +60,8 @@ class BaseArsenalModule(ABC):
     def cortex(self):
         """Lazy-load CortexEngine for hybrid AI in arsenal modules."""
         if not hasattr(self, '_cortex') or self._cortex is None:
-            from backend.ai.cortex import CortexEngine
-            self._cortex = CortexEngine()
+            from backend.ai.cortex import CortexEngine, get_cortex_engine
+            self._cortex = get_cortex_engine()
         return self._cortex
     
     async def think(self, context: Any):

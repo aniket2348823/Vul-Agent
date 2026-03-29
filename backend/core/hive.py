@@ -38,6 +38,7 @@ class HiveEvent(BaseModel):
 # --- 2. THE NERVOUS SYSTEM (Event Bus) ---
 
 from backend.core.context import ScanContext
+import collections
 
 class EventBus:
     """
@@ -46,10 +47,10 @@ class EventBus:
     """
     def __init__(self):
         self.subscribers: Dict[EventType, List[Callable[[HiveEvent], Awaitable[None]]]] = {}
-        self.history: List[HiveEvent] = [] # Optional: For replay/debugging
         self.scan_contexts: Dict[str, ScanContext] = {}
         self._context_tasks: Dict[str, asyncio.Task] = {}
         self._global_tasks = set()
+
 
     def get_or_create_context(self, scan_id: str) -> ScanContext:
         if scan_id not in self.scan_contexts:
@@ -100,16 +101,26 @@ class EventBus:
             
         ctx = self.get_or_create_context(event.scan_id)
         
-        # CRITICAL FIX 1: Exact-once deduplication window
+        # CRITICAL FIX 1: Exact-once deduplication window (FIFO)
+        if hasattr(ctx, "_recent_events_fifo") is False:
+            ctx._recent_events_fifo = collections.deque(maxlen=1000)
+
         if event.id in ctx._recent_events:
             return  # Drop duplicate
             
         ctx._recent_events.add(event.id)
+        ctx._recent_events_fifo.append(event.id)
+        
+        # Maintain Set Size (Oldest removal)
         if len(ctx._recent_events) > 1000:
-            ctx._recent_events.pop()
+            try:
+                oldest = ctx._recent_events_fifo.popleft()
+                ctx._recent_events.discard(oldest)
+            except IndexError: pass
             
         # Enqueue for causal execution
         await ctx.event_queue.put(event)
+
 
     async def _safe_execute(self, handler, event):
         try:
@@ -131,6 +142,95 @@ class EventBus:
             await asyncio.gather(*self._global_tasks, return_exceptions=True)
         if self._context_tasks:
             await asyncio.gather(*self._context_tasks.values(), return_exceptions=True)
+
+    async def evict_scan_context(self, scan_id: str):
+        """Standard Memory Guard: Purge historical scan state and tasks."""
+        if scan_id in self.scan_contexts:
+            ctx = self.scan_contexts.pop(scan_id)
+            ctx.is_cancelled = True
+            task = self._context_tasks.pop(scan_id, None)
+            if task:
+                task.cancel()
+                try: await task
+                except asyncio.CancelledError: pass
+            logging.info(f"🧹 Scan Context {scan_id} successfully evicted from Hive memory.")
+
+
+class DistributedEventBus(EventBus):
+    """
+    XYTHERION DISTRIBUTED NERVOUS SYSTEM
+    Role: Bridges local agent events to the global Redis cluster.
+    """
+    def __init__(self, redis_url: str):
+        super().__init__()
+        import redis.asyncio as aioredis
+        self.redis_client = aioredis.from_url(redis_url, decode_responses=True)
+        self.pubsub = self.redis_client.pubsub()
+        self.is_running = False
+
+
+    async def start(self):
+        """Activates the distributed bridge."""
+        self.is_running = True
+        await self.pubsub.subscribe("xytherion_events")
+        asyncio.create_task(self._listen_loop())
+        logger.info("📡 Distributed Event Bus Online (Async).")
+
+
+    async def _listen_loop(self):
+        """Listens for global events and injects them into the local hive (Fixed Async)."""
+        try:
+            async for message in self.pubsub.listen():
+                if not self.is_running: break
+                if message['type'] == 'message':
+                    try:
+                        event_data = json.loads(message['data'])
+                        event = HiveEvent(**event_data)
+                        
+                        # Local Broadcast
+                        await super().publish(event)
+                    except Exception as e:
+                        logging.error(f"[DistributedEventBus] Remote injection failed: {e}")
+        except Exception as e:
+            if self.is_running:
+                logging.error(f"[DistributedEventBus] Listen loop crash: {e}")
+
+
+    async def publish(self, event: HiveEvent):
+        """Broadcasts local events to the global cluster and routes jobs with safety locking."""
+        # 1. Local Broadcast
+        await super().publish(event)
+        
+        # 2. Global Broadcast (Redis Channel for UI/Sync)
+        try:
+            event_json = event.model_dump_json()
+            await self.redis_client.publish("xytherion_events", event_json)
+            
+            # 3. WORKER ROUTING & SAFETY LOCKING (V6-HARDENED ASYNC)
+            if event.type == EventType.JOB_ASSIGNED:
+                task_id = event.payload.get("task_id", event.id)
+                lock_key = f"job_lock:{task_id}"
+                
+                # Attempt to acquire a global lock (Async)
+                if await self.redis_client.set(lock_key, "LOCKED", nx=True, ex=3600):
+                    # ROUTE A: Audit Layer (Inspector)
+                    await self.redis_client.lpush("xytherion_audit_queue", event_json)
+                    
+                    # ROUTE B: Work Queue (Master will redistribute)
+                    task_payload = event.payload
+                    if "task_id" not in task_payload:
+                        task_payload["task_id"] = task_id
+                    
+                    await self.redis_client.lpush("pending_tasks", json.dumps(task_payload))
+                else:
+                    logger.debug(f"[DistributedEventBus] Job {task_id} already locked. Skipping global push.")
+
+                
+        except Exception as e:
+            logging.error(f"[DistributedEventBus] Global publishing failed: {e}")
+
+
+
 
 # --- 3. THE DNA (Base Agent) ---
 
@@ -173,6 +273,12 @@ class BaseAgent:
         self.active = False
         self.status = "OFFLINE"
         
+        # Shutdown AI Engine if it exists (CortexEngine holds aiohttp session)
+        for attr in ["cortex", "ai"]:
+            engine = getattr(self, attr, None)
+            if engine and hasattr(engine, "shutdown"):
+                await engine.shutdown()
+
         for task in getattr(self, "_agent_tasks", []):
             task.cancel()
         if getattr(self, "_agent_tasks", []):
@@ -203,7 +309,7 @@ class BaseAgent:
     async def execute_task(self, packet):
         """
         Synchronous task execution for Defense API.
-        Subclasses (Theta, Iota) should override this.
+        Subclasses (Prism, Chi) should override this.
         """
         from backend.core.protocol import ResultPacket, Vulnerability
         

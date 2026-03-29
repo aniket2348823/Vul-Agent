@@ -24,8 +24,8 @@ class AgentID(str, Enum):
     GAMMA = "agent_gamma"
     SIGMA = "agent_sigma"
     KAPPA = "agent_kappa"
-    THETA = "agent_theta"
-    IOTA = "agent_iota"
+    PRISM = "agent_prism"
+    CHI = "agent_chi"
 
 # --- THE JOB PACKET (Input) ---
 class ModuleConfig(BaseModel):

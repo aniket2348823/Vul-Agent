@@ -2,9 +2,9 @@ from backend.core.base import BaseArsenalModule
 from backend.core.protocol import JobPacket, ResultPacket, Vulnerability, TaskTarget
 import time
 # Hybrid AI Engine
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 
-cortex = CortexEngine()
+cortex = get_cortex_engine()
 
 class JWTTokenCracker(BaseArsenalModule):
     def __init__(self):

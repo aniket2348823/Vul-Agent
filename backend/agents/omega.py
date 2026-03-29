@@ -2,7 +2,7 @@ import asyncio
 import random
 from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskPriority, ModuleConfig, TaskTarget
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 
 class OmegaAgent(BaseAgent):
     """
@@ -15,7 +15,7 @@ class OmegaAgent(BaseAgent):
         super().__init__("agent_omega", bus)
         # CORTEX AI Strategist (Local Ollama)
         try:
-            self.ai = CortexEngine()
+            self.ai = get_cortex_engine()
         except Exception:self.ai = None
 
     async def setup(self):

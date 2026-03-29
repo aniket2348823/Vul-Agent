@@ -52,8 +52,8 @@ async def fetch_endpoint(path: str, method="GET", payload=None, headers=None) ->
         return {"status": 500, "body": str(e)}
 
 async def run_regression():
-    from backend.ai.cortex import CortexEngine
-    cortex = CortexEngine()
+    from backend.ai.cortex import CortexEngine, get_cortex_engine
+    cortex = get_cortex_engine()
     
     # Let's warm up the model
     await cortex.warm_up()

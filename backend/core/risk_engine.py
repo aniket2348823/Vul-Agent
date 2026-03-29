@@ -2,7 +2,7 @@
 # ROLE: THE JUDGE
 # RESPONSIBILITY: Centralized Risk Scoring Logic (AI-Enhanced)
 
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 
 class RiskEngine:
     """
@@ -16,7 +16,7 @@ class RiskEngine:
     def _get_ai(cls):
         if cls._ai is None:
             try:
-                cls._ai = CortexEngine()
+                cls._ai = get_cortex_engine()
             except Exception:cls._ai = None
         return cls._ai
 

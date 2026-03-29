@@ -8,3 +8,10 @@ psutil
 pyotp
 qrcode
 pillow
+redis
+supabase
+networkx
+scikit-learn
+numpy
+playwright
+playwright-stealth

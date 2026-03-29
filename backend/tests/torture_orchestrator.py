@@ -213,8 +213,8 @@ def mutate_for_level(scenario: dict, level: int) -> dict:
 
 class TortureOrchestrator:
     def __init__(self):
-        from backend.ai.cortex import CortexEngine
-        self.cortex = CortexEngine()
+        from backend.ai.cortex import CortexEngine, get_cortex_engine
+        self.cortex = get_cortex_engine()
 
     async def warm_up(self):
         await self.cortex.warm_up()

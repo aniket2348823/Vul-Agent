@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Dict, Any
 from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ModuleConfig, AgentID, TaskPriority, TaskTarget
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 
 logger = logging.getLogger("MissionPlanner")
 
@@ -24,7 +24,7 @@ class MissionPlanner(BaseAgent):
     """
     def __init__(self, bus):
         super().__init__("agent_planner", bus)
-        self.cortex = CortexEngine()
+        self.cortex = get_cortex_engine()
         self.active_missions = {} # {target_url: mission_data}
         self.job_to_target = {}   # {job_id: target_url}
 

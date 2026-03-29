@@ -2,6 +2,7 @@ import json
 import os
 import asyncio
 import hashlib
+import threading
 
 from typing import List, Dict, Any
 
@@ -13,6 +14,7 @@ class StateManager:
         self._dirty = False
         self._task = None
         self._lock = asyncio.Lock()
+        self._sync_lock = threading.Lock()
         self._stats = {
             "scans": [],
             "active_scans": 0,
@@ -68,13 +70,14 @@ class StateManager:
             self._save_sync()
 
     def _save_sync(self):
-        try:
-            with open(TMP_STATE_FILE, "w") as f:
-                json.dump(self._stats, f, indent=4, default=str)
-            os.replace(TMP_STATE_FILE, STATE_FILE)
-            self._dirty = False
-        except Exception as e:
-            print(f"[StateManager] Save Error: {e}")
+        with self._sync_lock:
+            try:
+                with open(TMP_STATE_FILE, "w") as f:
+                    json.dump(self._stats, f, indent=4, default=str)
+                os.replace(TMP_STATE_FILE, STATE_FILE)
+                self._dirty = False
+            except Exception as e:
+                print(f"[StateManager] Save Error: {e}")
 
     # Aliasing remaining references to old _save()
     def _save(self):
@@ -83,31 +86,36 @@ class StateManager:
     def get_stats(self):
         return self._stats
 
-    def register_scan(self, scan_data: Dict[str, Any]):
-        self._stats["scans"].insert(0, scan_data)
-        self._stats["active_scans"] += 1
-        self._stats["total_scans"] += 1
-        self._save()
+    async def register_scan(self, scan_data: Dict[str, Any]):
+        async with self._lock:
+            # $O(1) appending is safer for high frequency, reports can sort by timestamp
+            self._stats["scans"].append(scan_data)
+            self._stats["active_scans"] += 1
+            self._stats["total_scans"] += 1
+            self._save()
 
-    def record_finding(self, scan_id: str, severity: str = "Medium", signature_data: Dict[str, Any] = None):
-        """Real-time update for a found vulnerability with deduplication."""
-        if signature_data:
-            # Generate stable signature
-            sig_str = json.dumps(signature_data, sort_keys=True, default=str)
-            sig = hashlib.sha256(sig_str.encode()).hexdigest()
-            
-            if scan_id not in self._seen_signatures:
-                self._seen_signatures[scan_id] = set()
-            
-            if sig in self._seen_signatures[scan_id]:
-                return # Skip duplicate
-            
-            self._seen_signatures[scan_id].add(sig)
 
-        self._stats["vulnerabilities"] += 1
-        
-        if severity.upper() in ["CRITICAL", "HIGH"]:
-            self._stats["critical"] += 1
+    async def record_finding(self, scan_id: str, severity: str = "Medium", signature_data: Dict[str, Any] = None):
+        """Real-time update for a found vulnerability with async-safe deduplication."""
+        async with self._lock:
+            if signature_data:
+                # Generate stable signature
+                sig_str = json.dumps(signature_data, sort_keys=True, default=str)
+                sig = hashlib.sha256(sig_str.encode()).hexdigest()
+                
+                if scan_id not in self._seen_signatures:
+                    self._seen_signatures[scan_id] = set()
+                
+                if sig in self._seen_signatures[scan_id]:
+                    return # Skip duplicate
+                
+                self._seen_signatures[scan_id].add(sig)
+
+            self._stats["vulnerabilities"] += 1
+            
+            if severity.upper() in ["CRITICAL", "HIGH"]:
+                self._stats["critical"] += 1
+
             
         # Update history immediate for graph spike
         # We take the current total and append/update last point
@@ -120,22 +128,23 @@ class StateManager:
             
         self._save()
 
-    def record_threat(self, threat_type: str, risk_score: int):
-        """V6: Record a detected threat for metrics."""
-        v6 = self._stats.get("v6_metrics", {})
-        
-        # Categorize by threat type
-        if threat_type.upper() in ["PROMPT_INJECTION", "HIDDEN_TEXT", "INVISIBLE_TEXT"]:
-            v6["injections_blocked"] = v6.get("injections_blocked", 0) + 1
-        elif threat_type.upper() in ["DARK_PATTERN_BLOCK", "DECEPTIVE_UI", "PHISHING"]:
-            v6["deceptive_ui_blocked"] = v6.get("deceptive_ui_blocked", 0) + 1
-        
-        # Update cumulative risk score (average of recent)
-        current_risk = v6.get("risk_score", 0)
-        v6["risk_score"] = max(current_risk, risk_score)  # Track peak risk
-        
-        self._stats["v6_metrics"] = v6
-        self._save()
+    async def record_threat(self, threat_type: str, risk_score: int):
+        """V6: Record a detected threat for metrics (Async-Safe)."""
+        async with self._lock:
+            v6 = self._stats.get("v6_metrics", {})
+            
+            # Categorize by threat type
+            if threat_type.upper() in ["PROMPT_INJECTION", "HIDDEN_TEXT", "INVISIBLE_TEXT"]:
+                v6["injections_blocked"] = v6.get("injections_blocked", 0) + 1
+            elif threat_type.upper() in ["DARK_PATTERN_BLOCK", "DECEPTIVE_UI", "PHISHING"]:
+                v6["deceptive_ui_blocked"] = v6.get("deceptive_ui_blocked", 0) + 1
+            
+            # Update cumulative risk score (Track peak risk)
+            current_risk = v6.get("risk_score", 0)
+            v6["risk_score"] = max(current_risk, risk_score)
+            
+            self._stats["v6_metrics"] = v6
+            self._save()
 
         
     def complete_scan(self, scan_id: str, results: List[Any], duration: float):

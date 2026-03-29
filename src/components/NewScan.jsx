@@ -15,7 +15,8 @@ const NewScan = ({ navigate }) => {
         { name: 'SQL Injection Probe', desc: 'Deep injection testing for SQL, NoSQL, GraphQL', selected: false },
         { name: 'JWT Token Cracker', desc: 'Cryptographic analysis of JSON Web Tokens', selected: false },
         { name: 'API Fuzzer (REST)', desc: 'High-velocity fuzzing for RESTful endpoints', selected: false },
-        { name: 'Auth Bypass Tester', desc: 'Systematic testing of authentication gates', selected: false }
+        { name: 'Auth Bypass Tester', desc: 'Systematic testing of authentication gates', selected: false },
+        { name: 'Hybrid DOM Extraction', desc: 'Headless browser execution via PinchTab Engine', selected: false }
     ]);
     const [isConnected, setIsConnected] = useState(false);
     const localConnectedRef = useRef(false);

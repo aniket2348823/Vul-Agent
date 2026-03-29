@@ -1,6 +1,6 @@
 from backend.core.base import BaseArsenalModule
 from backend.core.protocol import JobPacket, Vulnerability, TaskTarget
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 
 class APIFuzzer(BaseArsenalModule):
     def __init__(self):
@@ -8,7 +8,7 @@ class APIFuzzer(BaseArsenalModule):
         self.name = "API Fuzzer"
         # CORTEX AI for intelligent vector generation
         try:
-            self.ai = CortexEngine()
+            self.ai = get_cortex_engine()
         except Exception:self.ai = None
 
     async def generate_payloads(self, packet: JobPacket) -> list[TaskTarget]:

@@ -7,7 +7,7 @@ from collections import deque
 from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket
 # Hybrid AI Engine
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 
 class ZetaAgent(BaseAgent):
     """
@@ -32,7 +32,7 @@ class ZetaAgent(BaseAgent):
         
         self.priority_queue = {0: [], 1: [], 2: []}
         # Hybrid AI Engine for stress analysis
-        self.cortex = CortexEngine()
+        self.cortex = get_cortex_engine()
 
     async def setup(self):
         self.bus.subscribe(EventType.JOB_COMPLETED, self.handle_job_completion)
@@ -57,7 +57,7 @@ class ZetaAgent(BaseAgent):
                  if stress_level in ["HIGH", "MEDIUM"]:
                      penalty = 10 if stress_level == "HIGH" else 5
                      self.error_budget_current -= penalty
-                     print(f"[{self.name}] 😓 Server Sentiment: {stress_level} (AI: {indicators}) → Action: {action}")
+                     print(f"[{self.name}] Server Sentiment: {stress_level} (AI: {indicators}) -> Action: {action}")
                      
                      if action == "ABORT":
                          await self.broadcast_signal("STEALTH_MODE", {"reason": f"AI: Server Stress {stress_level}"})
@@ -93,7 +93,7 @@ class ZetaAgent(BaseAgent):
         # 4. STATISTICAL ANOMALY DETECTION (Z-Score)
         is_anomaly, reason = self.detect_anomalies()
         if is_anomaly:
-            print(f"[{self.name}] 🚨 ANOMALY DETECTED: {reason}")
+            print(f"[{self.name}] ANOMALY DETECTED: {reason}")
             await self.broadcast_signal("THROTTLE", {"level": "CRITICAL", "reason": reason})
             self.error_budget_current -= 10  # Severe penalty for triggering defensive mechanisms
 
@@ -169,12 +169,12 @@ class ZetaAgent(BaseAgent):
         if self.latency_window:
             avg_latency = sum(self.latency_window) / len(self.latency_window)
             if avg_latency > 500:
-                print(f"[{self.name}]: 🛑 DENY JOB {packet.id}. High Latency ({avg_latency:.1f}ms).")
+                print(f"[{self.name}]: DENY JOB {packet.id}. High Latency ({avg_latency:.1f}ms).")
                 return False
 
         # 2. Budget Check (< 10?)
         if self.error_budget_current < 10:
-             print(f"[{self.name}]: 🛑 DENY JOB {packet.id}. Low Budget ({self.error_budget_current}).")
+             print(f"[{self.name}]: DENY JOB {packet.id}. Low Budget ({self.error_budget_current}).")
              return False
 
         return True

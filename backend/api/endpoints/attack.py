@@ -28,12 +28,15 @@ async def fire_attack(payload: AttackPayload, background_tasks: BackgroundTasks)
         "url": payload.target_url,
         "method": payload.method,
         "headers": payload.headers,
-        "payload": parsed_body, # Original body for Tycoon/Escalator
+        "payload": parsed_body,
         "velocity": payload.velocity,
+        "concurrency": payload.concurrency, # Performance Bound
+        "rps": payload.rps, # Requests Per Second Bound
         "modules": payload.modules,
         "filters": payload.filters,
         "duration": payload.duration
     }
+
     
     # 2. Initial DB Registration (Orchestrator updates this too, but we reserve the slot)
     # We do a minimal placeholder here to ensure immediate UI feedback

@@ -69,7 +69,7 @@ async def get_dashboard_stats():
             payload = r.get("payload", {})
             historical_threats.append({
                 "timestamp": str(r.get("timestamp", "")).split()[-1][:8] if " " in str(r.get("timestamp", "")) else "History",
-                "agent": r.get("source", "agent_theta"),
+                "agent": r.get("source", "agent_prism"),
                 "threat_type": payload.get("type", "VULNERABILITY"),
                 "url": payload.get("url", s.get("name", "Unknown")),
                 "severity": payload.get("severity", "MEDIUM").upper(),

@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.orchestrator import HiveOrchestrator
 
 # Initialize Router
 router = APIRouter()
-brain = CortexEngine()
+brain = get_cortex_engine()
 
 class MutationRequest(BaseModel):
     url: str

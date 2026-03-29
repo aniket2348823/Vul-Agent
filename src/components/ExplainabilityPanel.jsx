@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // 1. THE NARRATIVE DICTIONARY (The Logic Core)
 const NARRATIVES = {
-    "THETA": {
+    "agent_prism": {
         "PROMPT_INJECTION": {
             title: "COGNITIVE ATTACK DETECTED",
             desc: "Agent Theta detected text hidden in the DOM designed to override your AI's instructions.",
@@ -15,7 +15,7 @@ const NARRATIVES = {
             consequence: "Blocked data ingestion from this element."
         }
     },
-    "IOTA": {
+    "agent_chi": {
         "DARK_PATTERN": {
             title: "DECEPTIVE UI PATTERN",
             desc: "Agent Iota identified a mismatch between the button text ('Cancel') and its action ('Submit').",
@@ -36,8 +36,8 @@ export default function ExplainabilityPanel({ latestEvent }) {
     useEffect(() => {
         if (!latestEvent) return;
 
-        const agent = latestEvent.agent; // "THETA" or "IOTA" (Note: payload uses 'agent', user provided 'agent_id' - adjusting to match backend payload)
-        // Backend sends "agent_theta", so we need to normalize or map it
+        const agent = latestEvent.agent; // "agent_prism" or "agent_chi" (Note: payload uses 'agent', user provided 'agent_id' - adjusting to match backend payload)
+        // Backend sends "agent_prism", so we need to normalize or map it
         const agentKey = agent?.toUpperCase().includes('THETA') ? 'THETA' : (agent?.toUpperCase().includes('IOTA') ? 'IOTA' : 'SYSTEM');
 
         const type = latestEvent.threat_type || "PROMPT_INJECTION"; // Default fallback

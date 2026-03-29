@@ -4,10 +4,10 @@ import random
 import logging
 from typing import Dict, Any, Optional
 # Hybrid AI Engine
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 
 logger = logging.getLogger("Mimic")
-cortex = CortexEngine()
+cortex = get_cortex_engine()
 
 class MimicSession:
     """

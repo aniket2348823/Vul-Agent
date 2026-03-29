@@ -7,19 +7,19 @@ import json
 # Ensure project root is in path
 sys.path.insert(0, r"D:\Antigravity 2\API Endpoint Scanner")
 
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.hive import EventBus, EventType, HiveEvent
 from backend.agents.alpha import AlphaAgent
 from backend.agents.beta import BetaAgent
 from backend.agents.kappa import KappaAgent
 from backend.agents.zeta import ZetaAgent
-from backend.agents.sentinel import AgentTheta
+from backend.agents.prism import AgentPrism
 from backend.agents.gamma import GammaAgent
 from backend.agents.sigma import SigmaAgent
 
 class TortureFramework:
     def __init__(self):
-        self.cortex = CortexEngine()
+        self.cortex = get_cortex_engine()
         self.bus = EventBus()
         self.results = {}
         

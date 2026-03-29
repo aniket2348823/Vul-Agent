@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Union
 import json
 from fpdf import FPDF
 # Hybrid AI Engine for intelligent reporting
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.chain_analyzer import ChainAnalyzer
 from backend.core.graph_engine import graph_engine
 
@@ -360,14 +360,8 @@ class ReportGenerator:
     async def generate_report(self, scan_id: str, events: List[Dict[str, Any]], target_url: str, telemetry: Dict[str, Any] = None, manager: Any = None):
         """
         Generate the professional PDF report matching specimen PS_1-PS_4 images.
-        
-        Args:
-            scan_id: Unique scan identifier
-            events: List of scan events
-            target_url: Target URL scanned
-            telemetry: Optional dict with scan telemetry data
-            manager: Optional WebSocket manager for real-time progress broadcast
         """
+        cortex = get_cortex_engine()
         try:
             pdf = SecurityReportPDF()
             pdf.alias_nb_pages()
@@ -829,13 +823,19 @@ class ReportGenerator:
             
             pdf.add_timeline_log(timeline_events)
 
-            # ================================================================
-            # FINALIZE & SAVE
-            # ================================================================
+            # --- THREADED SAVE TO PREVENT EVENT LOOP BLOCKING (Invariant 8) ---
+            from functools import partial
+            loop = asyncio.get_running_loop()
+            
             reports_dir = os.path.join(project_root, "reports")
             os.makedirs(reports_dir, exist_ok=True)
             out_file = os.path.join(reports_dir, f"Scan_Report_{scan_id}.pdf")
-            pdf.output(out_file)
+            
+            def _save_pdf():
+                pdf.output(out_file)
+                
+            await loop.run_in_executor(None, _save_pdf)
+            
             print(f"[REPORTER] Forensic Report generated: {out_file}")
             return out_file
 
@@ -844,3 +844,6 @@ class ReportGenerator:
             import traceback
             traceback.print_exc()
             return None
+        finally:
+            # --- RESOURCE GUARD: CRITICAL FIX ---
+            await cortex.shutdown()

@@ -1,7 +1,7 @@
 # Hybrid AI Engine
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 
-cortex = CortexEngine()
+cortex = get_cortex_engine()
 
 class CVSSCalculator:
     def __init__(self, success_count: int, body_content: str = "", target_url: str = "", vuln_type: str = ""):

@@ -1,7 +1,8 @@
 import asyncio
 import logging
 from datetime import datetime
-from backend.core.hive import EventBus, EventType, HiveEvent
+from backend.core.hive import EventBus, DistributedEventBus, EventType, HiveEvent
+
 from backend.core.protocol import ModuleConfig, AgentID, TaskPriority, TaskTarget
 # NeuroNegotiator removed - dead code cleanup V6
 from backend.core.state import stats_db_manager
@@ -16,22 +17,28 @@ from backend.agents.omega import OmegaAgent
 from backend.agents.zeta import ZetaAgent
 from backend.agents.sigma import SigmaAgent
 from backend.agents.kappa import KappaAgent 
-# V6 AGENTS
-from backend.agents.sentinel import AgentTheta # Agent Theta (The Sentinel)
-from backend.agents.inspector import AgentIota # Agent Iota (The Inspector)
+
+# Xytherion Distributed Architecture
+from backend.core.master import MasterNode
+# Unified Safety Agents (Prism & Chi)
+from backend.agents.prism import AgentPrism # Agent Theta (The Sentinel)
+from backend.agents.chi import AgentChi # Agent Iota (The Inspector)
+from backend.agents.delta import AgentDelta # Agent Delta (Hybrid DOM Controller)
+
 
 # recorder removed - unused import cleanup V6
 from backend.core.reporting import ReportGenerator # The Voice
 # Hybrid AI Engine for campaign strategy
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.planner import MissionPlanner
 
 logger = logging.getLogger("HiveOrchestrator")
-ai_cortex = CortexEngine()
+ai_cortex = get_cortex_engine()
 
 class HiveOrchestrator:
     # Global Registry for API Access (Nervous System)
     active_agents = {}
+    _orphaned_tasks = set()
 
     @staticmethod
     async def bootstrap_hive(target_config, scan_id=None):
@@ -69,8 +76,32 @@ class HiveOrchestrator:
             
         await manager.broadcast({"type": "SCAN_UPDATE", "payload": {"id": scan_id, "status": "Initializing"}})
 
-        # 1. Create Nervous System
-        bus = EventBus()
+        # 1. Create Nervous System (Distributed Switch)
+        redis_url = getattr(settings, "REDIS_URL", None)
+        if redis_url:
+            bus = DistributedEventBus(redis_url)
+            await bus.start()
+            logger.info("🕸️ Xytherion Distributed Singularity Initialized.")
+            
+            # --- START DISTRIBUTED COMMAND LAYER ---
+            # Automatically start Master for this scan
+            master = MasterNode(redis_url, settings.SUPABASE_URL, settings.SUPABASE_KEY)
+            asyncio.create_task(master.start())
+            
+            # The Unified Agents (Prism/Chi) handle individual guardian duties
+            # they are already in the core_agents list and started below.
+            logger.info("🛡️ Xytherion Command Matrix Activated. Safety Guardians Unified.")
+            
+            # V6-HARDENED: Start Cluster Telemetry Loop
+            asyncio.create_task(HiveOrchestrator._cluster_telemetry_loop(redis_url, scan_id))
+            # ----------------------------------------
+
+        else:
+            bus = EventBus()
+            logger.info("🛡️ Local Singularity Initialized (Standalone).")
+
+
+
         
         # --- REPORTING LINK ---
         scan_events = []
@@ -91,7 +122,7 @@ class HiveOrchestrator:
                     "type": str(real_payload.get('type', '')).upper(),
                     "data": str(real_payload.get('data', real_payload.get('payload', '')))
                 }
-                stats_db_manager.record_finding(scan_id, severity, sig_data)
+                await stats_db_manager.record_finding(scan_id, severity, sig_data)
                 
                 # Broadcast authoritative stats to UI
                 current_stats = stats_db_manager.get_stats()
@@ -108,10 +139,11 @@ class HiveOrchestrator:
                     }
                 })
 
-                # V6: Persist Threat Metrics
+                # V6: Persist Threat Metrics (Async Fix)
                 threat_type = real_payload.get("type", "Unknown Threat")
                 risk_score = real_payload.get("data", {}).get("risk_score", 0)
-                stats_db_manager.record_threat(threat_type, risk_score)
+                await stats_db_manager.record_threat(threat_type, risk_score)
+
 
                 # Broadcast LIVE THREAT LOG (New Feature)
                 await manager.broadcast({
@@ -214,8 +246,11 @@ class HiveOrchestrator:
         kappa = KappaAgent(bus) 
         
         # AWAKENING: The Sentinel and The Inspector (Purple Team Expansion)
-        sentinel = AgentTheta(bus)
-        inspector = AgentIota(bus) 
+        sentinel = AgentPrism(bus)
+        inspector = AgentChi(bus) 
+        
+        # AWAKENING: The Hybrid Controller (Browser DOM Wrapper)
+        delta = AgentDelta(bus)
         
         # AWAKENING: The Mission Planner (V6 Strategic Heart)
         planner = MissionPlanner(bus)
@@ -230,9 +265,9 @@ class HiveOrchestrator:
         
         # MODULE-BASED AGENT ROUTING
         # Core agents always run — these provide essential cross-cutting services
-        # Alpha: Recon, Kappa: Memory, Planner: Strategy, Theta: Defense, Iota: Defense
-        # Gamma: Forensic Audit, Omega: Campaign Strategy, Zeta: Governance/Throttle
-        core_agents = [scout, kappa, planner, sentinel, inspector, analyst, strategist, governor]
+        # Alpha: Recon, Kappa: Memory, Planner: Strategy, Prism: Defense, Chi: Defense
+        # Gamma: Forensic Audit, Omega: Campaign Strategy, Zeta: Governance/Throttle, Delta: DOM Interceptor
+        core_agents = [scout, kappa, planner, sentinel, inspector, analyst, strategist, governor, delta]
         
         # Offensive agents mapped to modules (Beta + Sigma are attack-specific)
         module_agent_map = {
@@ -264,16 +299,37 @@ class HiveOrchestrator:
             agent.mission_config = mission_profile # Inject Config
             await agent.start()
             
-        # Register in Global State
-        HiveOrchestrator.active_agents["THETA"] = sentinel
-        HiveOrchestrator.active_agents["IOTA"] = inspector
-        HiveOrchestrator.active_agents["OMEGA"] = strategist
-        HiveOrchestrator.active_agents["ALPHA"] = scout
-        HiveOrchestrator.active_agents["BETA"] = breaker
-        HiveOrchestrator.active_agents["GAMMA"] = analyst
-        HiveOrchestrator.active_agents["ZETA"] = governor
-        HiveOrchestrator.active_agents["SIGMA"] = sigma
-        HiveOrchestrator.active_agents["KAPPA"] = kappa
+        # Register in Global State (Dual Keying for String and Enum access)
+        HiveOrchestrator.active_agents["agent_prism"] = sentinel
+        HiveOrchestrator.active_agents[AgentID.PRISM] = sentinel
+        
+        HiveOrchestrator.active_agents["agent_chi"] = inspector
+        HiveOrchestrator.active_agents[AgentID.CHI] = inspector
+        
+        HiveOrchestrator.active_agents["agent_omega"] = strategist
+        HiveOrchestrator.active_agents[AgentID.OMEGA] = strategist
+        
+        HiveOrchestrator.active_agents["agent_alpha"] = scout
+        HiveOrchestrator.active_agents[AgentID.ALPHA] = scout
+        
+        HiveOrchestrator.active_agents["agent_beta"] = breaker
+        HiveOrchestrator.active_agents[AgentID.BETA] = breaker
+        
+        HiveOrchestrator.active_agents["agent_gamma"] = analyst
+        HiveOrchestrator.active_agents[AgentID.GAMMA] = analyst
+        
+        HiveOrchestrator.active_agents["agent_zeta"] = governor
+        HiveOrchestrator.active_agents[AgentID.ZETA] = governor
+        
+        HiveOrchestrator.active_agents["agent_sigma"] = sigma
+        HiveOrchestrator.active_agents[AgentID.SIGMA] = sigma
+        
+        HiveOrchestrator.active_agents["agent_kappa"] = kappa
+        HiveOrchestrator.active_agents[AgentID.KAPPA] = kappa
+        
+        HiveOrchestrator.active_agents["agent_delta"] = delta
+        HiveOrchestrator.active_agents[AgentID.DELTA] = delta
+        
         HiveOrchestrator.active_agents["PLANNER"] = planner
         
         # HYBRID AI: Log campaign strategy
@@ -302,8 +358,13 @@ class HiveOrchestrator:
             "SQL Injection Probe": "tech_sqli",
             "JWT Token Cracker": "tech_jwt",
             "API Fuzzer (REST)": "tech_fuzzer",
-            "Auth Bypass Tester": "tech_auth_bypass"
+            "Auth Bypass Tester": "tech_auth_bypass",
+            "Hybrid DOM Extraction": "delta_pinch_extract"
         }
+        
+        # Bug Fix #5: Core Module Fallback Breakage
+        if not selected_modules:
+            selected_modules = list(module_mapper.keys())
         
         from backend.core.protocol import JobPacket, TaskTarget, ModuleConfig, TaskPriority
         from backend.core.protocol import AgentID
@@ -317,9 +378,14 @@ class HiveOrchestrator:
                 target=TaskTarget(url=target_config['url']),
                 config=ModuleConfig(
                     module_id=internal_id,
-                    agent_id=AgentID.SIGMA
+                    agent_id=AgentID.SIGMA,
+                    params={
+                        "concurrency": target_config.get("concurrency", 50),
+                        "rps": target_config.get("rps", 100)
+                    }
                 )
             )
+
             
             await bus.publish(HiveEvent(
                 type=EventType.JOB_ASSIGNED,
@@ -334,9 +400,14 @@ class HiveOrchestrator:
             target=TaskTarget(url=target_config['url']),
             config=ModuleConfig(
                 module_id="sigma_generative_blast",
-                agent_id=AgentID.SIGMA
+                agent_id=AgentID.SIGMA,
+                params={
+                    "concurrency": target_config.get("concurrency", 50),
+                    "rps": target_config.get("rps", 100)
+                }
             )
         )
+
         await bus.publish(HiveEvent(
             type=EventType.JOB_ASSIGNED,
             source="Orchestrator",
@@ -382,6 +453,14 @@ class HiveOrchestrator:
             # --- V6 GRACE PERIOD ---
             await asyncio.sleep(1.0)
             
+            # --- SHUTDOWN CORTEX ENSURING SOCKET RELEASE ---
+            await ai_cortex.shutdown()
+            
+            # --- AWAIT CAPTURED ORPHAN TASKS ---
+            if HiveOrchestrator._orphaned_tasks:
+                await asyncio.gather(*HiveOrchestrator._orphaned_tasks, return_exceptions=True)
+                HiveOrchestrator._orphaned_tasks.clear()
+            
             # --- SCAN ISOLATION: UNSUBSCRIBE LISTENERS ---
             for etype in EventType:
                 bus.unsubscribe(etype, event_listener)
@@ -397,6 +476,11 @@ class HiveOrchestrator:
                 await manager.broadcast({"type": "SCAN_UPDATE", "payload": {"id": scan_id, "status": "Finalizing"}})
             except Exception as e:
                 logger.error(f"Failed to record complete_scan (Finalizing): {e}")
+
+            # --- FINAL MEMORY PURGE (Hard-Zero Gap Fix) ---
+            try:
+                await self.bus.evict_scan_context(scan_id)
+            except Exception: pass
 
             try:
                 async def generate_and_mark_ready():
@@ -471,9 +555,47 @@ class HiveOrchestrator:
                         import traceback
                         traceback.print_exc()
 
-                asyncio.create_task(generate_and_mark_ready())
+                task = asyncio.create_task(generate_and_mark_ready())
+                HiveOrchestrator._orphaned_tasks.add(task)
+                task.add_done_callback(HiveOrchestrator._orphaned_tasks.discard)
+                
                 await manager.broadcast({"type": "GI5_LOG", "payload": f"FORENSIC REPORT GENERATION INITIATED FOR {scan_id}"})
             except Exception as e:
                 logger.error(f"Report Background Gen Trigger Failed: {e}")
 
             await manager.broadcast({"type": "GI5_LOG", "payload": f"SCAN FINISHED. AI FINALIZING FORENSIC DATA FOR {scan_id}..."})
+
+    @staticmethod
+    async def _cluster_telemetry_loop(redis_url: str, scan_id: str):
+        """Syncs distributed cluster metrics to the UI Dashboard."""
+        import redis
+        import json
+        try:
+            r = redis.from_url(redis_url)
+            while True:
+                # 1. Gather Metrics
+                worker_data = r.hgetall("workers")
+                worker_count = len(worker_data)
+                queue_depth = r.llen("pending_tasks")
+                audit_depth = r.llen("xytherion_audit_queue")
+                
+                # 2. Broadcast to UI
+                await manager.broadcast({
+                    "type": "CLUSTER_TELEMETRY",
+                    "payload": {
+                        "scan_id": scan_id,
+                        "workers_active": worker_count,
+                        "queue_depth": queue_depth,
+                        "audit_depth": audit_depth,
+                        "timestamp": datetime.now().strftime("%H:%M:%S")
+                    }
+                })
+                
+                
+                await asyncio.sleep(1)
+        except asyncio.CancelledError:
+
+            pass
+        except Exception as e:
+            logger.debug(f"Cluster Telemetry loop failure: {e}")
+

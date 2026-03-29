@@ -40,8 +40,8 @@ async def fetch_scenario_list():
             return await resp.json()
 
 async def run_sweep(sweep_id: int):
-    from backend.ai.cortex import CortexEngine
-    cortex = CortexEngine()
+    from backend.ai.cortex import CortexEngine, get_cortex_engine
+    cortex = get_cortex_engine()
     
     # Optional warmup
     if sweep_id == 1:

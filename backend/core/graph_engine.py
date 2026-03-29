@@ -82,6 +82,18 @@ class GraphEngine:
                 print(f"[GraphEngine] Failed to load intelligence graph: {e}")
 
     def save_graph(self):
+        MAX_NODES = 1000
+        MAX_EDGES = 5000
+        
+        # Prune unbounded growth
+        if len(self.nodes) > MAX_NODES:
+            sorted_nodes = sorted(list(self.nodes), key=lambda x: x.weight, reverse=True)
+            self.nodes = set(sorted_nodes[:MAX_NODES])
+            
+        if len(self.edges) > MAX_EDGES:
+            sorted_edges = sorted(list(self.edges), key=lambda x: x.weight, reverse=True)
+            self.edges = set(sorted_edges[:MAX_EDGES])
+
         data = {
             "nodes": [n.to_dict() for n in self.nodes],
             "edges": [e.to_dict() for e in self.edges]
@@ -93,13 +105,27 @@ class GraphEngine:
         except Exception as e:
             print(f"[GraphEngine] Failed to persist intelligence graph: {e}")
 
-    def _add_or_update_node(self, type: str, endpoint: str, weight: int = 1) -> VulnNode:
+    def _add_or_update_node(self, type: str, endpoint: str, weight: int = 1, source: str = "UNKNOWN") -> VulnNode:
+        
+        # Enforce Source Tracing (Master Prompt Requirement)
+        # We classify origin context for strict generation rules
+        if "delta" in type.lower() or "dom" in source.lower():
+             verified_source = "PINCHTAB_DOM"
+        elif "heuristic" not in source.lower():
+             verified_source = "REAL_API_TRACE"
+        else:
+             verified_source = "UNVERIFIED_HEURISTIC" # Will be penalized
+             
         dummy = VulnNode(type, endpoint)
         for n in self.nodes:
             if n == dummy:
                 n.weight += weight
+                # Add source trace to existing dict
+                n.__dict__["verified_source"] = verified_source 
                 return n
+                
         new_node = VulnNode(type, endpoint, weight)
+        new_node.__dict__["verified_source"] = verified_source
         self.nodes.add(new_node)
         return new_node
 

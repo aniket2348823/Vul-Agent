@@ -4,7 +4,7 @@ import random
 import urllib.parse
 from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskTarget, ModuleConfig, TaskPriority
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 import json
 import aiohttp
 from backend.core.graph_engine import graph_engine
@@ -34,13 +34,16 @@ class SigmaAgent(BaseAgent):
         
         # CORTEX AI Generator
         try:
-            self.ai = CortexEngine()
+            self.ai = get_cortex_engine()
         except Exception:self.ai = None
 
         # Stage 10 Hardening: Persistent session for high-concurrency network tasks
         self._session = None
         # Governance: throttle flag from Zeta
         self._throttled = False
+        
+        # Hybrid Engine State Map
+        self.hybrid_token = None
 
         self.arsenal = {
             "tech_sqli": SQLInjectionProbe(),
@@ -63,8 +66,25 @@ class SigmaAgent(BaseAgent):
     async def setup(self):
         # Listen for requests to generate payloads (e.g. from Beta)
         self.bus.subscribe(EventType.JOB_ASSIGNED, self.handle_generation_request)
+        # Sequence Hybrid Integration: DOM Token Extractor
+        self.bus.subscribe(EventType.JOB_COMPLETED, self.handle_hybrid_result)
         # Governance: respond to Zeta's control signals
         self.bus.subscribe(EventType.CONTROL_SIGNAL, self.handle_control_signal)
+        
+    async def stop(self):
+        """Gracefully release the persistent generative execution session to prevent socket exhaustion."""
+        if self._session and not self._session.closed:
+            await self._session.close()
+            self._session = None
+        await super().stop()
+
+    async def handle_hybrid_result(self, event: HiveEvent):
+        """Consume PinchTab tokens harvested by AgentDelta."""
+        if event.source == "agent_delta" and isinstance(event.payload, dict):
+            token = event.payload.get("data", {}).get("dom_token")
+            if token:
+                self.hybrid_token = token
+                print(f"[{self.name}] [HYBRID FUSION] Assimilated live DOM token: {token[:10]}... Incoming attack sequences updated.")
 
     async def handle_control_signal(self, event: HiveEvent):
         """Respond to Zeta governance signals."""
@@ -89,6 +109,10 @@ class SigmaAgent(BaseAgent):
             if self._session is None or self._session.closed:
                 timeout = aiohttp.ClientTimeout(total=10)
                 self._session = aiohttp.ClientSession(timeout=timeout)
+                
+            # HYBRID FUSION: Inject DOM Scraped Token into Live Fetch Header
+            if self.hybrid_token:
+                 target.headers["Authorization"] = f"Bearer {self.hybrid_token}"
                 
             async with self._session.request(target.method, target.url, headers=target.headers, **kwargs) as resp:
                 chunks = []
@@ -126,9 +150,26 @@ class SigmaAgent(BaseAgent):
             
             # 1. PLAN: Generate target payloads
             targets = await module.generate_payloads(packet)
+            
+            # PHASE 2: ROAST (STRICT REJECTION LAYER)
+            # Filter targets to ensure they map to PinchTab's semantic reality 
+            # if Hybrid DOM data exists.
+            if packet.config.params and "semantic_state" in packet.config.params:
+                 semantic = packet.config.params["semantic_state"]
+                 mapped_targets = [t.get("target") for t in semantic.get("actions_mapped", [])]
+                 if mapped_targets:
+                      valid_targets = []
+                      for t in targets:
+                           # If a payload targets an unobserved parameter, we ROAST it (Reject)
+                           if any(m_target in str(t.payload) for m_target in mapped_targets) or module_id.startswith("logic"):
+                               valid_targets.append(t)
+                      targets = valid_targets
+                      print(f"[{self.name}] [ROAST] Filtered hallucinated vectors. Clean vectors remaining: {len(targets)}")
+
             if not targets:
                 await self.bus.publish(HiveEvent(type=EventType.JOB_COMPLETED, source=self.name, payload={"job_id": packet.id, "status": "SUCCESS"}))
                 return
+
             
             # BROADCAST LIVE ATTACK INTENT
             await self.bus.publish(HiveEvent(
@@ -146,21 +187,35 @@ class SigmaAgent(BaseAgent):
             # Cyber-Organism Protocol: Native gathered orchestration
             print(f"[{self.name}] [EXECUTE] Dispatching {len(targets)} asynchronous network tasks...")
             
-            # Task wrapper for granular broadcasting
-            async def broadcast_fetch(t):
-                await self.bus.publish(HiveEvent(
-                    type=EventType.LIVE_ATTACK,
-                    source=self.name,
-                    payload={
-                        "url": t.url,
-                        "arsenal": module_id,
-                        "action": "Injecting weaponized payload",
-                        "payload": str(t.payload)[:100] + ("..." if len(str(t.payload)) > 100 else "")
-                    }
-                ))
-                return await self._fetch(t)
+            # PERFORMANCE CONTROL: Concurrency & Rate Limiting (Phase 2)
+            concurrency = packet.config.params.get("concurrency", 50)
+            rps = packet.config.params.get("rps", 100)
+            
+            # 1/rps = delay between starts to maintain ceiling
+            rate_limit_delay = 1.0 / rps if rps > 0 else 0
+            
+            semaphore = asyncio.Semaphore(concurrency)
+            
+            async def broadcast_fetch_with_limits(t):
+                async with semaphore:
+                    await self.bus.publish(HiveEvent(
+                        type=EventType.LIVE_ATTACK,
+                        source=self.name,
+                        payload={
+                            "url": t.url,
+                            "arsenal": module_id,
+                            "action": "Injecting mission-governed payload",
+                            "payload": str(t.payload)[:100] + ("..." if len(str(t.payload)) > 100 else "")
+                        }
+                    ))
+                    res = await self._fetch(t)
+                    # Enforce RPS gap
+                    if rate_limit_delay > 0:
+                        await asyncio.sleep(rate_limit_delay)
+                    return res
 
-            results = await asyncio.gather(*[broadcast_fetch(t) for t in targets])
+            results = await asyncio.gather(*[broadcast_fetch_with_limits(t) for t in targets])
+
             
             # 3. OBSERVE: Analyze interactions
             print(f"[{self.name}] [OBSERVE] Applying pure module evaluation...")
@@ -198,19 +253,27 @@ class SigmaAgent(BaseAgent):
         # 1. CONTEXT AWARE GENERATION
         generated_payloads = []
         
-        # Try AI First (Ollama Cortex)
+        # Try AI First (Ollama Cortex) with Master Prompt Guardrails
         if self.ai and self.ai.enabled:
              print(f"[{self.name}] >> CORTEX AI: Generating context-aware payloads via Ollama...")
+             
+             # INJECT: Xytherion Master Prompt (DEFINE -> ROAST -> REFINE)
+             master_guard = "MASTER RULE: You must NOT hallucinate endpoints. Only generate payloads valid for the observed API behavior."
+             if packet.config.params and "semantic_state" in packet.config.params:
+                 master_guard += f" OBSERVED DOM ACTIONS: {packet.config.params['semantic_state']['actions_mapped']}."
+                 
              try:
                  ai_payloads = await self.ai.generate_attack_payloads(
                      target_url=packet.target.url,
-                     attack_types=["XSS", "SQLi", "SSTI", "Path Traversal"]
+                     attack_types=["XSS", "SQLi", "SSTI", "Path Traversal"],
+                     contextual_notes=master_guard
                  )
                  if ai_payloads:
                      generated_payloads.extend(ai_payloads)
-                     print(f"[{self.name}] >> CORTEX AI: Generated {len(ai_payloads)} intelligent payloads.")
+                     print(f"[{self.name}] >> CORTEX AI: Generated {len(ai_payloads)} ROAST-validated payloads.")
              except Exception as e:
                  print(f"[{self.name}] CORTEX AI Failure. Falling back to templates: {e}")
+
         
         # Fallback to Templates if AI produced nothing
         if not generated_payloads:

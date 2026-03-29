@@ -400,6 +400,12 @@ class CortexEngine:
             t["avg_output_tokens"] = 0.0
         return t
 
+    async def shutdown(self):
+        """Cleanly close the underlying AIOHTTP session to prevent resource leaks."""
+        if self._session and not self._session.closed:
+            await self._session.close()
+            logger.info("CORTEX: Base AIOHTTP session safely closed.")
+
     def _is_error(self, result: str) -> bool:
         """Check if an Ollama response is an error."""
         return result.startswith("[CORTEX")
@@ -2431,6 +2437,18 @@ Output ONLY valid JSON: {{"hours": "2-4 hours", "complexity": "Medium", "reason"
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-# CONVENIENCE: Module-level singleton (Hybrid)
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-cortex = CortexEngine()
+
+# ===============================================================================
+# GLOBAL SINGLETON PROVIDER (Stage 10 Zero-Leak)
+# ===============================================================================
+
+_global_cortex_engine = None
+
+def get_cortex_engine():
+    """Returns the unified global AI engine instance (Singleton)."""
+    global _global_cortex_engine
+    if _global_cortex_engine is None:
+        from backend.ai.cortex import CortexEngine
+        _global_cortex_engine = CortexEngine()
+    return _global_cortex_engine

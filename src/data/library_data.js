@@ -111,7 +111,7 @@ export const agents = [
         ]
     },
     {
-        id: "THETA",
+        id: "agent_prism",
         name: "Agent Prism",
         role: "THE SENTINEL",
         description: "Defensive Text Analyst. Sanitizes inputs for Prompt Injection and Jailbreaks.",
@@ -126,7 +126,7 @@ export const agents = [
         ]
     },
     {
-        id: "IOTA",
+        id: "agent_chi",
         name: "Agent Chi",
         role: "THE INSPECTOR",
         description: "Defensive UI Analyst. Detects Dark Patterns, Phishing, and Deceptive Buttons.",

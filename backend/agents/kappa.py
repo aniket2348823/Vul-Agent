@@ -23,8 +23,8 @@ class KappaAgent(BaseAgent):
         
         # Initialize Cortex AI (Local Ollama)
         try:
-            from backend.ai.cortex import CortexEngine
-            self.truth_kernel = CortexEngine()
+            from backend.ai.cortex import CortexEngine, get_cortex_engine
+            self.truth_kernel = get_cortex_engine()
         except Exception:
             self.truth_kernel = None
             

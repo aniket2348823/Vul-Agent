@@ -4,7 +4,7 @@ from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, ModuleConfig, TaskTarget
 
 # Hybrid AI Engine
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 
 class AlphaAgent(BaseAgent):
     """
@@ -15,7 +15,7 @@ class AlphaAgent(BaseAgent):
     def __init__(self, bus):
         super().__init__("agent_alpha", bus)
         # Hybrid AI Engine for intelligent classification
-        self.cortex = CortexEngine()
+        self.cortex = get_cortex_engine()
         self.MAX_CRAWL_DEPTH = 5
         self._session = None
 
@@ -222,7 +222,7 @@ class AlphaAgent(BaseAgent):
         
         # HYBRID: Flag typosquatting domains at recon stage
         if "TYPOSQUATTING" in classification.get("tags", []):
-            print(f"[{self.name}]: ⚠️ TYPOSQUATTING DOMAIN DETECTED by GI5. Flagging as HIGH PRIORITY.")
+            print(f"[{self.name}]: TYPOSQUATTING DOMAIN DETECTED by GI5. Flagging as HIGH PRIORITY.")
         
         # PROTOCAL AWARENESS: Force scan for local files
         if url_lower.startswith("file:///"):

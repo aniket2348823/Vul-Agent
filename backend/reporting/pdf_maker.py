@@ -3,6 +3,14 @@ from datetime import datetime
 import re
 
 class ForensicReport(FPDF):
+    def _clean_text(self, text):
+        """
+        Strips non-Latin1 characters that cause FPDF to crash when using standard fonts.
+        """
+        if not text: return ""
+        # Keep basic Latin-1, strip everything else including emojis
+        return re.sub(r'[^\x00-\xff]', '', str(text))
+
     def header(self):
         # Header layout
         self.set_font('Courier', 'B', 10)
@@ -39,11 +47,16 @@ class ForensicReport(FPDF):
         self.set_font('Courier', '', 10)
         self.set_text_color(0, 0, 0)
         
+        # Handle both dict-based job_data and TaskTarget-based job_data
+        target_url = job_data.get('target', 'N/A')
+        if isinstance(target_url, dict):
+            target_url = target_url.get('url', 'N/A')
+            
         data = [
             ("Job ID", job_data.get('id', 'N/A')),
             ("Date", datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")),
             ("Operator", "ZERO-DAY"),
-            ("Target URL", job_data.get('target', 'N/A')),
+            ("Target URL", target_url),
             ("Method", job_data.get('method', 'POST')),
             ("Payload Hash", "SHA-256 (Partial) " + str(hash(job_data.get('body', '')))[:16])
         ]
@@ -52,7 +65,8 @@ class ForensicReport(FPDF):
             self.set_font('Courier', 'B', 10)
             self.cell(50, 8, key, 1)
             self.set_font('Courier', '', 10)
-            self.cell(0, 8, str(val), 1, 1)
+            # Use sanitizer for values
+            self.cell(0, 8, self._clean_text(str(val)), 1, 1)
         self.ln(10)
 
     def evidence_table(self, results):
@@ -182,8 +196,8 @@ class ForensicReport(FPDF):
         
         summary = None
         try:
-            from backend.ai.cortex import CortexEngine
-            cortex = CortexEngine()
+            from backend.ai.cortex import CortexEngine, get_cortex_engine
+            cortex = get_cortex_engine()
             target = job_data.get('target', 'Unknown')
             success_count = sum(1 for r in results if isinstance(r, dict) and str(r.get('status', '')).startswith('2'))
             summary = cortex.generate_executive_brief(target, success_count, len(results), "0.0")
@@ -222,8 +236,8 @@ class ForensicReport(FPDF):
         # Initialize Cortex if key available
         cortex = None
         try:
-            from backend.ai.cortex import CortexEngine
-            cortex = CortexEngine()
+            from backend.ai.cortex import CortexEngine, get_cortex_engine
+            cortex = get_cortex_engine()
         except Exception:pass
 
         # Try to detect if 'results' is the new variant list or old socket list
@@ -261,8 +275,8 @@ class ForensicReport(FPDF):
                 else:
                     # Fallback to Neural Core
                     try:
-                        from backend.ai.cortex import CortexEngine
-                        hybrid = CortexEngine()
+                        from backend.ai.cortex import CortexEngine, get_cortex_engine
+                        hybrid = get_cortex_engine()
                         vuln_data = {
                             "target": job_data.get('target'),
                             "payload": payload,
@@ -376,8 +390,8 @@ class ForensicReport(FPDF):
             
             summary = None
             try:
-                from backend.ai.cortex import CortexEngine
-                cortex = CortexEngine()
+                from backend.ai.cortex import CortexEngine, get_cortex_engine
+                cortex = get_cortex_engine()
                 success_count = sum(1 for r in scan['results'] if isinstance(r, dict) and str(r.get('status', '')).startswith('2'))
                 summary = cortex.generate_executive_brief(target_title, success_count, len(scan['results']), "0.0")
             except Exception:pass

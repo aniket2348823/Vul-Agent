@@ -1,6 +1,6 @@
 from backend.core.base import BaseArsenalModule
 from backend.core.protocol import JobPacket, Vulnerability, TaskTarget
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 import urllib.parse
 
 class SQLInjectionProbe(BaseArsenalModule):
@@ -9,7 +9,7 @@ class SQLInjectionProbe(BaseArsenalModule):
         self.name = "SQL Injection Probe"
         # CORTEX AI for intelligent payload generation
         try:
-            self.ai = CortexEngine()
+            self.ai = get_cortex_engine()
         except Exception:self.ai = None
 
     async def generate_payloads(self, packet: JobPacket) -> list[TaskTarget]:

@@ -6,13 +6,13 @@ from backend.core.orchestrator import HiveOrchestrator
 from backend.core.protocol import JobPacket, TaskTarget, ModuleConfig, AgentID
 from backend.api.socket_manager import manager # UI Broadcast
 # Hybrid AI Engine
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 
 router = APIRouter()
-cortex = CortexEngine()
+cortex = get_cortex_engine()
 
 class ThreatPayload(BaseModel):
-    agent_id: str  # "THETA" or "IOTA"
+    agent_id: str  # "agent_prism" or "agent_chi"
     content: Dict[str, Any]  # The DOM data or Text
     url: str
     session_id: Optional[str] = "anonymous-session" # V6: Session Persistence
@@ -35,8 +35,8 @@ async def analyze_threat(payload: ThreatPayload):
 
     # 2. Create a Job Packet for the Agent
     # We wrap the extension data into a format the Agent understands (JobPacket)
-    # Mapping "THETA" -> AgentID.THETA
-    agent_enum = AgentID.THETA if payload.agent_id == "THETA" else AgentID.IOTA
+    # Mapping "agent_prism" -> AgentID.PRISM
+    agent_enum = AgentID.PRISM if payload.agent_id == "agent_prism" else AgentID.CHI
     
     # 2.5 Quick Check / Routing (Optional Optimization)
     # In a real system, we might bypass the full Agent Queue for sync blocking,
@@ -56,7 +56,7 @@ async def analyze_threat(payload: ThreatPayload):
         )
     )
     
-    # 3. Execute the Agent Logic (Theta or Iota)
+    # 3. Execute the Agent Logic (Prism or Chi)
     # We call execute_task directly to get result immediately (synchronous wait for async func)
     result = await agent.execute_task(packet)
     

@@ -20,8 +20,8 @@ from backend.agents.sigma import SigmaAgent
 from backend.agents.omega import OmegaAgent
 from backend.agents.zeta import ZetaAgent
 from backend.agents.kappa import KappaAgent
-from backend.agents.sentinel import AgentTheta
-from backend.agents.inspector import AgentIota
+from backend.agents.prism import AgentPrism
+from backend.agents.chi import AgentChi
 
 # -------------------------
 # CHAOS INJECTOR (THE ANTAGONIST)
@@ -143,7 +143,7 @@ class HarshEnvironmentHarness:
         self.agents = [
             AlphaAgent(self.bus), BetaAgent(self.bus), GammaAgent(self.bus),
             SigmaAgent(self.bus), OmegaAgent(self.bus), ZetaAgent(self.bus),
-            KappaAgent(self.bus), AgentTheta(self.bus), AgentIota(self.bus)
+            KappaAgent(self.bus), AgentPrism(self.bus), AgentChi(self.bus)
         ]
         await asyncio.gather(*[a.start() for a in self.agents])
 

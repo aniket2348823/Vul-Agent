@@ -3,7 +3,7 @@ import random
 from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskPriority, ModuleConfig, TaskTarget
 
-from backend.ai.cortex import CortexEngine
+from backend.ai.cortex import CortexEngine, get_cortex_engine
 import json
 
 class BetaAgent(BaseAgent):
@@ -20,7 +20,7 @@ class BetaAgent(BaseAgent):
         
         # CORTEX AI Integration (Local Ollama)
         try:
-            self.ai = CortexEngine()
+            self.ai = get_cortex_engine()
         except Exception:self.ai = None
 
         
