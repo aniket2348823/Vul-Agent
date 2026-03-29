@@ -1,0 +1,240 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 0.8.0, without v prefix)'
+        required: true
+      ref:
+        description: 'Git ref to release. Defaults to main.'
+        required: false
+        default: 'main'
+
+env:
+  GORELEASER_VERSION: v2.14.3
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prepare-release-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    uses: ./.github/workflows/reusable-validate-release.yml
+    with:
+      version: ${{ inputs.version }}
+      ref: ${{ inputs.ref }}
+
+  release-secret-checks:
+    needs: validate
+    uses: ./.github/workflows/reusable-validate-release-secrets.yml
+    secrets:
+      HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+
+  go-checks:
+    needs: validate
+    uses: ./.github/workflows/reusable-go.yml
+    with:
+      ref: ${{ needs.validate.outputs.sha }}
+
+  dashboard-checks:
+    needs: validate
+    uses: ./.github/workflows/reusable-dashboard.yml
+    with:
+      ref: ${{ needs.validate.outputs.sha }}
+
+  docs-checks:
+    needs: validate
+    uses: ./.github/workflows/reusable-docs.yml
+    with:
+      ref: ${{ needs.validate.outputs.sha }}
+
+  npm-checks:
+    needs: validate
+    uses: ./.github/workflows/reusable-npm.yml
+    with:
+      ref: ${{ needs.validate.outputs.sha }}
+      version: ${{ needs.validate.outputs.version }}
+
+  e2e-api-full:
+    needs: validate
+    uses: ./.github/workflows/reusable-e2e.yml
+    with:
+      ref: ${{ needs.validate.outputs.sha }}
+      suite: api-full
+      summary_title: Release E2E (API)
+      timeout_minutes: 30
+
+  e2e-cli-full:
+    needs: validate
+    uses: ./.github/workflows/reusable-e2e.yml
+    with:
+      ref: ${{ needs.validate.outputs.sha }}
+      suite: cli-full
+      summary_title: Release E2E (CLI)
+      timeout_minutes: 30
+
+  docker-smoke:
+    needs: validate
+    uses: ./.github/workflows/reusable-docker-smoke.yml
+    with:
+      ref: ${{ needs.validate.outputs.sha }}
+
+  publish-dry-run:
+    name: Release Dry Runs
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.validate.outputs.sha }}
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26'
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install tygo
+        run: go install github.com/gzuidhof/tygo@latest
+
+      - name: Install dashboard dependencies
+        working-directory: dashboard
+        run: bun install --frozen-lockfile
+
+      - name: Run GoReleaser snapshot
+        run: |
+          curl -sfL https://goreleaser.com/static/run | VERSION="$GORELEASER_VERSION" bash -s -- release --clean --snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+
+      - name: Dry-run npm publish
+        working-directory: npm
+        run: |
+          CURRENT="$(jq -r .version package.json)"
+          DESIRED="${{ needs.validate.outputs.version }}"
+          if [ "$CURRENT" != "$DESIRED" ]; then
+            npm version "$DESIRED" --no-git-tag-version
+          else
+            echo "Version already correct: $CURRENT"
+          fi
+
+          npm ci --ignore-scripts
+          npm run build
+          npm publish --dry-run
+
+  approval:
+    name: Manual Approval
+    needs:
+      - validate
+      - release-secret-checks
+      - go-checks
+      - dashboard-checks
+      - docs-checks
+      - npm-checks
+      - e2e-api-full
+      - e2e-cli-full
+      - docker-smoke
+      - publish-dry-run
+    if: >-
+      always() && !cancelled()
+      && needs.validate.result == 'success'
+      && needs.release-secret-checks.result == 'success'
+      && needs.go-checks.result == 'success'
+      && needs.dashboard-checks.result == 'success'
+      && needs.docs-checks.result == 'success'
+      && needs.npm-checks.result == 'success'
+      && needs.publish-dry-run.result == 'success'
+    runs-on: ubuntu-latest
+    environment:
+      name: release-approval
+    steps:
+      - name: Report check results
+        run: |
+          echo "## Pre-Release Check Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Check | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Release secrets | ✅ |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Go | ✅ |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Dashboard | ✅ |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Docs | ✅ |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| npm | ✅ |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Publish dry run | ✅ |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Docker smoke | ${{ needs.docker-smoke.result == 'success' && '✅' || '⚠️ ' }}${{ needs.docker-smoke.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| E2E API | ${{ needs.e2e-api-full.result == 'success' && '✅' || '⚠️ ' }}${{ needs.e2e-api-full.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| E2E CLI | ${{ needs.e2e-cli-full.result == 'success' && '✅' || '⚠️ ' }}${{ needs.e2e-cli-full.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${{ needs.e2e-api-full.result }}" != "success" ] || [ "${{ needs.e2e-cli-full.result }}" != "success" ] || [ "${{ needs.docker-smoke.result }}" != "success" ]; then
+            echo "⚠️ **Some checks failed — review artifacts before approving.**" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Release candidate: **${{ needs.validate.outputs.tag }}** at \`${{ needs.validate.outputs.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+
+  create-tag:
+    name: Create Release Tag
+    needs:
+      - validate
+      - approval
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.validate.outputs.sha }}
+
+      - name: Create and push tag
+        run: |
+          TAG="${{ needs.validate.outputs.tag }}"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "tag $TAG already exists on origin" >&2
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "refs/tags/$TAG"
+
+      - name: Summarize tag creation
+        run: |
+          echo "## Release Tag Created" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Tag: ${{ needs.validate.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Commit: \`${{ needs.validate.outputs.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Publishing continues in this workflow from the approved tag." >> "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    name: Publish Release
+    needs:
+      - validate
+      - create-tag
+    permissions:
+      contents: write
+      packages: write
+    uses: ./.github/workflows/reusable-release-publish.yml
+    with:
+      ref: refs/tags/${{ needs.validate.outputs.tag }}
+      tag: ${{ needs.validate.outputs.tag }}
+    secrets: inherit

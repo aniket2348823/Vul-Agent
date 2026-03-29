@@ -1,0 +1,167 @@
+package bridge
+
+import (
+	"os"
+	"path/filepath"
+	"reflect"
+	"testing"
+)
+
+func TestIsChromeProfileLockError(t *testing.T) {
+	t.Parallel()
+
+	msg := "chrome failed to start: [2046:2046:0309/221021.856597:ERROR:chrome/browser/process_singleton_posix.cc:363] The profile appears to be in use by another Chromium process"
+	if !isChromeProfileLockError(msg) {
+		t.Fatal("expected profile lock error to be detected")
+	}
+}
+
+func TestParseChromeProfileProcesses(t *testing.T) {
+	t.Parallel()
+
+	profileDir := "/data/.config/pinchtab/profiles/default"
+	out := []byte("  36 /usr/bin/chromium-browser --user-data-dir=/data/.config/pinchtab/profiles/default --remote-debugging-port=9222\n  99 /usr/bin/chromium-browser --user-data-dir=/tmp/other\n")
+
+	got := parseChromeProfileProcesses(out, profileDir)
+	want := []chromeProfileProcess{
+		{
+			PID:     "36",
+			Command: "/usr/bin/chromium-browser --user-data-dir=/data/.config/pinchtab/profiles/default --remote-debugging-port=9222",
+		},
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("parseChromeProfileProcesses() = %#v, want %#v", got, want)
+	}
+}
+
+func TestExtractChromeProfileLockPID(t *testing.T) {
+	t.Parallel()
+
+	msg := "The profile appears to be in use by another Chromium process (36) on another computer"
+	pid, ok := extractChromeProfileLockPID(msg)
+	if !ok {
+		t.Fatal("expected pid to be parsed from profile lock error")
+	}
+	if pid != 36 {
+		t.Fatalf("extractChromeProfileLockPID() = %d, want 36", pid)
+	}
+}
+
+func TestClearStaleChromeProfileLockRemovesSingletonFiles(t *testing.T) {
+	profileDir := t.TempDir()
+	for _, name := range chromeSingletonFiles {
+		if err := os.WriteFile(filepath.Join(profileDir, name), []byte("x"), 0644); err != nil {
+			t.Fatalf("write %s: %v", name, err)
+		}
+	}
+
+	orig := chromeProfileProcessLister
+	origPID := chromePIDIsRunning
+	origMock := isProfileOwnedByRunningPinchtabMock
+	chromeProfileProcessLister = func(string) ([]chromeProfileProcess, error) {
+		return nil, nil
+	}
+	chromePIDIsRunning = func(int) (bool, error) {
+		return false, nil
+	}
+	isProfileOwnedByRunningPinchtabMock = func(string) (bool, int) {
+		return false, 0
+	}
+	t.Cleanup(func() {
+		chromeProfileProcessLister = orig
+		chromePIDIsRunning = origPID
+		isProfileOwnedByRunningPinchtabMock = origMock
+	})
+
+	removed, err := clearStaleChromeProfileLock(profileDir, "")
+	if err != nil {
+		t.Fatalf("clearStaleChromeProfileLock() error = %v", err)
+	}
+	if !removed {
+		t.Fatal("expected singleton files to be removed")
+	}
+
+	for _, name := range chromeSingletonFiles {
+		if _, err := os.Lstat(filepath.Join(profileDir, name)); !os.IsNotExist(err) {
+			t.Fatalf("expected %s to be removed, got err=%v", name, err)
+		}
+	}
+}
+
+func TestClearStaleChromeProfileLockLeavesActiveProfileUntouched(t *testing.T) {
+	profileDir := t.TempDir()
+	lockPath := filepath.Join(profileDir, chromeSingletonFiles[0])
+	if err := os.WriteFile(lockPath, []byte("x"), 0644); err != nil {
+		t.Fatalf("write lock file: %v", err)
+	}
+
+	orig := chromeProfileProcessLister
+	origPID := chromePIDIsRunning
+	origMock := isProfileOwnedByRunningPinchtabMock
+	chromeProfileProcessLister = func(string) ([]chromeProfileProcess, error) {
+		return []chromeProfileProcess{{PID: "36", Command: "/usr/bin/chromium-browser --user-data-dir=" + profileDir}}, nil
+	}
+	chromePIDIsRunning = func(int) (bool, error) {
+		return false, nil
+	}
+	isProfileOwnedByRunningPinchtabMock = func(string) (bool, int) {
+		return true, 1234
+	}
+	t.Cleanup(func() {
+		chromeProfileProcessLister = orig
+		chromePIDIsRunning = origPID
+		isProfileOwnedByRunningPinchtabMock = origMock
+	})
+
+	removed, err := clearStaleChromeProfileLock(profileDir, "")
+	if err != nil {
+		t.Fatalf("clearStaleChromeProfileLock() error = %v", err)
+	}
+	if removed {
+		t.Fatal("expected active profile lock to remain in place")
+	}
+	if _, err := os.Lstat(lockPath); err != nil {
+		t.Fatalf("expected lock file to remain, got err=%v", err)
+	}
+}
+
+func TestClearStaleChromeProfileLockFallsBackToPIDProbe(t *testing.T) {
+	profileDir := t.TempDir()
+	lockPath := filepath.Join(profileDir, chromeSingletonFiles[0])
+	if err := os.WriteFile(lockPath, []byte("x"), 0644); err != nil {
+		t.Fatalf("write lock file: %v", err)
+	}
+
+	orig := chromeProfileProcessLister
+	origPID := chromePIDIsRunning
+	origMock := isProfileOwnedByRunningPinchtabMock
+	chromeProfileProcessLister = func(string) ([]chromeProfileProcess, error) {
+		return nil, os.ErrPermission
+	}
+	chromePIDIsRunning = func(pid int) (bool, error) {
+		if pid != 36 {
+			t.Fatalf("unexpected pid probe: got %d, want 36", pid)
+		}
+		return false, nil
+	}
+	isProfileOwnedByRunningPinchtabMock = func(string) (bool, int) {
+		return false, 0
+	}
+	t.Cleanup(func() {
+		chromeProfileProcessLister = orig
+		chromePIDIsRunning = origPID
+		isProfileOwnedByRunningPinchtabMock = origMock
+	})
+
+	removed, err := clearStaleChromeProfileLock(profileDir, "another Chromium process (36)")
+	if err != nil {
+		t.Fatalf("clearStaleChromeProfileLock() error = %v", err)
+	}
+	if !removed {
+		t.Fatal("expected singleton file to be removed after stale pid probe")
+	}
+	if _, err := os.Lstat(lockPath); !os.IsNotExist(err) {
+		t.Fatalf("expected lock file to be removed, got err=%v", err)
+	}
+}

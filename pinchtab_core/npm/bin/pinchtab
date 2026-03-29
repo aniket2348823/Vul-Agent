@@ -1,0 +1,164 @@
+#!/usr/bin/env node
+
+const path = require('path');
+const { spawn, spawnSync } = require('child_process');
+const os = require('os');
+const fs = require('fs');
+
+function getBinaryName() {
+  const platform = process.platform;
+  const arch = (process.arch === 'arm64' || process.arch === 'aarch64') ? 'arm64' : 'amd64';
+
+  if (platform === 'darwin') {
+    return `pinchtab-darwin-${arch}`;
+  } else if (platform === 'linux') {
+    return `pinchtab-linux-${arch}`;
+  } else if (platform === 'win32') {
+    return `pinchtab-windows-${arch}.exe`;
+  }
+
+  throw new Error(`Unsupported platform: ${platform}`);
+}
+
+function getVersion() {
+  const pkgPath = path.join(__dirname, '..', 'package.json');
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+  return pkg.version;
+}
+
+function getBinaryPath() {
+  // Allow override via environment variable (for Docker, custom builds)
+  if (process.env.PINCHTAB_BINARY_PATH) {
+    return process.env.PINCHTAB_BINARY_PATH;
+  }
+
+  // Try version-specific path first: ~/.pinchtab/bin/0.7.0/pinchtab-darwin-arm64
+  const version = getVersion();
+  const versionedPath = path.join(os.homedir(), '.pinchtab', 'bin', version, getBinaryName());
+  if (fs.existsSync(versionedPath)) {
+    return versionedPath;
+  }
+
+  // Fallback to version-less for backwards compat
+  return path.join(os.homedir(), '.pinchtab', 'bin', getBinaryName());
+}
+
+// Handle `pinchtab skill update` at the Node.js level (no Go binary needed)
+const args = process.argv.slice(2);
+if (args[0] === 'skill' && (args[1] === 'update' || args[1] === 'sync')) {
+  try {
+    const { syncSkills } = require('../scripts/sync-skills');
+    console.log('Syncing Pinchtab skill files...\n');
+    const { updated, skipped } = syncSkills({ verbose: true });
+
+    if (updated.length > 0) {
+      console.log(`\n✓ Updated ${updated.length} skill director${updated.length === 1 ? 'y' : 'ies'}`);
+    } else {
+      console.log('\nNo agent skill directories found to update.');
+      console.log('Skill directories are synced only where agents are already installed.');
+    }
+
+    if (skipped.length > 0) {
+      console.log(`⚠ Skipped ${skipped.length} (permission errors)`);
+    }
+  } catch (err) {
+    console.error(`Failed to sync skills: ${err.message}`);
+    process.exit(1);
+  }
+  process.exit(0);
+}
+
+if (args[0] === 'skill' && args[1] === 'list') {
+  try {
+    const { getTargetSkillDirs, getBundledSkillsDir } = require('../scripts/sync-skills');
+    const bundled = getBundledSkillsDir();
+    console.log(`Bundled skills: ${fs.existsSync(bundled) ? bundled : '(not found)'}`);
+    console.log('\nDetected agent skill directories:');
+    const targets = getTargetSkillDirs();
+    if (targets.length === 0) {
+      console.log('  (none found)');
+    } else {
+      targets.forEach((t) => {
+        const exists = fs.existsSync(t);
+        console.log(`  ${exists ? '●' : '○'} ${t}${exists ? '' : ' (will be created on sync)'}`);
+      });
+    }
+  } catch (err) {
+    console.error(`Failed to list skills: ${err.message}`);
+    process.exit(1);
+  }
+  process.exit(0);
+}
+
+if (args[0] === 'skill') {
+  console.log('Usage: pinchtab skill <command>\n');
+  console.log('Commands:');
+  console.log('  update    Sync bundled skill files to agent directories');
+  console.log('  list      Show detected agent skill directories');
+  process.exit(0);
+}
+
+const binaryPath = getBinaryPath();
+
+// Check binary exists
+if (!fs.existsSync(binaryPath)) {
+  console.error('❌ Pinchtab binary not found at:');
+  console.error(`  ${binaryPath}`);
+  console.error('\nTo fix this, run:');
+  console.error('  npm rebuild pinchtab');
+  console.error('\nOr set a custom binary path:');
+  console.error(`  PINCHTAB_BINARY_PATH=/path/to/binary pinchtab`);
+  process.exit(1);
+}
+
+// MCP stdio JSON-RPC needs the Go binary to own stdin/stdout directly.
+// The normal spawn() path plus parent signal handlers can interfere with
+// process lifecycle in ways that break some MCP clients (e.g. Claude Code).
+// Use spawnSync for the mcp subcommand so Node blocks without an event
+// loop or signal handlers sitting between the client and the Go process.
+// Note: Node still exists as the parent PID — this is not a true exec —
+// but removing the async event loop and signal forwarding is sufficient
+// for the known failure modes.
+function firstSubcommand(argv) {
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === '--server') { i += 1; continue; }
+    if (arg.startsWith('--server=')) continue;
+    if (!arg.startsWith('-')) return arg;
+  }
+  return null;
+}
+
+if (firstSubcommand(args) === 'mcp') {
+  const result = spawnSync(binaryPath, args, {
+    stdio: 'inherit',
+    shell: false,
+  });
+
+  if (result.error) {
+    console.error(`Failed to run Pinchtab: ${result.error.message}`);
+    process.exit(1);
+  }
+  if (result.signal) {
+    process.kill(process.pid, result.signal);
+  }
+  process.exit(result.status ?? 0);
+}
+
+const proc = spawn(binaryPath, args, {
+  stdio: 'inherit',
+  shell: false,
+});
+
+proc.on('error', (err) => {
+  console.error(`Failed to run Pinchtab: ${err.message}`);
+  process.exit(1);
+});
+
+process.on('SIGINT', () => {
+  proc.kill();
+});
+
+process.on('SIGTERM', () => {
+  proc.kill();
+});

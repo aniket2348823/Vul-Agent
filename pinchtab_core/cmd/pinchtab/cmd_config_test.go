@@ -1,0 +1,225 @@
+package main
+
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"github.com/pinchtab/pinchtab/internal/config"
+)
+
+func TestRenderConfigOverview(t *testing.T) {
+	cfg := &config.RuntimeConfig{
+		Port:              "9867",
+		Strategy:          "simple",
+		AllocationPolicy:  "fcfs",
+		StealthLevel:      "light",
+		TabEvictionPolicy: "close_lru",
+		Token:             "very-long-token-secret",
+	}
+	output := renderConfigOverview(cfg, "/tmp/pinchtab/config.json", "http://localhost:9867", false)
+
+	required := []string{
+		"Config",
+		"Strategy",
+		"Allocation policy",
+		"Stealth level",
+		"Tab eviction",
+		"Copy token",
+		"More",
+		"/tmp/pinchtab/config.json",
+		"very...cret",
+		"Dashboard:",
+	}
+	for _, needle := range required {
+		if !strings.Contains(output, needle) {
+			t.Fatalf("expected config overview to contain %q\n%s", needle, output)
+		}
+	}
+}
+
+func TestClipboardCommands(t *testing.T) {
+	commands := clipboardCommands()
+	if len(commands) == 0 {
+		t.Fatal("expected clipboard commands")
+	}
+	for _, command := range commands {
+		if command.name == "" {
+			t.Fatalf("clipboard command missing name: %+v", command)
+		}
+	}
+}
+
+func TestCopyConfigTokenDoesNotPrintTokenWhenClipboardUnavailable(t *testing.T) {
+	t.Setenv("PATH", "")
+
+	output := captureStdout(t, func() {
+		if err := copyConfigToken("very-secret-token-value"); err != nil {
+			t.Fatalf("copyConfigToken() error = %v", err)
+		}
+	})
+
+	if strings.Contains(output, "very-secret-token-value") {
+		t.Fatalf("expected token to stay hidden, got %q", output)
+	}
+	if !strings.Contains(output, "token not shown for safety") {
+		t.Fatalf("expected safe fallback message, got %q", output)
+	}
+}
+
+func TestConfigSetAllowsDashPrefixedValue(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "pinchtab", "config.json")
+	t.Setenv("PINCHTAB_CONFIG", configPath)
+
+	fc := config.DefaultFileConfig()
+	if err := config.SaveFileConfig(&fc, configPath); err != nil {
+		t.Fatalf("SaveFileConfig() error = %v", err)
+	}
+
+	t.Cleanup(func() {
+		rootCmd.SetArgs(nil)
+	})
+
+	output := captureStdout(t, func() {
+		rootCmd.SetArgs([]string{"config", "set", "browser.extraFlags", "--disable-gpu --ash-no-nudges"})
+		if err := rootCmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+	})
+
+	if !strings.Contains(output, "Set browser.extraFlags = --disable-gpu --ash-no-nudges") {
+		t.Fatalf("expected success output, got %q", output)
+	}
+
+	saved, _, err := config.LoadFileConfig()
+	if err != nil {
+		t.Fatalf("LoadFileConfig() error = %v", err)
+	}
+	if saved.Browser.ChromeExtraFlags != "--disable-gpu --ash-no-nudges" {
+		t.Fatalf("ChromeExtraFlags = %q, want %q", saved.Browser.ChromeExtraFlags, "--disable-gpu --ash-no-nudges")
+	}
+}
+
+func TestConfigSetRejectsUnsafeChromeExtraFlags(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "pinchtab", "config.json")
+	t.Setenv("PINCHTAB_CONFIG", configPath)
+
+	fc := config.DefaultFileConfig()
+	if err := config.SaveFileConfig(&fc, configPath); err != nil {
+		t.Fatalf("SaveFileConfig() error = %v", err)
+	}
+
+	t.Cleanup(func() {
+		rootCmd.SetArgs(nil)
+	})
+
+	output := captureStdout(t, func() {
+		rootCmd.SetArgs([]string{"config", "set", "browser.extraFlags", "--no-sandbox --disable-gpu"})
+		if err := rootCmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+	})
+
+	if !strings.Contains(output, "browser.extraFlags") || !strings.Contains(output, "PINCHTAB_CHROME_NO_SANDBOX") {
+		t.Fatalf("expected unsafe flag warning, got %q", output)
+	}
+
+	saved, _, err := config.LoadFileConfig()
+	if err != nil {
+		t.Fatalf("LoadFileConfig() error = %v", err)
+	}
+	if saved.Browser.ChromeExtraFlags != "" {
+		t.Fatalf("ChromeExtraFlags = %q, want empty string after declining unsafe save", saved.Browser.ChromeExtraFlags)
+	}
+}
+
+func TestConfigShowLoadsLegacyFlatConfigWithoutToken(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "config.json")
+	t.Setenv("PINCHTAB_CONFIG", configPath)
+	t.Setenv("PINCHTAB_TOKEN", "")
+
+	if err := os.WriteFile(configPath, []byte(`{
+  "port": "8765",
+  "headless": true,
+  "maxTabs": 30
+}`), 0600); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+
+	t.Cleanup(func() {
+		rootCmd.SetArgs(nil)
+	})
+
+	output := captureStdout(t, func() {
+		rootCmd.SetArgs([]string{"config", "show"})
+		if err := rootCmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+	})
+
+	if !strings.Contains(output, "8765") {
+		t.Fatalf("expected config show output to contain legacy port, got %q", output)
+	}
+	if !strings.Contains(output, "Current configuration") {
+		t.Fatalf("expected config show header, got %q", output)
+	}
+}
+
+func TestConfigGetMasksServerToken(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "config.json")
+	t.Setenv("PINCHTAB_CONFIG", configPath)
+	t.Setenv("PINCHTAB_TOKEN", "")
+
+	fc := config.DefaultFileConfig()
+	fc.Server.Token = "very-secret-token-value"
+	if err := config.SaveFileConfig(&fc, configPath); err != nil {
+		t.Fatalf("SaveFileConfig() error = %v", err)
+	}
+
+	t.Cleanup(func() {
+		rootCmd.SetArgs(nil)
+	})
+
+	output := captureStdout(t, func() {
+		rootCmd.SetArgs([]string{"config", "get", "server.token"})
+		if err := rootCmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+	})
+
+	if strings.Contains(output, "very-secret-token-value") {
+		t.Fatalf("expected token to stay masked, got %q", output)
+	}
+	if !strings.Contains(output, "very...alue") {
+		t.Fatalf("expected masked token, got %q", output)
+	}
+}
+
+func TestConfigSetMasksServerTokenInOutput(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "config.json")
+	t.Setenv("PINCHTAB_CONFIG", configPath)
+
+	fc := config.DefaultFileConfig()
+	if err := config.SaveFileConfig(&fc, configPath); err != nil {
+		t.Fatalf("SaveFileConfig() error = %v", err)
+	}
+
+	t.Cleanup(func() {
+		rootCmd.SetArgs(nil)
+	})
+
+	output := captureStdout(t, func() {
+		rootCmd.SetArgs([]string{"config", "set", "server.token", "very-secret-token-value"})
+		if err := rootCmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+	})
+
+	if strings.Contains(output, "very-secret-token-value") {
+		t.Fatalf("expected token to stay masked, got %q", output)
+	}
+	if !strings.Contains(output, "very...alue") {
+		t.Fatalf("expected masked token in success output, got %q", output)
+	}
+}

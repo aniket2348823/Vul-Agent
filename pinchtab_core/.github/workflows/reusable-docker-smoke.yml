@@ -1,0 +1,33 @@
+name: Reusable / Docker Smoke
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Docker Smoke Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Build local Docker image
+        run: docker build -t pinchtab-release-smoke:${{ github.run_id }} .
+        env:
+          DOCKER_BUILDKIT: 1
+
+      - name: Verify bootstrap path in container
+        run: bash scripts/docker-smoke.sh pinchtab-release-smoke:${{ github.run_id }}
+
+      - name: Verify MCP stdio in container
+        run: bash scripts/docker-mcp-smoke.sh pinchtab-release-smoke:${{ github.run_id }}

@@ -1,0 +1,34 @@
+{
+  "main": [
+    "pinchtab.md",
+    "showcase.md",
+    "get-started.md",
+    "core-concepts.md",
+    "headless-vs-headed.md",
+    "dashboard.md",
+    "mcp.md"
+  ],
+  "guides": [
+    "guides/contributing.md",
+    "guides/security.md",
+    "guides/mcp-agents.md",
+    "guides/attach-chrome.md",
+    "guides/remote-bridge-orchestrator.md",
+    "guides/tailscale-bridge-orchestrator.md",
+    "guides/multi-instance.md",
+    "guides/identifying-instances.md",
+    "guides/memory-monitoring.md",
+    "guides/data-storage.md",
+    "guides/docker.md",
+    "guides/raspberry-pi.md"
+  ],
+  "architecture": [
+    "*"
+  ],
+  "reference": [
+    "*"
+  ],
+  "implementations": [
+    "*"
+  ]
+}

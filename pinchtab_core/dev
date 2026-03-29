@@ -1,0 +1,311 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# dev — Pinchtab developer toolkit
+# Usage: dev [command] [sub]    Run a command directly
+#        dev                    Interactive picker
+
+cd "$(dirname "$0")"
+
+BOLD=$'\033[1m'
+ACCENT=$'\033[38;2;251;191;36m'
+MUTED=$'\033[38;2;90;100;128m'
+SUCCESS=$'\033[38;2;0;229;204m'
+ERROR=$'\033[38;2;230;57;70m'
+NC=$'\033[0m'
+
+# ── Commands ─────────────────────────────────────────────────────────
+# name:emoji:description
+COMMANDS=(
+  "build:🔨:Build the application"
+  "dev:🚀:Build & run"
+  "dashboard:🔥:Hot-reload dashboard development"
+  "run:🏃:Run the application"
+  "check:🧪:All checks"
+  "test unit:🔬:Go unit tests"
+  "test dashboard:🔬:Dashboard unit tests"
+  "e2e:🐳:E2E suites"
+  "  pr:🐳:PR suite (api-fast + cli-fast)"
+  "  release:🐳:Release suite (api-full + cli-full)"
+  "  docker:🐳:Build local image and run Docker smoke test"
+  "  api-fast:🐳:API fast (single-instance)"
+  "  cli-fast:🐳:CLI fast (single-instance)"
+  "  api-full:🐳:API full (multi-instance)"
+  "  cli-full:🐳:CLI full (single-instance)"
+  "doctor:🩺:Setup dev environment"
+  "check go:🧪:Go only"
+  "check dashboard:🧪:Dashboard only"
+  "check security:🧪:Gosec security scan"
+  "check docs:🧪:Validate docs JSON"
+  "binary:📦:Build release-style binary into dist/"
+  "  all:📦:Build the full release binary matrix into dist/"
+  "format dashboard:🎨:Run Prettier on dashboard sources"
+)
+
+# ── Helpers ──────────────────────────────────────────────────────────
+
+show_help() {
+  echo ""
+  echo "  ${ACCENT}${BOLD}🦀 Pinchtab Dev${NC}"
+  echo ""
+  for cmd in "${COMMANDS[@]}"; do
+    IFS=':' read -r name emoji desc <<< "$cmd"
+    if [[ "$name" == " "* ]]; then
+      local trimmed="${name#"${name%%[![:space:]]*}"}"
+      printf "      ${BOLD}%-18s${NC} ${MUTED}%s${NC}\n" "$trimmed" "$desc"
+    else
+      printf "  ${SUCCESS}%s${NC} ${BOLD}%-18s${NC} ${MUTED}%s${NC}\n" "$emoji" "$name" "$desc"
+    fi
+  done
+  echo ""
+  echo "  ${MUTED}Usage: dev [command] [sub]${NC}"
+  echo ""
+}
+
+run_command() {
+  local target="$1"
+
+  echo ""
+
+  case "$target" in
+    "check")
+      echo "  ${ACCENT}${BOLD}🧪 Running all checks (Go + Dashboard)${NC}"
+      echo ""
+      bash scripts/check.sh
+      local go_exit=$?
+      echo ""
+      echo "  ${ACCENT}${BOLD}🧪 Dashboard checks${NC}"
+      echo ""
+      bash scripts/check-dashboard.sh
+      local dash_exit=$?
+      if [ $go_exit -ne 0 ] || [ $dash_exit -ne 0 ]; then exit 1; fi
+      exit 0
+      ;;
+    "check go")
+      echo "  ${ACCENT}${BOLD}🧪 Go checks${NC}"
+      echo ""
+      exec bash scripts/check.sh
+      ;;
+    "check dashboard")
+      echo "  ${ACCENT}${BOLD}🧪 Dashboard checks${NC}"
+      echo ""
+      exec bash scripts/check-dashboard.sh
+      ;;
+    "check security")
+      echo "  ${ACCENT}${BOLD}🔒 Security scan${NC}"
+      echo ""
+      exec bash scripts/check-gosec.sh
+      ;;
+    "check docs")
+      echo "  ${ACCENT}${BOLD}📖 Docs validation${NC}"
+      echo ""
+      exec bash scripts/check-docs-json.sh
+      ;;
+    "format dashboard")
+      echo "  ${ACCENT}${BOLD}🎨 Dashboard formatting${NC}"
+      echo ""
+      exec bash -lc 'cd dashboard && if command -v bun >/dev/null 2>&1; then bun run format; else npx prettier --write '"'"'src/**/*.{ts,tsx,css}'"'"'; fi'
+      ;;
+    "test")
+      echo "  ${ACCENT}${BOLD}🔬 All tests${NC}"
+      echo ""
+      exec bash scripts/test.sh all
+      ;;
+    "test unit")
+      echo "  ${ACCENT}${BOLD}🔬 Go unit tests${NC}"
+      echo ""
+      exec bash scripts/test.sh unit
+      ;;
+    "test dashboard")
+      echo "  ${ACCENT}${BOLD}🔬 Dashboard tests${NC}"
+      echo ""
+      exec bash scripts/test.sh dashboard
+      ;;
+    "unit")
+      echo "  ${ACCENT}${BOLD}🔬 Unit tests${NC}"
+      echo ""
+      exec bash scripts/test.sh unit
+      ;;
+    "system")
+      echo "  ${ACCENT}${BOLD}🔬 System tests${NC}"
+      echo ""
+      exec bash scripts/test.sh system
+      ;;
+    "e2e docker")
+      local platform="${DOCKER_DEFAULT_PLATFORM:-}"
+      if [ -z "$platform" ]; then
+        platform="$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')"
+      fi
+      echo "  ${ACCENT}${BOLD}🏗️ Build local Docker image${NC}"
+      echo ""
+      echo "  ${MUTED}platform: ${platform}${NC}"
+      docker buildx build --load --platform "$platform" -t pinchtab-local:test .
+      echo ""
+      echo "  ${ACCENT}${BOLD}💨 Docker smoke test${NC}"
+      echo ""
+      exec bash scripts/docker-smoke.sh pinchtab-local:test
+      ;;
+    "e2e docker "*)
+      local image="${target#e2e docker }"
+      echo "  ${ACCENT}${BOLD}💨 Docker smoke test${NC}"
+      echo ""
+      exec bash scripts/docker-smoke.sh "$image"
+      ;;
+    "e2e"*)
+      local suite="release"
+      local filter=""
+      if [ "$target" != "e2e" ]; then
+        local e2e_args="${target#e2e }"
+        suite="${e2e_args%% *}"
+        if [ "$suite" != "$e2e_args" ]; then
+          filter="${e2e_args#"$suite "}"
+        fi
+      fi
+      if [ -n "$filter" ]; then
+        exec bash scripts/e2e.sh "$suite" "$filter"
+      fi
+      exec bash scripts/e2e.sh "$suite"
+      ;;
+    "dev")          exec bash scripts/dev.sh ;;
+    "dashboard")    exec bash scripts/dev-dashboard.sh ;;
+    "build")        exec bash scripts/build.sh ;;
+    "binary")       exec bash scripts/binary.sh ;;
+    "binary all"|"all") exec bash scripts/binary.sh all ;;
+    "run")          exec bash scripts/run.sh ;;
+    "doctor")       exec bash scripts/doctor.sh ;;
+    "hooks")        exec bash scripts/install-hooks.sh ;;
+    *)
+      echo "  ${ERROR}Unknown command: $target${NC}"
+      show_help
+      exit 1
+      ;;
+  esac
+}
+
+pick_with_gum() {
+  local options=()
+  local commands_map=()  # parallel array: full command string for each option
+  local parent=""
+  for cmd in "${COMMANDS[@]}"; do
+    IFS=':' read -r name emoji desc <<< "$cmd"
+    local trimmed="${name#"${name%%[![:space:]]*}"}"
+    if [[ "$name" == " "* ]]; then
+      # Subcommand: indent, no emoji — prefix with parent
+      options+=("$(printf '     %-18s %s' "$trimmed" "$desc")")
+      commands_map+=("$parent $trimmed")
+    else
+      parent="$trimmed"
+      options+=("$(printf '%s %-18s %s' "$emoji" "$trimmed" "$desc")")
+      commands_map+=("$trimmed")
+    fi
+  done
+
+  local choice
+  choice=$(printf '%s\n' "${options[@]}" | gum choose \
+    --header "🦀 Pinchtab Dev" \
+    --header.foreground "#fbbf24" \
+    --cursor.foreground "#00e5cc" \
+    --selected.foreground "#00e5cc" \
+    --item.foreground "#8892b0")
+
+  # Find the index of the chosen option and look up the full command
+  local picked=""
+  for i in "${!options[@]}"; do
+    if [[ "${options[$i]}" == "$choice" ]]; then
+      picked="${commands_map[$i]}"
+      break
+    fi
+  done
+
+  # Clear the picker before streaming command output.
+  printf '\033[2J\033[H'
+  run_command "$picked"
+}
+
+pick_with_select() {
+  echo ""
+  echo "  ${ACCENT}${BOLD}🦀 Pinchtab Dev${NC}"
+  echo ""
+
+  local names=()
+  local i=1
+  for cmd in "${COMMANDS[@]}"; do
+    IFS=':' read -r name emoji desc <<< "$cmd"
+    local trimmed="${name#"${name%%[![:space:]]*}"}"
+    if [[ "$name" == " "* ]]; then
+      printf "  ${MUTED}[%3d]${NC}     ${BOLD}%-18s${NC} ${MUTED}%s${NC}\n" "$i" "$trimmed" "$desc"
+    else
+      printf "  ${MUTED}[%3d]${NC} ${SUCCESS}%s${NC} ${BOLD}%-18s${NC} ${MUTED}%s${NC}\n" "$i" "$emoji" "$trimmed" "$desc"
+    fi
+    names+=("$trimmed")
+    i=$((i + 1))
+  done
+
+  echo ""
+  echo -ne "  ${BOLD}Pick [1-${#COMMANDS[@]}]:${NC} "
+  read -r choice
+
+  # Handle numeric or name input
+  if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le ${#COMMANDS[@]} ]; then
+    run_command "${names[$((choice - 1))]}"
+  else
+    run_command "$choice"
+  fi
+}
+
+# ── Main ─────────────────────────────────────────────────────────────
+
+# Direct command with optional subcommand
+if [ $# -gt 0 ]; then
+  case "$1" in
+    -h|--help|help) show_help; exit 0 ;;
+    -i|--interactive)
+      if command -v gum &>/dev/null; then pick_with_gum; else pick_with_select; fi
+      exit 0
+      ;;
+
+    check)
+      if [ $# -gt 1 ]; then
+        run_command "check $2"
+      else
+        run_command "check"
+      fi
+      ;;
+    test)
+      if [ $# -gt 1 ]; then
+        run_command "test $2"
+      else
+        run_command "test"
+      fi
+      ;;
+    format)
+      if [ $# -gt 1 ]; then
+        run_command "format $2"
+      else
+        run_command "format"
+      fi
+      ;;
+    e2e)
+      if [ $# -gt 1 ]; then
+        run_command "e2e ${*:2}"
+      else
+        run_command "e2e"
+      fi
+      ;;
+    binary)
+      if [ $# -gt 1 ]; then
+        run_command "binary $2"
+      else
+        run_command "binary"
+      fi
+      ;;
+    *) run_command "$1" ;;
+  esac
+fi
+
+# No args → interactive picker
+if command -v gum &>/dev/null; then
+  pick_with_gum
+else
+  pick_with_select
+fi

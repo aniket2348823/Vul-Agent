@@ -1,0 +1,68 @@
+services:
+  pinchtab:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    environment:
+      PINCHTAB_CONFIG: /data/e2e-config/pinchtab.json
+    volumes:
+      - ./config/pinchtab.json:/fixture-config/pinchtab.json:ro
+      - ./fixtures/test-extension:/extensions/test-extension:ro
+      - ./fixtures/test-extension-api:/extensions/test-extension-api:ro
+    command: ["/bin/sh", "-lc", "mkdir -p /data/e2e-config && cp /fixture-config/pinchtab.json /data/e2e-config/pinchtab.json && exec /usr/local/bin/docker-entrypoint.sh pinchtab"]
+    ports:
+      - "9999:9999"
+    shm_size: '2gb'
+    healthcheck:
+      test: ["CMD-SHELL", "wget --header='Authorization: Bearer e2e-token' -q -O /dev/null http://localhost:9999/health"]
+      interval: 3s
+      timeout: 10s
+      retries: 20
+      start_period: 15s
+
+  fixtures:
+    image: nginx:alpine
+    volumes:
+      - ./fixtures:/usr/share/nginx/html:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:80/"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+
+  runner-api:
+    build:
+      context: ./runner-api
+    depends_on:
+      pinchtab:
+        condition: service_healthy
+      fixtures:
+        condition: service_healthy
+    environment:
+      - E2E_SERVER=http://pinchtab:9999
+      - E2E_SERVER_TOKEN=e2e-token
+      - FIXTURES_URL=http://fixtures:80
+      - E2E_SCENARIO_FILTER
+      - STEALTH_MATRIX
+    volumes:
+      - ./:/e2e:ro
+      - ./results:/results
+    command: ["/bin/bash", "-lc", "if [ -n \"${E2E_SCENARIO_FILTER:-}\" ]; then exec /bin/bash /e2e/run.sh api \"filter=${E2E_SCENARIO_FILTER:-}\"; else exec /bin/bash /e2e/run.sh api; fi"]
+
+  runner-cli:
+    build:
+      context: ./runner-cli
+    depends_on:
+      pinchtab:
+        condition: service_healthy
+      fixtures:
+        condition: service_healthy
+    environment:
+      - E2E_SERVER=http://pinchtab:9999
+      - E2E_SERVER_TOKEN=e2e-token
+      - FIXTURES_URL=http://fixtures:80
+      - E2E_SCENARIO_FILTER
+    volumes:
+      - ./:/e2e:ro
+      - ./results:/results
+    command: ["/bin/bash", "-lc", "if [ -n \"${E2E_SCENARIO_FILTER:-}\" ]; then exec /bin/bash /e2e/run.sh cli all=true \"filter=${E2E_SCENARIO_FILTER:-}\"; else exec /bin/bash /e2e/run.sh cli all=true; fi"]
