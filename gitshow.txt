@@ -1,0 +1,16 @@
+commit 60cf2c7db18d0d515e490b561823cda6df94adbc
+Author: aniket2348823 <aniket2348823@users.noreply.github.com>
+Date:   Sun Mar 29 12:29:41 2026 +0600
+
+    feat(hybrid): Integrate PinchTab DOM extraction and Self-Learning Graph AI
+
+ backend/agents/delta.py        |  94 +++++++
+ backend/agents/sigma.py        |   9 +
+ backend/ai/cortex.py           |   4 +-
+ backend/core/chain_analyzer.py |  95 +++++++
+ backend/core/graph_engine.py   | 167 ++++++++++++
+ backend/core/reporting.py      |  40 ++-
+ keyring.json                   | 600 +++++++++++++++++++++--------------------
+ stats.json                     | 400 +++++++++++++++++++++++++--
+ 8 files changed, 1080 insertions(+), 329 deletions(-)
+

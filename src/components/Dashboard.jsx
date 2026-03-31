@@ -541,7 +541,7 @@ const Dashboard = ({ navigate }) => {
                 </main>
 
                 <footer className="w-full text-center py-6 text-xs text-gray-600 relative z-10">
-                    VigilAgent API Endpoint Scanning System
+                    Vul Agent Penetration Testing System
                 </footer>
             </div>
         </div>

@@ -55,7 +55,7 @@ const NewScan = ({ navigate }) => {
 
         // 1. Extension Handshake
         const handleMessage = (event) => {
-            if (event.data?.type === 'ANTIGRAVITY_EXTENSION_CONNECTED') {
+            if (event.data?.type === 'VUL_AGENT_EXTENSION_CONNECTED') {
                 console.log("[FRONTEND] Extension Handshake Success (postMessage)");
                 setIsConnected(true);
                 localConnectedRef.current = true;
@@ -78,7 +78,7 @@ const NewScan = ({ navigate }) => {
 
         return () => {
             window.removeEventListener('message', handleMessage);
-            document.removeEventListener('ANTIGRAVITY_EXTENSION_HEARTBEAT', handleCustomEvent);
+            document.removeEventListener('VUL_AGENT_EXTENSION_HEARTBEAT', handleCustomEvent);
         };
     }, [isExtensionEnabled]);
 
@@ -182,7 +182,7 @@ const NewScan = ({ navigate }) => {
         // Build headers
         const headers = {
             "Content-Type": "application/json",
-            "User-Agent": "Antigravity/3.0"
+            "User-Agent": "VulAgent/3.0"
         };
         if (authContent) {
             if (authType === 'Bearer') headers["Authorization"] = `Bearer ${authContent}`;
@@ -229,7 +229,7 @@ const NewScan = ({ navigate }) => {
         } catch (err) {
             console.error("Fetch Error:", err);
             const msg = err.message === 'Failed to fetch'
-                ? "Backend is offline. Please ensure the Antigravity Terminal is running on port 8000."
+                ? "Backend is offline. Please ensure the VulAgent Terminal is running on port 8000."
                 : err.message;
             alert("Failed to launch scan: " + msg);
         } finally {
@@ -468,7 +468,7 @@ const NewScan = ({ navigate }) => {
                     </main>
 
                     <footer className="py-8 text-center text-sm text-gray-500">
-                        VigilAgent API Endpoint Scanning System
+                        Vul Agent Penetration Testing System
                     </footer>
                 </div>
             </div>

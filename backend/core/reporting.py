@@ -9,6 +9,7 @@ from fpdf import FPDF
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.chain_analyzer import ChainAnalyzer
 from backend.core.graph_engine import graph_engine
+from backend.core.config import settings
 
 class SecurityReportPDF(FPDF):
     """
@@ -49,7 +50,7 @@ class SecurityReportPDF(FPDF):
         self.set_font('Courier', '', 10)
         self.set_text_color(*self.DARK_BLUE)
         self.set_y(10)
-        self.cell(0, 5, 'VIGILAGENT SCANNER', align='L', ln=True)
+        self.cell(0, 5, 'VUL AGENT SCANNER', align='L', ln=True)
         
         # Thick Underline
         self.set_draw_color(*self.DARK_BLUE)
@@ -789,7 +790,7 @@ class ReportGenerator:
                     pdf.multi_cell(0, 5, path_str)
                     pdf.ln(5)
                     
-                    # 3. Request LLM Narrative explicitly (Phi4-mini)
+                    # 3. Request LLM Narrative (Qwen3 80B via OpenRouter)
                     # We pass the JSON structure of the chain to ollama
                     chain_narrative = await cortex.explain_attack_chain(chain) 
                     
@@ -827,8 +828,7 @@ class ReportGenerator:
             from functools import partial
             loop = asyncio.get_running_loop()
             
-            reports_dir = os.path.join(project_root, "reports")
-            os.makedirs(reports_dir, exist_ok=True)
+            reports_dir = settings.REPORTS_DIR
             out_file = os.path.join(reports_dir, f"Scan_Report_{scan_id}.pdf")
             
             def _save_pdf():

@@ -1,0 +1,6 @@
+dc78e55 Sync: Included pinchtab_core sources to match local repository 1:1
+e686121 Xytherion Hardening Complete. Full Swarm Audit Passed (99.4% SIS). Level 0-Top Level Zero-Error State Certified.
+60cf2c7 feat(hybrid): Integrate PinchTab DOM extraction and Self-Learning Graph AI
+ccb72d8 Optimize PDF reports, refine LLM reasoning (phi4-mini), and accelerate dashboard event streaming
+f7e18fe Upload remaining important files missed by gitignore
+251be8b Initial commit of Vul-Agent repository

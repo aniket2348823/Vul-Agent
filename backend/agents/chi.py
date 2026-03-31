@@ -10,6 +10,7 @@ from typing import Dict, List, Any, Pattern
 from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, Vulnerability, TaskPriority
 from backend.ai.cortex import CortexEngine, get_cortex_engine
+from backend.ai.gi5 import brain
 from backend.core.config import ConfigManager
 
 
@@ -128,7 +129,19 @@ class AgentChi(BaseAgent):
         target_action = data.get("action", "").lower() # e.g., URL or Form Action
         event_type = data.get("type", "click")
         
-        # 1. Homoglyph Check
+        # 1. GI5 OMEGA: Advanced Typosquatting & Forensics
+        if url:
+             from urllib.parse import urlparse
+             domain = urlparse(url).netloc or url
+             is_phish, root, dist = brain._detect_typosquatting(domain)
+             if is_phish:
+                  return {
+                      "action": "BLOCK", 
+                      "reason": f"GI5 OMEGA: Phishing Domain Detect (Mimics '{root}', Distance: {dist})",
+                      "risk_score": 95
+                  }
+
+        # 1.1 Legacy Homoglyph Check (Safety Fallback)
         for fake, real in self.homoglyph_map.items():
             if fake in url:
                 return {"action": "BLOCK", "reason": f"Phishing Domain Detected ({fake})"}

@@ -195,8 +195,20 @@ class CortexEngine:
         # â”€â”€â”€ BAYESIAN WEIGHT MATRIX â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         self.bayesian = BayesianWeightMatrix()
 
+        # ─── CORE 3: OpenRouter (Qwen3 80B) — Final Arbitration Engine ────
+        try:
+            from backend.ai.openrouter import openrouter_client
+            self._openrouter = openrouter_client
+            if self._openrouter.is_available:
+                logger.info("CORTEX CORE-3 [OPENROUTER] Qwen3 80B initialized ✓")
+            else:
+                logger.warning("CORTEX CORE-3 [OPENROUTER] No API key — cloud reasoning disabled.")
+        except Exception as e:
+            self._openrouter = None
+            logger.warning(f"CORTEX CORE-3 [OPENROUTER] unavailable: {e}")
+
         logger.info(f"CORTEX CORE-2 [NEURAL] Model: {self.model} | Endpoint: {self.generate_url}")
-        logger.info("CORTEX HYBRID ENGINE: DUAL-CORE ACTIVE")
+        logger.info("CORTEX HYBRID ENGINE: TRI-CORE ACTIVE (GI5 + Ollama + OpenRouter)")
 
     # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     # OPTIMIZATION: Context Compression + Warm-up + Cache
@@ -438,31 +450,42 @@ class CortexEngine:
             return self.gi5.analyze_sensitivity(text)
         except Exception:return []
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # —————————————————————————————————————————————————————————————————————————————
     # HYBRID REPORTING METHODS
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # —————————————————————————————————————————————————————————————————————————————
 
     async def generate_executive_brief(self, target: str, success_count: int, total_count: int, duration: str, scan_ctx=None) -> str:
         """
         HYBRID: Generate executive summary.
-        GI5 â†’ deterministic risk classification
-        Granite â†’ natural language narrative
-        Fusion â†’ AI narrative enriched with GI5 risk data
+        GI5 → deterministic risk classification
+        Granite → natural language narrative
+        Fusion → AI narrative enriched with GI5 risk data
         """
         hit_rate = (success_count / total_count * 100) if total_count > 0 else 0
 
         # CORE 1: GI5 deterministic risk classification
         gi5_severity = "CRITICAL" if hit_rate > 30 else "MODERATE" if hit_rate > 10 else "LOW"
 
+        # CORE 3: OpenRouter "Elite" Summary (Primary)
+        if self._openrouter and self._openrouter.is_available:
+            try:
+                # Request a professional narrative from the 80B model
+                openrouter_prompt = f"Target: {target}. Success: {success_count}/{total_count}. Duration: {duration}. Risk: {gi5_severity}. Write a 3-sentence executive summary."
+                result = await self._openrouter.generate_narrative(openrouter_prompt, scan_ctx=scan_ctx)
+                if result and not self._is_error(result):
+                    return result
+            except Exception as e:
+                logger.warning(f"OpenRouter executive brief failed ({e}), falling back to local LLM.")
+
         # CORE 2: Granite AI narrative (enriched with GI5 data)
-        prompt = f"""You are a senior cybersecurity analyst writing a forensic report.
+        prompt = f"""You are a senior cybersecurity analyst writing a forensic report for Vul Agent.
 
 TARGET: {target}
 SCAN RESULTS: {success_count}/{total_count} requests returned HTTP 2xx ({hit_rate:.1f}% hit rate)
 SCAN DURATION: {duration}
 GI5 RISK CLASSIFICATION: {gi5_severity}
 
-Write a concise 2-4 sentence executive summary for a forensic report.
+Write a concise 2-4 sentence executive summary.
 Focus on: what was tested, whether vulnerabilities were found, and the severity.
 Use professional, technical language. No markdown. No headers. Just the summary."""
 
@@ -479,8 +502,8 @@ Use professional, technical language. No markdown. No headers. Just the summary.
     async def analyze_payload_variant(self, variant: str, payload: str, verdict: str, scan_ctx=None) -> str:
         """
         HYBRID: Analyze payload variant.
-        GI5 â†’ threat analysis (entropy, patterns, deobfuscation)
-        Granite â†’ contextual forensic narrative
+        GI5 → threat analysis (entropy, patterns, deobfuscation)
+        Granite → contextual forensic narrative
         """
         truncated = payload[:500] if len(payload) > 500 else payload
 
@@ -537,8 +560,20 @@ No markdown. No headers. Just the analysis."""
         """
         HYBRID: Generate professional vulnerability details for the PDF report.
         """
-        # CORE 2: Phi-4 AI generation (Professional Report Engine)
-        prompt = f"""You are a senior cybersecurity forensic analyst writing a professional penetration test report.
+        # CORE 3: OpenRouter generation (Professional Report Engine)
+        # Falls back to local Ollama if OpenRouter is unavailable
+        if self._openrouter and self._openrouter.is_available:
+            try:
+                result = await self._openrouter.generate_summary(vuln_type, payload, url, scan_ctx=scan_ctx)
+            except Exception as e:
+                logger.warning(f"OpenRouter summary failed ({e}), falling back to local LLM.")
+                result = None
+        else:
+            result = None
+
+        if not result or result.startswith("["):
+            # Local Ollama fallback
+            prompt = f"""You are a senior cybersecurity forensic analyst writing a professional penetration test report.
 Analyze this security finding and generate a structured JSON report.
 
 VULNERABILITY TYPE: {vuln_type}
@@ -581,7 +616,7 @@ IMPORTANT RULES FOR code_fix:
 
 Output ONLY valid JSON. No markdown. No explanations."""
 
-        result = await self._call_ollama(prompt, temperature=0.1, max_tokens=1500, scan_ctx=scan_ctx, model_override="phi4-mini")
+            result = await self._call_ollama(prompt, temperature=0.1, max_tokens=1500, scan_ctx=scan_ctx)
         data = self._extract_json(result)
         
         if data and isinstance(data, dict) and "name" in data:
@@ -721,20 +756,20 @@ Output ONLY valid JSON. No markdown. No explanations."""
                 "    return decorator"
             )
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # —————————————————————————————————————————————————————————————————————————————
     # HYBRID AGENT METHODS
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # —————————————————————————————————————————————————————————————————————————————
 
-    # â”€â”€â”€ P1: SIGMA â€” Attack Payload Generation (HYBRID) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ——— P1: SIGMA — Attack Payload Generation (HYBRID) —————————————————————————
 
     async def generate_attack_payloads(self, target_url: str, attack_types: List[str] = None, 
                                        target_field_type: str = "unknown", parameter_name: str = "unknown", 
                                        contextual_notes: str = "", scan_ctx=None, auth_type: str = "unknown") -> List[str]:
         """
         HYBRID: Generate attack payloads.
-        GI5 â†’ deterministic payload variants (instant)
-        Granite â†’ creative context-aware payloads (AI) - FAST PAYLOAD GENERATION
-        Fusion â†’ MERGED unique payload set from both engines
+        GI5 → deterministic payload variants (instant)
+        Granite → creative context-aware payloads (AI) - FAST PAYLOAD GENERATION
+        Fusion → MERGED unique payload set from both engines
         """
         if not attack_types:
             attack_types = ["SQLI", "XSS", "IDOR"]
@@ -782,10 +817,10 @@ Generate payloads that mutate parameters to trigger abnormal behavior.
 
 PAYLOAD STRATEGY
 For every parameter produce:
-â€¢ logical mutation
-â€¢ boundary value
-â€¢ encoding variation
-â€¢ injection attempt
+• logical mutation
+• boundary value
+• encoding variation
+• injection attempt
 
 OUTPUT FORMAT
 Return strict JSON.
@@ -798,11 +833,11 @@ Return strict JSON.
 }}
 
 RULES
-â€¢ generate 5â€“8 payloads
-â€¢ avoid explanations
-â€¢ prioritize exploit realism
-â€¢ include encoding variants
-â€¢ avoid duplicates"""
+• generate 5–8 payloads
+• avoid explanations
+• prioritize exploit realism
+• include encoding variants
+• avoid duplicates"""
 
         result = await self._call_ollama(prompt, temperature=0.1, max_tokens=300, scan_ctx=scan_ctx, model_override="qwen2.5-coder:0.5b")
         
@@ -832,14 +867,14 @@ RULES
         logger.info(f"HYBRID PAYLOAD GEN: {gi5_count} GI5 + {len(unique) - gi5_count} Granite = {len(unique)} total")
         return unique[:15]  # Cap at 15
 
-    # â”€â”€â”€ P2: BETA â€” WAF Bypass Mutation (HYBRID) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ——— P2: BETA — WAF Bypass Mutation (HYBRID) —————————————————————————————————
 
     async def mutate_waf_bypass(self, original_payload: str, waf_type: str = "generic", scan_ctx=None) -> str:
         """
         HYBRID: Mutate payload to bypass WAF.
-        GI5 â†’ deterministic mutation (heuristic crack + re-obfuscation)
-        Granite â†’ AI creative mutation
-        Fusion â†’ returns AI mutation if available, else GI5 mutation
+        GI5 → deterministic mutation (heuristic crack + re-obfuscation)
+        Granite → AI creative mutation
+        Fusion → returns AI mutation if available, else GI5 mutation
         """
         # CORE 1: GI5 deterministic mutation (instant)
         gi5_mutation = original_payload
@@ -923,7 +958,7 @@ Output ONLY the mutated payload. Nothing else. No explanation."""
              
         return evidence
 
-    # â”€â”€â”€ P3: KAPPA â€” Vulnerability Candidate Audit (HYBRID) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ——— P3: KAPPA — Vulnerability Candidate Audit (HYBRID) ——————————————————————
 
 
     async def audit_candidate(self, candidate_data: Dict[str, Any], scan_ctx=None) -> Dict[str, Any]:
@@ -990,8 +1025,8 @@ URL: {candidate_data.get('url')}
 Payload: {candidate_data.get('payload')}
 
 RULES:
-If data_exposed=true and auth_level_changed=false â†’ IDOR (Insecure Direct Object Reference).
-If status_changed=true after auth bypass attempt â†’ Auth Bypass.
+If data_exposed=true and auth_level_changed=false → IDOR (Insecure Direct Object Reference).
+If status_changed=true after auth bypass attempt → Auth Bypass.
 
 OUTPUT FORMAT: Return ONLY strict JSON.
 EXAMPLE:
@@ -1003,14 +1038,12 @@ EXAMPLE:
 }}
 
 RULES:
-â€¢ If evidence is ambiguous or requires deep logic reasoning, output confidence exactly 50 to trigger the Phi-4 Arbitration Engine.
-â€¢ No preamble.
-â€¢ Output valid JSON only."""
+• No preamble.
+• Output valid JSON only."""
 
         # SELF-CONSISTENCY VALIDATION
-        # SELF-CONSISTENCY VALIDATION
-        result_pass_1 = await self._call_ollama(prompt, temperature=0.1, max_tokens=300, scan_ctx=scan_ctx, model_override="qwen3.5:0.8b")
-        result_pass_2 = await self._call_ollama(prompt, temperature=0.1, max_tokens=300, scan_ctx=scan_ctx, model_override="qwen3.5:0.8b")
+        result_pass_1 = await self._call_ollama(prompt, temperature=0.1, max_tokens=300, scan_ctx=scan_ctx)
+        result_pass_2 = await self._call_ollama(prompt, temperature=0.1, max_tokens=300, scan_ctx=scan_ctx)
         
         result = result_pass_1
         try:
@@ -1105,129 +1138,60 @@ Answer strictly "yes" or "no"."""
             verdict["reasoning"] += f" | BayesFusion(wG={w_G:.2f}, wL={w_L:.2f}): P_G={P_G:.2f}, P_L={P_L:.2f} -> Post={posterior_prob:.2f}"
 
             # -------------------------------------------------------------------
-            # LAYER 6 - PHI-4 MINI FINAL ARBITRATION (Latency Optimized)
+            # LAYER 6 - QWEN3 80B FINAL ARBITRATION (via OpenRouter)
             # -------------------------------------------------------------------
             # STEP 3 - FINAL CONTROL LOGIC (Elite Triggering)
             conf_pct = raw_llm_conf * 100
             is_ambiguous = (45 <= conf_pct <= 55)
             
-            call_phi4 = False
+            call_arbiter = False
             if (conf_pct < 65 and conf_pct > 30) or (gi5_risk > 75 and conf_pct < 80) or is_ambiguous:
-                call_phi4 = True
+                call_arbiter = True
 
-            if call_phi4:
-                # Input Compression: only relevant diff requested (simulated via description or extracted context)
+            if call_arbiter and self._openrouter and self._openrouter.is_available:
+                # Input Compression: only relevant diff requested
                 short_desc = self._compress_context(candidate_data.get('description', ''), 600)
-                phi4_prompt = f"""You are a senior cybersecurity reasoning engine acting as the FINAL validation authority in an autonomous penetration testing system.
+                arbiter_input = {
+                    "endpoint": candidate_data.get('url', 'Unknown'),
+                    "method": candidate_data.get('method', 'GET'),
+                    "payload": self._compress_context(candidate_data.get('payload', 'None'), 200),
+                    "response_context": short_desc,
+                    "preliminary_type": verdict['type'],
+                    "preliminary_confidence": round(raw_llm_conf * 100, 1),
+                    "signals": evidence_obj,
+                    "gi5_risk": gi5_risk,
+                }
 
-Your task is to analyze whether a vulnerability is REAL, based strictly on observable evidence.
-You are NOT allowed to guess, assume, or hallucinate.
-
-----------------------------------------
-INPUT DATA
-----------------------------------------
-Endpoint: {candidate_data.get('url', 'Unknown')}
-HTTP Method: {candidate_data.get('method', 'GET')}
-Payload Used: {self._compress_context(candidate_data.get('payload', 'None'), 200)}
-Baseline Response / Attack Response Context:
-{short_desc}
-Preliminary Classification (from previous model): {verdict['type']}
-Confidence (previous model): {(raw_llm_conf * 100):.1f}
-Detected Signals: {json.dumps(evidence_obj)}
-
-----------------------------------------
-STRICT ANALYSIS RULES
-----------------------------------------
-1. Only rely on DIFFERENCES between baseline and attack response.
-2. A vulnerability exists ONLY IF:
-   - Unauthorized access is clearly observed
-   - Data exposure is explicitly visible
-   - System behavior is altered beyond expected logic
-3. DO NOT assume intent.
-4. DO NOT infer hidden backend behavior.
-5. If evidence is weak or ambiguous -> classify as NOT VULNERABLE.
-
-----------------------------------------
-REASONING PROCESS (MANDATORY)
-----------------------------------------
-Step 1: Identify observable differences
-Step 2: Determine if difference implies security violation
-Step 3: Check for alternative explanations (false positives)
-Step 4: Make final decision ONLY if evidence is strong
-
-----------------------------------------
-OUTPUT FORMAT (STRICT JSON ONLY)
-----------------------------------------
-{{
-  "vulnerable": true/false,
-  "type": "SQLi | IDOR | AuthBypass | RaceCondition | None",
-  "confidence": 80,
-  "reason": "short, precise explanation (max 2 lines)",
-  "evidence": "exact observable proof from response"
-}}
-
-----------------------------------------
-CRITICAL CONSTRAINTS
-----------------------------------------
-- NO explanations outside JSON
-- NO assumptions
-- NO speculation
-- If uncertain -> vulnerable = false
-- Confidence must reflect ONLY evidence strength
-
-GOAL: Minimize false positives to near zero while maintaining correctness. You are the final authority. Be strict, skeptical, and evidence-driven."""
-
-                # Advanced: Self-Consistency Validation (Run twice)
-                phi4_result_1 = await self._call_ollama(
-                    phi4_prompt, 
-                    temperature=0.1, 
-                    max_tokens=150, 
-                    scan_ctx=scan_ctx, 
-                    model_override="phi4-mini"
-                )
-                phi4_result_2 = await self._call_ollama(
-                    phi4_prompt, 
-                    temperature=0.1, 
-                    max_tokens=150, 
-                    scan_ctx=scan_ctx, 
-                    model_override="phi4-mini"
-                )
-                
-                phi_data_1 = self._extract_json(phi4_result_1) or {}
-                phi_data_2 = self._extract_json(phi4_result_2) or {}
-                
-                # Check for self-consistency mismatch in the two calls
-                v_true = [True, "true"]
-                v1 = str(phi_data_1.get("vulnerable", "")).lower() in [True, "true", "yes"] or str(phi_data_1.get("vulnerable", "")) == "True"
-                v2 = str(phi_data_2.get("vulnerable", "")).lower() in [True, "true", "yes"] or str(phi_data_2.get("vulnerable", "")) == "True"
-                
-                is_vuln = v1
                 try:
-                    final_conf = float(phi_data_1.get("confidence", 0))
-                except Exception:final_conf = 0.0
+                    arbiter_result = await self._openrouter.arbitrate(arbiter_input, scan_ctx=scan_ctx)
+                    arbiter_data = self._extract_json(arbiter_result) or {}
+                except Exception as e:
+                    logger.warning(f"CORTEX: OpenRouter arbitration failed: {e}")
+                    arbiter_data = {}
                 
-                if v1 != v2:
-                    is_vuln = False
-                    final_conf = max(0.0, final_conf - 40)
-                    phi_data_1["reason"] = str(phi_data_1.get("reason", "")) + " | Phi-4 Self-Consistency Mismatch."
-                
-                if phi_data_1 and "vulnerable" in phi_data_1:
+                if arbiter_data and "vulnerable" in arbiter_data:
+                    is_vuln = str(arbiter_data.get("vulnerable", "")).lower() in ["true", "yes"]
+                    try:
+                        final_conf = float(arbiter_data.get("confidence", 0))
+                    except Exception:
+                        final_conf = 0.0
+
                     verdict["is_real"] = is_vuln
                     
-                    # Mathematical Confidence Fusion (Phi-4 + Gamma + GI5)
-                    # W_phi4 = 0.6, W_gamma = 0.2, W_gi5 = 0.2
+                    # Mathematical Confidence Fusion (Qwen80B + Gamma + GI5)
+                    # W_qwen80b = 0.6, W_gamma = 0.2, W_gi5 = 0.2
                     gamma_conf_float = raw_llm_conf
                     gi5_risk_float = gi5_risk / 100.0
-                    phi4_conf_float = final_conf / 100.0
-                    fused_conf = (phi4_conf_float * 0.6) + (gamma_conf_float * 0.2) + (gi5_risk_float * 0.2)
+                    qwen_conf_float = final_conf / 100.0
+                    fused_conf = (qwen_conf_float * 0.6) + (gamma_conf_float * 0.2) + (gi5_risk_float * 0.2)
                     
                     verdict["confidence"] = min(1.0, fused_conf)
-                    verdict["type"] = phi_data_1.get("type", verdict["type"])
-                    verdict["reasoning"] += f" | PHI-4 ARBITER: {phi_data_1.get('reason', 'None')} ({phi_data_1.get('evidence', '')}) | Fusion={fused_conf:.2f}"
-                    verdict["engine"] = "HYBRID_PHI4_FUSED"
+                    verdict["type"] = arbiter_data.get("type", verdict["type"])
+                    verdict["reasoning"] += f" | QWEN80B ARBITER: {arbiter_data.get('reason', 'None')} ({arbiter_data.get('evidence', '')}) | Fusion={fused_conf:.2f}"
+                    verdict["engine"] = "HYBRID_QWEN80B_FUSED"
                 else:
                     verdict["is_real"] = posterior_prob >= 0.75
-                    verdict["reasoning"] += " | Phi-4 parse error, fallback to Bayes."
+                    verdict["reasoning"] += " | Qwen80B parse error, fallback to Bayes."
             else:
                 # Fast track Decision Rules
                 if posterior_prob >= 0.75:
@@ -2124,8 +2088,25 @@ Respond with ONLY the choice."""
         """
         AI: Reconstruct exactly WHY an attack succeeded based on evidence.
         Outputs technical "Forensic Analysis" for the PDF report.
-        Uses phi4-mini for better reasoning quality.
+        Uses Qwen3 80B via OpenRouter for superior reasoning quality.
         """
+        # Try OpenRouter first (Qwen3 80B)
+        if self._openrouter and self._openrouter.is_available:
+            try:
+                or_result = await self._openrouter.reconstruct_forensics(vuln_type, payload, response_snippet, url, scan_ctx=scan_ctx)
+                if or_result and not or_result.startswith("["):
+                    clean = or_result
+                    if "```json" in clean:
+                        clean = clean.split("```json")[1].split("```")[0].strip()
+                    elif "```" in clean:
+                        clean = clean.split("```")[1].split("```")[0].strip()
+                    parsed = json.loads(clean)
+                    if all(k in parsed for k in ['root_cause', 'evidence_analysis', 'attacker_advantage']):
+                        return parsed
+            except Exception as e:
+                logger.warning(f"OpenRouter forensic failed ({e}), falling back to local.")
+
+        # Fallback to local Ollama
         prompt = f"""You are a senior forensic security analyst reconstructing a successful security exploit.
 
 VULNERABILITY TYPE: {vuln_type}
@@ -2141,7 +2122,7 @@ Provide a precise forensic reconstruction. Each field must be ONE specific, tech
 
 Output ONLY valid JSON with these 3 fields. No markdown. No extra text."""
 
-        result = await self._call_ollama(prompt, temperature=0.1, max_tokens=400, scan_ctx=scan_ctx, model_override="phi4-mini")
+        result = await self._call_ollama(prompt, temperature=0.1, max_tokens=400, scan_ctx=scan_ctx)
         try:
             if "```json" in result:
                 result = result.split("```json")[1].split("```")[0].strip()
@@ -2163,8 +2144,23 @@ Output ONLY valid JSON with these 3 fields. No markdown. No extra text."""
     async def generate_remediation_code(self, vuln_type: str, tech_stack: str = "Generic", scan_ctx=None) -> str:
         """
         AI: Generate tech-stack specific secure code snippets.
-        Uses phi4-mini for better code generation quality.
+        Uses Qwen3 80B via OpenRouter for superior code generation quality.
         """
+        # Try OpenRouter first
+        if self._openrouter and self._openrouter.is_available:
+            try:
+                or_result = await self._openrouter.generate_code_fix(vuln_type, tech_stack, scan_ctx=scan_ctx)
+                if or_result and not or_result.startswith("["):
+                    cleaned = or_result.strip()
+                    if cleaned.startswith('```'):
+                        cleaned = cleaned.split('\n', 1)[-1] if '\n' in cleaned else cleaned[3:]
+                    if cleaned.endswith('```'):
+                        cleaned = cleaned[:-3].rstrip()
+                    return cleaned
+            except Exception as e:
+                logger.warning(f"OpenRouter code fix failed ({e}), falling back to local.")
+
+        # Fallback to local Ollama
         prompt = f"""Generate a secure, production-ready code fix for this vulnerability.
 
 VULNERABILITY: {vuln_type}
@@ -2187,7 +2183,7 @@ def secure_query(db, user_input):
 
 Now generate the fix for {vuln_type}. Output ONLY the code."""
 
-        result = await self._call_ollama(prompt, temperature=0.1, max_tokens=500, scan_ctx=scan_ctx, model_override="phi4-mini")
+        result = await self._call_ollama(prompt, temperature=0.1, max_tokens=500, scan_ctx=scan_ctx)
         if self._is_error(result):
             # Use deterministic fallback
             return self._generate_fallback_code_fix(vuln_type)

@@ -14,7 +14,7 @@ const Navigation = ({ navigate, activePage }) => {
                                 <span className="material-symbols-outlined text-2xl">auto_awesome</span>
                             </motion.div>
                             {/* Enforce Space Grotesk specifically for the logo to maintain branding symmetry across all pages */}
-                            <span className="font-medium text-lg text-white tracking-wide" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>VigilAgent</span>
+                            <span className="font-medium text-lg text-white tracking-wide" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Vul Agent</span>
                         </div>
 
                         {/* Links Section */}

@@ -53,7 +53,8 @@ async def fire_attack(payload: AttackPayload, background_tasks: BackgroundTasks)
         "timestamp": start_time.strftime("%Y-%m-%d %H:%M:%S"),
         "results": []
     }
-    stats_db_manager.register_scan(scan_record)
+    # [FATAL BUG FIX: V6-OMEGA] register_scan is an async def and MUST be awaited
+    await stats_db_manager.register_scan(scan_record)
     
     # 3. Launch The Hive (Background Task)
     # The Orchestrator manages the entire lifecycle (Agents, EventBus, Reporting)

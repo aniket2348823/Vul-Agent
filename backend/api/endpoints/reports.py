@@ -5,19 +5,14 @@ import uuid
 import random
 import os
 
-from backend.core.state import stats_db
+from backend.core.state import stats_db_manager
 from backend.core.reporting import ReportGenerator
+from backend.core.config import settings
 
 router = APIRouter()
+REPORTS_DIR = settings.REPORTS_DIR
 
-# Unified Path Resolution
-BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # .../api/endpoints
-PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, "..", "..", ".."))
-REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
-
-# Ensure directory exists
-if not os.path.exists(REPORTS_DIR):
-    os.makedirs(REPORTS_DIR, exist_ok=True)
+# Ensure directory exists is now handled by config.py
 
 @router.get("/download/{filename}")
 async def download_report_file(filename: str):
@@ -60,8 +55,7 @@ async def generate_pdf_report(scan_id: str):
             )
         else:
             # Check if scan exists but report isn't ready
-            from backend.core.state import stats_db
-            scan_data = next((s for s in stats_db.get("scans", []) if s["id"] == scan_id), None)
+            scan_data = next((s for s in stats_db_manager.get_stats().get("scans", []) if s["id"] == scan_id), None)
             if not scan_data:
                 raise HTTPException(status_code=404, detail="Scan record not found.")
             

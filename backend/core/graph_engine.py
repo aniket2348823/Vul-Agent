@@ -189,5 +189,85 @@ class GraphEngine:
                 
         return sorted(candidates, key=lambda x: x["weight"], reverse=True)
 
+    # ─── PHASE 3 UPGRADE: Chain Discovery Engine ──────────────────────────
+
+    CHAIN_RULES = {
+        "SQL_INJECTION":       ["BROKEN_AUTH", "UNAUTHORIZED_ACCESS", "IDOR", "DATA_LEAK"],
+        "COMMAND_INJECTION":   ["BROKEN_AUTH", "UNAUTHORIZED_ACCESS", "RCE"],
+        "SSRF":                ["BROKEN_AUTH", "UNAUTHORIZED_ACCESS", "IDOR", "INTERNAL_ACCESS"],
+        "IDOR":                ["UNAUTHORIZED_ACCESS", "BROKEN_AUTH", "LOGIC_ESCALATION", "DATA_LEAK"],
+        "XSS":                 ["CSRF", "PROMPT_INJECTION", "SESSION_HIJACK"],
+        "CROSS_SITE_SCRIPTING":["CSRF", "PROMPT_INJECTION", "SESSION_HIJACK"],
+        "BROKEN_AUTH":         ["LOGIC_ESCALATION", "DATA_LEAK", "ADMIN_TAKEOVER"],
+        "JWT_BYPASS":          ["BROKEN_AUTH", "UNAUTHORIZED_ACCESS", "ADMIN_TAKEOVER"],
+        "PATH_TRAVERSAL":      ["DATA_LEAK", "RCE", "CONFIG_EXPOSURE"],
+        "RACE_CONDITION":      ["LOGIC_ESCALATION", "FINANCIAL_MANIPULATION"],
+    }
+
+    def can_chain(self, src_type: str, dst_type: str) -> bool:
+        """Determine if vulnerability type A can logically chain into type B."""
+        src_upper = src_type.upper()
+        dst_upper = dst_type.upper()
+        allowed = self.CHAIN_RULES.get(src_upper, [])
+        return dst_upper in allowed
+
+    def find_chains(self, max_depth: int = 5) -> List[List[Dict[str, Any]]]:
+        """
+        DFS traversal to discover all multi-step attack paths in the graph.
+        Returns sorted list of chains (longest/highest-weight first).
+        """
+        # Build adjacency list from edges
+        adj: Dict[VulnNode, List[VulnNode]] = {}
+        edge_weights: Dict[tuple, int] = {}
+        for e in self.edges:
+            adj.setdefault(e.src, []).append(e.dst)
+            edge_weights[(e.src, e.dst)] = e.weight
+
+        chains = []
+
+        def dfs(node: VulnNode, path: List[VulnNode], visited: set):
+            if len(path) >= max_depth:
+                if len(path) > 1:
+                    chains.append(path.copy())
+                return
+            
+            neighbors = adj.get(node, [])
+            has_valid_next = False
+            for nxt in neighbors:
+                if nxt not in visited and self.can_chain(node.type, nxt.type):
+                    has_valid_next = True
+                    visited.add(nxt)
+                    path.append(nxt)
+                    dfs(nxt, path, visited)
+                    path.pop()
+                    visited.discard(nxt)
+            
+            if not has_valid_next and len(path) > 1:
+                chains.append(path.copy())
+
+        for start_node in self.nodes:
+            dfs(start_node, [start_node], {start_node})
+
+        # Score & deduplicate
+        seen = set()
+        unique_chains = []
+        for chain in chains:
+            sig = "->".join(f"{n.type}@{n.endpoint}" for n in chain)
+            if sig not in seen:
+                seen.add(sig)
+                # Calculate chain weight
+                total_weight = sum(
+                    edge_weights.get((chain[i], chain[i+1]), 1)
+                    for i in range(len(chain) - 1)
+                )
+                unique_chains.append({
+                    "chain": [n.to_dict() for n in chain],
+                    "depth": len(chain),
+                    "total_weight": total_weight,
+                    "confidence": min(100, total_weight * 10 + len(chain) * 15),
+                })
+
+        return sorted(unique_chains, key=lambda x: (x["depth"], x["total_weight"]), reverse=True)
+
 # Global Graph Singleton
 graph_engine = GraphEngine()

@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Antigravity Spy V2",
+    "name": "Vul Agent Spy V2",
     "version": "2.0",
-    "description": "Cyber-Augmented Reality Security Toolkit for Antigravity.",
+    "description": "Cyber-Augmented Reality Security Toolkit for Vul Agent.",
     "permissions": [
         "webRequest",
         "activeTab",

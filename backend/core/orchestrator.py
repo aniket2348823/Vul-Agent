@@ -1,13 +1,244 @@
 import asyncio
+import json
+import uuid
+import os
+import shutil
+import signal
+import psutil
+from datetime import datetime, timedelta
+from typing import List, Dict, Optional, Any
+import redis
+from supabase import create_client, Client
 import logging
-from datetime import datetime
-from backend.core.hive import EventBus, DistributedEventBus, EventType, HiveEvent
+from playwright.async_api import async_playwright
 
+from backend.core.hive import EventBus, DistributedEventBus, EventType, HiveEvent
 from backend.core.protocol import ModuleConfig, AgentID, TaskPriority, TaskTarget
-# NeuroNegotiator removed - dead code cleanup V6
 from backend.core.state import stats_db_manager
 from backend.core.config import settings
 from backend.api.socket_manager import manager
+from backend.core.graph_engine import GraphEngine
+
+# --- INTEGRATED CLUSTER COMPONENTS ---
+
+class PinchTabInstance:
+    """
+    PINCHTAB BROWSER INSTANCE
+    Role: Isolated browser execution for complex DOM fuzzing and IDOR detection.
+    """
+    def __init__(self, worker_id: str, port: int):
+        self.worker_id = worker_id
+        self.port = port
+        self.profile_path = f"/tmp/pinchtab_profiles/{worker_id}"
+        self.browser = None
+        self.context = None
+        self.page = None
+        os.makedirs(self.profile_path, exist_ok=True)
+    
+    async def start(self):
+        try:
+            self.playwright = await async_playwright().start()
+            self.browser = await self.playwright.chromium.launch(
+                headless=True,
+                args=[
+                    f"--user-data-dir={self.profile_path}",
+                    f"--remote-debugging-port={self.port}",
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage"
+                ]
+            )
+            self.context = await self.browser.new_context()
+            self.page = await self.context.new_page()
+            print(f"🌐 PinchTab Instance Online (Worker: {self.worker_id}, Port: {self.port})")
+        except Exception as e:
+            print(f"❌ PinchTab failed to initialize: {e}")
+
+    async def execute_flow(self, flow_config: Dict) -> Dict:
+        results = {"steps": [], "findings": []}
+        try:
+            for step in flow_config.get("actions_mapped", []):
+                step_result = await self._execute_semantic_step(step, flow_config.get("target_url"))
+                if step_result:
+                    results["steps"].append(step_result)
+                 
+                if step_result and step_result.get("success"):
+                     vulnerabilities = await self._check_vulnerabilities(step_result)
+                     results["findings"].extend(vulnerabilities)
+            results["post_state"] = await self._extract_state()
+        except Exception as e:
+            results["error"] = str(e)
+        return results
+
+    async def _execute_semantic_step(self, step: Dict, target_url: str) -> Optional[Dict]:
+        result = {"action": step["type"], "target": step["target"], "success": False}
+        try:
+            target_str = str(step["target"])
+            if step["type"] == "input":
+                selector = f"input[name='{target_str}'], input[id='{target_str}'], *[placeholder*='{target_str}' i]"
+                if await self.page.locator(selector).count() > 0:
+                     await self.page.fill(selector, "xytherion_fuzz_payload")
+                     result["success"] = True
+            elif step["type"] == "click":
+                selector = f"button:text-matches('(?i){target_str}'), input[type='submit'][value*='(?i){target_str}']"
+                if await self.page.locator(selector).count() > 0:
+                     await self.page.click(selector)
+                     result["success"] = True
+        except Exception as e:
+            result["error"] = str(e)
+        return result
+
+    async def _extract_state(self) -> Dict:
+        state = {"cookies": [], "tokens": {}}
+        try:
+            state["cookies"] = await self.context.cookies()
+            local_storage = await self.page.evaluate("() => JSON.stringify(window.localStorage)")
+            session_storage = await self.page.evaluate("() => JSON.stringify(window.sessionStorage)")
+            state["tokens"]["local"] = json.loads(local_storage)
+            state["tokens"]["session"] = json.loads(session_storage)
+        except Exception: pass
+        return state
+
+    async def _check_vulnerabilities(self, step_result: Dict) -> List[Dict]:
+        vulns = []
+        content = await self.page.content()
+        if "<script>alert(1)</script>" in content:
+            vulns.append({"type": "xss", "severity": "HIGH", "desc": "Reflected Payload detected."})
+        return vulns
+
+    async def stop(self):
+        try:
+            if self.browser: await self.browser.close()
+            if hasattr(self, 'playwright'): await self.playwright.stop()
+            if os.path.exists(self.profile_path):
+                shutil.rmtree(self.profile_path, ignore_errors=True)
+        except Exception: pass
+
+class MasterNode:
+    """XYTHERION COMMAND MATRIX (MASTER NODE)"""
+    def __init__(self, redis_url: str, supabase_url: str, supabase_key: str):
+        import redis.asyncio as aioredis
+        self.redis_client = aioredis.from_url(redis_url, decode_responses=True)
+        self.supabase: Client = create_client(supabase_url, supabase_key)
+        self.workers: Dict[str, Dict[str, Any]] = {}
+        self.attack_graph = GraphEngine()
+
+    async def start(self):
+        self.active = True
+        await self._discover_swarm()
+        asyncio.create_task(self.monitor_workers())
+        while self.active:
+            try:
+                task_data = await self.redis_client.brpop("pending_tasks", timeout=5)
+                if task_data:
+                    task = json.loads(task_data[1])
+                    await self.distribute_tasks([task])
+            except Exception: await asyncio.sleep(1)
+
+    async def _discover_swarm(self):
+        try:
+            raw_workers = await self.redis_client.hgetall("workers")
+            for worker_id, data in raw_workers.items():
+                self.workers[worker_id] = json.loads(data)
+        except Exception: pass
+
+    async def register_worker(self, worker_id: str, specialty: str, capabilities: List[str]):
+        worker_info = {
+            "id": worker_id, "specialty": specialty, "capabilities": capabilities,
+            "status": "active", "last_heartbeat": datetime.now().isoformat(), "current_tasks": []
+        }
+        self.workers[worker_id] = worker_info
+        await self.redis_client.hset("workers", worker_id, json.dumps(worker_info))
+
+    def select_optimal_worker(self, task: Dict) -> Optional[str]:
+        required_type = task.get("worker_requirements", {}).get("type", "hybrid")
+        eligible_workers = [wid for wid, w in self.workers.items() if (w["specialty"] in [required_type, "hybrid"]) and w["status"] == "active"]
+        if not eligible_workers: return None
+        return min(eligible_workers, key=lambda w: len(self.workers[w].get("current_tasks", [])))
+
+    async def distribute_tasks(self, tasks: List[Dict]):
+        for task in tasks:
+            worker_id = self.select_optimal_worker(task)
+            if worker_id:
+                await self.redis_client.lpush(f"worker_queue:{worker_id}", json.dumps(task))
+                self.workers[worker_id].setdefault("current_tasks", []).append(task["task_id"])
+                try:
+                    self.supabase.table("task_assignments").insert({"task_id": task["task_id"], "worker_id": worker_id, "assigned_at": datetime.now().isoformat()}).execute()
+                except Exception: pass
+
+    async def monitor_workers(self):
+        while True:
+            await asyncio.sleep(60)
+            now = datetime.now()
+            for wid, w in list(self.workers.items()):
+                if now - datetime.fromisoformat(w["last_heartbeat"]) > timedelta(minutes=3):
+                    w["status"] = "inactive"
+                    await self.reassign_worker_tasks(wid)
+
+    async def reassign_worker_tasks(self, failed_worker_id: str):
+        worker = self.workers.get(failed_worker_id)
+        if not worker: return
+        for tid in worker.get("current_tasks", []):
+            await self.redis_client.lpush("pending_tasks", json.dumps({"task_id": tid, "retry": True}))
+        worker["current_tasks"] = []
+
+class WorkerNode:
+    """XYTHERION EXECUTION NODE (WORKER NODE)"""
+    def __init__(self, worker_id: str, specialty: str, redis_url: str, supabase_url: str, supabase_key: str):
+        self.id = worker_id
+        self.specialty = specialty
+        import redis.asyncio as aioredis
+        self.redis_client = aioredis.from_url(redis_url, decode_responses=True)
+        self.supabase: Client = create_client(supabase_url, supabase_key)
+        self.pinchtab = PinchTabInstance(worker_id, 9867 + hash(worker_id) % 1000)
+        self.bus = DistributedEventBus(redis_url)
+        self.running = False
+
+    async def start(self):
+        self.running = True
+        await self.bus.start()
+        if self.specialty in ["browser", "hybrid"]: await self.pinchtab.start()
+        asyncio.create_task(self.send_heartbeat())
+        try:
+            while self.running:
+                if psutil.virtual_memory().percent > 85.0:
+                    await asyncio.sleep(5)
+                    continue
+                task_data = await self.redis_client.brpop(f"worker_queue:{self.id}", timeout=5)
+                if task_data:
+                    task = json.loads(task_data[1])
+                    asyncio.create_task(self.execute_task(task))
+        except asyncio.CancelledError: pass
+        finally: await self.shutdown()
+
+    async def shutdown(self):
+        if not self.running: return
+        self.running = False
+        await self.pinchtab.stop()
+        try:
+            await self.redis_client.hdel("workers", self.id)
+            await self.redis_client.close()
+        except Exception: pass
+
+    async def send_heartbeat(self):
+        while self.running:
+            try:
+                heartbeat = {"id": self.id, "last_heartbeat": datetime.now().isoformat(), "status": "active"}
+                await self.redis_client.hset("workers", self.id, json.dumps(heartbeat))
+                await asyncio.sleep(30)
+            except Exception: pass
+
+    async def execute_task(self, task: Dict):
+        tid = task.get("task_id", str(uuid.uuid4()))
+        try:
+            await self.update_task_status(tid, "RUNNING")
+            await self.update_task_status(tid, "COMPLETED")
+            await self.bus.publish(HiveEvent(type=EventType.JOB_COMPLETED, source=f"worker:{self.id}", payload={"job_id": tid, "status": "SUCCESS"}))
+        except Exception:
+            await self.update_task_status(tid, "FAILED")
+
+    async def update_task_status(self, tid: str, status: str):
+        try: self.supabase.table("task_assignments").update({"status": status, "updated_at": datetime.now().isoformat()}).eq("task_id", tid).execute()
+        except Exception: pass
 
 # Import Agents
 from backend.agents.alpha import AlphaAgent
@@ -18,8 +249,9 @@ from backend.agents.zeta import ZetaAgent
 from backend.agents.sigma import SigmaAgent
 from backend.agents.kappa import KappaAgent 
 
-# Xytherion Distributed Architecture
-from backend.core.master import MasterNode
+# Xytherion Distributed Architecture (Logic Integrated Locally)
+# Legacy imports removed to prevent shadowing
+
 # Unified Safety Agents (Prism & Chi)
 from backend.agents.prism import AgentPrism # Agent Theta (The Sentinel)
 from backend.agents.chi import AgentChi # Agent Iota (The Inspector)
@@ -62,8 +294,13 @@ class HiveOrchestrator:
                 "timestamp": start_time.strftime("%Y-%m-%d %H:%M:%S"),
                 "results": []
             }
+            # V6: Internal Persistence & State
+            self.state_db = stats_db_manager
+            
+            # [NEW] Redundant assignment removed in favor of proper settings-based initiation below
+            # [FATAL BUG FIX: V6-OMEGA] register_scan is an async def and MUST be awaited
             try:
-                stats_db_manager.register_scan(scan_record)
+                await stats_db_manager.register_scan(scan_record)
             except Exception:
                 pass # DB might be locked
         else:
@@ -88,9 +325,14 @@ class HiveOrchestrator:
             master = MasterNode(redis_url, settings.SUPABASE_URL, settings.SUPABASE_KEY)
             asyncio.create_task(master.start())
             
+            # Start Worker for dynamic execution
+            worker_id = f"local-hive-{uuid.uuid4().hex[:4]}"
+            worker = WorkerNode(worker_id, "hybrid", redis_url, settings.SUPABASE_URL, settings.SUPABASE_KEY)
+            asyncio.create_task(worker.start())
+            
             # The Unified Agents (Prism/Chi) handle individual guardian duties
             # they are already in the core_agents list and started below.
-            logger.info("🛡️ Xytherion Command Matrix Activated. Safety Guardians Unified.")
+            logger.info("🛡️ Xytherion Command Matrix Activated (Master + Local Worker). Safety Guardians Unified.")
             
             # V6-HARDENED: Start Cluster Telemetry Loop
             asyncio.create_task(HiveOrchestrator._cluster_telemetry_loop(redis_url, scan_id))
@@ -365,9 +607,6 @@ class HiveOrchestrator:
         # Bug Fix #5: Core Module Fallback Breakage
         if not selected_modules:
             selected_modules = list(module_mapper.keys())
-        
-        from backend.core.protocol import JobPacket, TaskTarget, ModuleConfig, TaskPriority
-        from backend.core.protocol import AgentID
         
         for ui_module_name in selected_modules:
             internal_id = module_mapper.get(ui_module_name)

@@ -3,9 +3,37 @@ import json
 from typing import Dict, Any
 from dataclasses import dataclass, field
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Initialize Environment
+load_dotenv()
+
+# --- VUL AGENT: UNIFIED PATH RESOLUTION (V6-OMEGA) ---
+# Ensure absolute roots regardless of where the app is launched
+CONFIG_DIR = os.path.dirname(os.path.abspath(__file__)) # .../backend/core
+BACKEND_DIR = os.path.abspath(os.path.join(CONFIG_DIR, ".."))
+PROJECT_ROOT = os.path.abspath(os.path.join(BACKEND_DIR, ".."))
+REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
+STATIC_DIR = os.path.join(PROJECT_ROOT, "static")
+
+# Ensure critical directories exist
+os.makedirs(REPORTS_DIR, exist_ok=True)
+os.makedirs(STATIC_DIR, exist_ok=True)
 
 # XYTHERION CONFIGURATION MATRIX
 # Role: Dynamic environment-based settings for the distributed swarm.
+
+@dataclass
+class GlobalSettings:
+    """Consolidated project-level settings."""
+    PROJECT_ROOT: str = PROJECT_ROOT
+    REPORTS_DIR: str = REPORTS_DIR
+    STATIC_DIR: str = STATIC_DIR
+    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
+    SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
+    REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379")
+
+settings = GlobalSettings()
 
 @dataclass
 class RedisConfig:

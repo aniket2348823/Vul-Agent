@@ -8,7 +8,7 @@ import io
 import base64
 from typing import List, Dict
 from pydantic import BaseModel
-from backend.core.state import stats_db
+from backend.core.state import stats_db_manager
 
 router = APIRouter()
 
@@ -57,7 +57,11 @@ async def get_dashboard_stats():
 
     recent = []
     historical_threats = []
-    for s in stats_db["scans"]:
+    
+    stats = stats_db_manager.get_stats()
+    scans = stats.get("scans", [])
+    
+    for s in scans:
         # Logic for 'recent' summaries
         recent.append({
             "text": f"Scan {s['status']}: {s['name']}",
@@ -78,12 +82,12 @@ async def get_dashboard_stats():
 
     return {
         "metrics": {
-            "total_scans": len(stats_db["scans"]),
-            "active_scans": sum(1 for s in stats_db["scans"] if s["status"] == "Running"),
-            "vulnerabilities": stats_db["vulnerabilities"],
-            "critical": stats_db["critical"]
+            "total_scans": len(scans),
+            "active_scans": sum(1 for s in scans if s["status"] == "Running"),
+            "vulnerabilities": stats.get("vulnerabilities", 0),
+            "critical": stats.get("critical", 0)
         },
-        "graph_data": stats_db["history"],
+        "graph_data": stats.get("history", []),
         "recent_activity": recent[:5],
         "historical_threats": historical_threats[:60]
     }
@@ -93,7 +97,7 @@ async def get_scan_list():
     config = load_config()
     if config["enabled"] and not session_state["authenticated"]:
         return []
-    return stats_db["scans"]
+    return stats_db_manager.get_stats().get("scans", [])
 
 @router.post("/settings")
 async def update_settings(settings: SettingsUpdate):
