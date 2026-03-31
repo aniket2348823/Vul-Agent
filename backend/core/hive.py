@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import json
 from typing import Callable, Dict, List, Any, Awaitable
 from pydantic import BaseModel, Field
 from enum import Enum
@@ -37,6 +38,7 @@ class HiveEvent(BaseModel):
 
 # --- 2. THE NERVOUS SYSTEM (Event Bus) ---
 
+from backend.core.protocol import ModuleConfig, ResultPacket, Vulnerability
 from backend.core.context import ScanContext
 import collections
 
@@ -221,13 +223,17 @@ class DistributedEventBus(EventBus):
                     if "task_id" not in task_payload:
                         task_payload["task_id"] = task_id
                     
+                    # Log the Job Routing formally
+                    logging.info(f"🚀 [Hive] Routing Job {task_id} to global work queue.")
                     await self.redis_client.lpush("pending_tasks", json.dumps(task_payload))
                 else:
-                    logger.debug(f"[DistributedEventBus] Job {task_id} already locked. Skipping global push.")
+                    logging.debug(f"[DistributedEventBus] Job {task_id} already locked. Skipping global push.")
 
                 
         except Exception as e:
-            logging.error(f"[DistributedEventBus] Global publishing failed: {e}")
+            # Stage 10 Hardening: Capture and log the full error with source
+            err_type = type(e).__name__
+            logging.error(f"[DistributedEventBus] Global publishing failed ({err_type}): {e}")
 
 
 

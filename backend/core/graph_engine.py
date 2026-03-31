@@ -81,29 +81,35 @@ class GraphEngine:
             except Exception as e:
                 print(f"[GraphEngine] Failed to load intelligence graph: {e}")
 
-    def save_graph(self):
-        MAX_NODES = 1000
-        MAX_EDGES = 5000
-        
-        # Prune unbounded growth
-        if len(self.nodes) > MAX_NODES:
-            sorted_nodes = sorted(list(self.nodes), key=lambda x: x.weight, reverse=True)
-            self.nodes = set(sorted_nodes[:MAX_NODES])
+    async def save_graph(self):
+        """Persist graph state asynchronously with lock protection."""
+        async with self._lock:
+            MAX_NODES = 1000
+            MAX_EDGES = 5000
             
-        if len(self.edges) > MAX_EDGES:
-            sorted_edges = sorted(list(self.edges), key=lambda x: x.weight, reverse=True)
-            self.edges = set(sorted_edges[:MAX_EDGES])
+            # Prune unbounded growth
+            if len(self.nodes) > MAX_NODES:
+                sorted_nodes = sorted(list(self.nodes), key=lambda x: x.weight, reverse=True)
+                self.nodes = set(sorted_nodes[:MAX_NODES])
+                
+            if len(self.edges) > MAX_EDGES:
+                sorted_edges = sorted(list(self.edges), key=lambda x: x.weight, reverse=True)
+                self.edges = set(sorted_edges[:MAX_EDGES])
 
-        data = {
-            "nodes": [n.to_dict() for n in self.nodes],
-            "edges": [e.to_dict() for e in self.edges]
-        }
-        try:
-            with open(TMP_GRAPH_FILE, "w") as f:
-                json.dump(data, f, indent=4)
-            os.replace(TMP_GRAPH_FILE, GRAPH_FILE)
-        except Exception as e:
-            print(f"[GraphEngine] Failed to persist intelligence graph: {e}")
+            data = {
+                "nodes": [n.to_dict() for n in self.nodes],
+                "edges": [e.to_dict() for e in self.edges]
+            }
+            try:
+                # Offload blocking IO to thread pool
+                def _write():
+                    with open(TMP_GRAPH_FILE, "w") as f:
+                        json.dump(data, f, indent=4)
+                    os.replace(TMP_GRAPH_FILE, GRAPH_FILE)
+                
+                await asyncio.get_event_loop().run_in_executor(None, _write)
+            except Exception as e:
+                print(f"[GraphEngine] Failed to persist intelligence graph: {e}")
 
     def _add_or_update_node(self, type: str, endpoint: str, weight: int = 1, source: str = "UNKNOWN") -> VulnNode:
         
@@ -144,7 +150,7 @@ class GraphEngine:
         self.edges.add(new_edge)
         return new_edge
 
-    def learn_from_chain(self, chain: List[Dict[str, Any]]):
+    async def learn_from_chain(self, chain: List[Dict[str, Any]]):
         """
         Extracts validated chains from Omega/Reporting and updates historical weights.
         chain: list of finding dicts ordered functionally.
@@ -159,12 +165,13 @@ class GraphEngine:
             vu = str(payload.get('url', '')).split('?')[0].lower() # Strip params for graph grouping
             nodes_in_chain.append(VulnNode(vt, vu))
 
-        for i in range(len(nodes_in_chain) - 1):
-            src = nodes_in_chain[i]
-            dst = nodes_in_chain[i+1]
-            self._add_or_update_edge(src, dst, weight=1)
+        async with self._lock:
+            for i in range(len(nodes_in_chain) - 1):
+                src = nodes_in_chain[i]
+                dst = nodes_in_chain[i+1]
+                self._add_or_update_edge(src, dst, weight=1)
             
-        self.save_graph()
+        await self.save_graph()
 
     def predict_next(self, current_type: str, current_endpoint: str) -> List[Dict[str, Any]]:
         """

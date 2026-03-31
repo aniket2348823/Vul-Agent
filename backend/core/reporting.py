@@ -778,7 +778,7 @@ class ReportGenerator:
                     score = analyzer.score_chain(chain)
                     
                     # 1. Update Persistent Graph with DFS Chain
-                    graph_engine.learn_from_chain(chain)
+                    await graph_engine.learn_from_chain(chain)
                     
                     pdf.set_font('Arial', 'B', 14)
                     pdf.set_text_color(*pdf.DARK_BLUE)
@@ -846,4 +846,7 @@ class ReportGenerator:
             return None
         finally:
             # --- RESOURCE GUARD: CRITICAL FIX ---
-            await cortex.shutdown()
+            # Do NOT shut down the global cortex engine here as it is a singleton 
+            # and might be in use by other agents or reporting tasks.
+            # await cortex.shutdown() 
+            pass

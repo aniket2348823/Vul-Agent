@@ -1430,72 +1430,8 @@ Explain: what was found, evidence, consequences. Professional tone. No markdown.
                     f"GI5 deterministic risk assessment: {risk}/100.")
         return result
 
-    async def generate_ai_executive_summary(self, target_url: str, total_vulns: int, findings: Dict[str, Any]) -> List[str]:
-        """
-        HYBRID: Generate AI Executive Summary for the forensic report.
-        """
-        prompt = f"""Generate a 3-bullet executive summary for a security report.
-TARGET: {target_url}
-TOTAL VULNERABILITIES: {total_vulns}
-FINDINGS: {json.dumps(findings)}
-Tone: Professional, forensic, and urgent.
-Output 3 bullet points, each starting with '- '."""
-
-        result = await self._call_ollama(prompt, temperature=0.3, max_tokens=300)
-        if self._is_error(result):
-            # Deterministic Fallback
-            if total_vulns == 0:
-                return [
-                    f"Antigravity Analysis: No security exposures confirmed at {target_url}.",
-                    "Heuristic classification indicates robust defense mechanisms.",
-                    "Continuity Protocol: Maintain routine surveillance and security updates."
-                ]
-            else:
-                return [
-                    f"Antigravity Analysis: {total_vulns} security exposures confirmed at {target_url}.",
-                    "Heuristic classification indicates potential for unauthorized data exfiltration.",
-                    "Immediate remediation of identified endpoints is mandatory for system integrity."
-                ]
-        
-        bullets = [line.strip() for line in result.split("\n") if line.strip().startswith("-")]
-        if bullets:
-            return bullets[:3]
-        else:
-            if total_vulns == 0:
-                return [
-                    "Analysis complete: Zero confirmed vulnerabilities detected.",
-                    "Attack surface appears secure against current test vectors.",
-                    "Recommendation: Continue periodic automated audits."
-                ]
-            else:
-                return [
-                    f"Detected {total_vulns} confirmed vulnerabilities.",
-                    "High risk of exploitation if left unpatched.",
-                    "Review full technical breakdown for remediation steps."
-                ]
-
-    async def analyze_attack_paths(self, findings_summary: str) -> str:
-        """
-        HYBRID: Analyze potential attack paths and strategic impact.
-        """
-        if "No vulnerabilities detected" in findings_summary or not findings_summary.strip():
-            prompt = f"""Analyze the strategic impact of this secure posture:
-FINDINGS: {findings_summary}
-Explain why continuous monitoring remains critical even when no vulnerabilities are found.
-Output a single paragraph of approximately 4-5 sentences. Professional tone."""
-            fallback = "The recent security scan resulted in zero confirmed vulnerabilities, indicating a robust attack surface. However, cyber threats are continuously evolving, and new zero-day exploits emerge daily. It is critical to maintain continuous automated monitoring, keep systems patched, and adhere to a zero-trust architecture to ensure the ongoing integrity of the application."
-        else:
-            prompt = f"""Analyze the strategic impact of these vulnerabilities:
-FINDINGS: {findings_summary}
-Explain how an attacker might chain these vulnerabilities to achieve full system compromise.
-Output a single paragraph of approximately 4-5 sentences. Professional tone."""
-            fallback = f"The identified vulnerabilities ({findings_summary}) present a high-risk attack surface. If left unpatched, an adversary could chain these entry points to gain unauthorized access, escalate privileges, and potentially exfiltrate sensitive data. Immediate technical review is required."
-
-        result = await self._call_ollama(prompt, temperature=0.4, max_tokens=400)
-        if self._is_error(result):
-            return fallback
-        
-        return result.strip()
+    # Deleted redundant generate_ai_executive_summary (moved to reporting section)
+    # Deleted redundant analyze_attack_paths (moved to reporting section)
 
     # â”€â”€â”€ P9: Risk Engine â€” Contextual Risk Assessment (HYBRID) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -2217,6 +2153,29 @@ No headers. No markdown. Professional tone."""
         result = await self._call_ollama(prompt, temperature=0.3, max_tokens=300, scan_ctx=scan_ctx)
         if self._is_error(result):
              return "Multiple vulnerabilities were identified that could potentially be chained for increased impact. Review each finding for cross-component risks."
+        return result
+
+    async def explain_attack_chain(self, chain_data: List[Dict[str, Any]], scan_ctx=None) -> str:
+        """
+        AI: Explain a specific multi-step attack chain for the forensic report.
+        """
+        chain_steps = []
+        for i, step in enumerate(chain_data):
+            type = step.get('type', 'Action')
+            url = step.get('url', 'Target')
+            chain_steps.append(f"Step {i+1}: {type} at {url}")
+        
+        chain_str = "\n".join(chain_steps)
+        prompt = f"""You are a security architect explaining a multi-step attack chain.
+CHAIN STEPS:
+{chain_str}
+
+Explain in 2-3 sentences how these steps connect to achieve an exploit. 
+Focus on the causal relationship between steps. Professional tone. No markdown."""
+
+        result = await self._call_ollama(prompt, temperature=0.3, max_tokens=300, scan_ctx=scan_ctx)
+        if self._is_error(result):
+            return "The attack chain demonstrates a sequential progression from initial reconnaissance through multiple vulnerability triggers, ultimately leading to system compromise."
         return result
 
     # â”€â”€â”€ ENTERPRISE REPORTING: Compliance & Risk Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
