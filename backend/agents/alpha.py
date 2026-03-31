@@ -41,9 +41,9 @@ class AlphaAgent(BaseAgent):
         ))
         
         # Perform real HTTP recon
-        await self._real_http_recon(target_url)
+        await self._real_http_recon(target_url, event.scan_id)
 
-    async def _real_http_recon(self, target_url: str):
+    async def _real_http_recon(self, target_url: str, scan_id: str = None):
         """Perform real HTTP requests to discover the target's structure and endpoints."""
         import time
         from datetime import datetime
@@ -67,7 +67,7 @@ class AlphaAgent(BaseAgent):
                 self._session = aiohttp.ClientSession(timeout=timeout)
             
             # Probe the main URL first
-            await self._probe_url(self._session, target_url, "Main Target")
+            await self._probe_url(self._session, target_url, "Main Target", scan_id=scan_id)
             
             # Parse base URL for path probing
             from urllib.parse import urlparse
@@ -80,7 +80,7 @@ class AlphaAgent(BaseAgent):
                 tasks = []
                 for path in batch:
                     full_url = base_url + path
-                    tasks.append(self._probe_url(self._session, full_url, f"Path Discovery: {path}"))
+                    tasks.append(self._probe_url(self._session, full_url, f"Path Discovery: {path}", scan_id=scan_id))
                 
                 await asyncio.gather(*tasks, return_exceptions=True)
                 await asyncio.sleep(0.1)  # Small delay between batches
@@ -88,7 +88,7 @@ class AlphaAgent(BaseAgent):
         except Exception as e:
             print(f"[{self.name}] HTTP Recon Error: {e}")
 
-    async def _probe_url(self, session, url: str, context: str = ""):
+    async def _probe_url(self, session, url: str, context: str = "", scan_id: str = None):
         """Probe a single URL and publish results."""
         import time
         from datetime import datetime
@@ -155,9 +155,8 @@ class AlphaAgent(BaseAgent):
                         "status": status,
                         "latency": latency,
                         "result": result,
-                        "anomaly": anomaly,
-                        "rps": 0
-                    })
+                        "anomaly": anomaly
+                    }, scan_id=scan_id)
                 except Exception:
                     pass
                 

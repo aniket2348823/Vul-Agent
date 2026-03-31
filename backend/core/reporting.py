@@ -13,7 +13,7 @@ from backend.core.config import settings
 
 class SecurityReportPDF(FPDF):
     """
-    Antigravity Professional Forensic Engine.
+    Vulagent Scanner Professional Forensic Engine.
     Matches specimen layout: Red/Blue/Purple accent palette.
     Pixel-locked to specimen images PS_1 through PS_4.
     """
@@ -50,7 +50,7 @@ class SecurityReportPDF(FPDF):
         self.set_font('Courier', '', 10)
         self.set_text_color(*self.DARK_BLUE)
         self.set_y(10)
-        self.cell(0, 5, 'VUL AGENT SCANNER', align='L', ln=True)
+        self.cell(0, 5, 'Vulagent Scanner', align='L', ln=True)
         
         # Thick Underline
         self.set_draw_color(*self.DARK_BLUE)
@@ -196,7 +196,7 @@ class SecurityReportPDF(FPDF):
         self.ln(5)
 
     def add_snapshot_box(self, content: Union[str, List[str]], title: str = None):
-        """Purple-bordered snapshot box matching image specimens."""
+        """Purple-bordered snapshot box matching image specimens. Strict wrapping."""
         self.set_font('Courier', '', 9)
         self.set_text_color(50, 50, 50)
         self.set_draw_color(*self.ACCENT_PURPLE)
@@ -207,28 +207,48 @@ class SecurityReportPDF(FPDF):
             self.cell(0, 5, f"{title}:", ln=True)
             self.set_font('Courier', '', 9)
 
-        curr_y = self.get_y()
-        lines = content if isinstance(content, list) else content.strip().split('\n')
-        
-        # Truncate lines to prevent overflow (85 chars max for 186mm at 9pt Courier)
-        safe_lines = []
+        # Convert content to list of lines
+        if isinstance(content, str):
+            lines = content.strip().split('\n')
+        else:
+            lines = content
+
+        # Pre-process lines to wrap at 85 chars OR use multi_cell internal wrapping
+        processed_lines = []
         for line in lines:
-            safe = self._sanitize_text(str(line)[:85])
-            safe_lines.append(safe)
+            line_str = self._sanitize_text(str(line))
+            # If line is extremely long, we let multi_cell handle it or pre-split
+            processed_lines.append(line_str)
+
+        total_text = "\n".join(processed_lines)
         
-        box_height = len(safe_lines) * 5 + 4
-        # Check page break
+        # Calculate height needed for the box at width 190mm
+        # We use a temporary multi_cell check or estimate
+        # Each line at 9pt is roughly 5mm high
+        # We'll use a safer approach: multi_cell inside the rect
+        
+        curr_y = self.get_y()
+        # Estimate height: (char_length / 85) * 5
+        char_count = len(total_text)
+        estimated_lines = sum(max(1, len(l) // 85 + 1) for l in processed_lines)
+        box_height = estimated_lines * 5 + 6
+        
         if curr_y + box_height > 270:
             self.add_page()
             curr_y = self.get_y()
         
+        # Draw the box
         self.rect(10, curr_y, 190, box_height)
         
-        self.set_y(curr_y + 2)
-        for line in safe_lines:
-            self.set_x(12)
-            self.cell(186, 5, line, ln=True)
-        self.set_y(curr_y + box_height + 2)
+        # Draw the text inside with padding
+        self.set_y(curr_y + 3)
+        self.set_x(12)
+        # multi_cell(w, h, txt, border, align, fill)
+        # width is 186mm to allow 2mm padding on each side
+        self.multi_cell(186, 5, total_text, border=0, align='L')
+        
+        # Reset Y to bottom of box
+        self.set_y(curr_y + box_height + 5)
 
     def add_risk_meter(self, risk_score):
         """Specimen Style: THREAT SCORE: [Value] + Progress Bar."""
@@ -313,8 +333,8 @@ class SecurityReportPDF(FPDF):
 
 class ReportGenerator:
     """
-    Antigravity Visual Architect Report Generator V6.
-    Generates pixel-accurate forensic reports matching specimen PS_1-PS_4.
+    Vulagent Visual Architect Report Generator V7.
+    Generates pixel-accurate forensic reports matching premium specimen standards.
     Includes telemetry, deduplication, CWE/CVSS, and confidence data.
     """
     

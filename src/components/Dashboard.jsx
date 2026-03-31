@@ -4,88 +4,121 @@ import { motion } from 'framer-motion';
 import { LIQUID_SPRING } from '../lib/constants';
 
 
-const MAX_THREAT_ROWS = 400;
-
-const Dashboard = ({ navigate }) => {
-    const [stats, setStats] = useState({
-        metrics: { total_scans: 0, active_scans: 0, vulnerabilities: 0, critical: 0 },
-        v6_metrics: {
-            injections_blocked: 0,
-            deceptive_ui_blocked: 0,
-            risk_score: 0
-        },
-        graph_data: [],
-        threat_feed: []
-    });
+const Dashboard = ({ navigate, persistentState, setPersistentState }) => {
+    // [V7] Local sync refs to track the active scan ID and cooldown status for the flushBuffer closure
+    const activeScanIdRef = useRef(persistentState?.activeScanId);
+    const isCooldownRef = useRef(persistentState?.isCooldown);
+    const isStartDelayRef = useRef(persistentState?.isStartDelay);
 
     const [latestThreat, setLatestThreat] = useState(null);
     const [scanActive, setScanActive] = useState(false);
     const [scanTargetUrl, setScanTargetUrl] = useState('');
 
-    // CRITICAL FIX: Use refs so flushBuffer always sees current values (no stale closures)
     const scanActiveRef = useRef(false);
     const scanTargetUrlRef = useRef('');
 
-    // Keep refs in sync with state
+    // Keep refs in sync with props and local state
     useEffect(() => { scanActiveRef.current = scanActive; }, [scanActive]);
     useEffect(() => { scanTargetUrlRef.current = scanTargetUrl; }, [scanTargetUrl]);
+    useEffect(() => { activeScanIdRef.current = persistentState?.activeScanId; }, [persistentState?.activeScanId]);
+    useEffect(() => { isCooldownRef.current = persistentState?.isCooldown; }, [persistentState?.isCooldown]);
+    useEffect(() => { isStartDelayRef.current = persistentState?.isStartDelay; }, [persistentState?.isStartDelay]);
 
     const wsRef = useRef(null);
     const statsBuffer = useRef([]);
     const bufferTimer = useRef(null);
     const requestCountRef = useRef(0);
 
-    // Helper: Extract domain from URL for matching
-    const extractDomain = (url) => {
-        try {
-            const cleaned = url.replace(/^https?:\/\//, '');
-            return cleaned.split('/')[0].split(':')[0].toLowerCase();
-        } catch {
-            return '';
-        }
-    };
-
     const flushBuffer = () => {
         const events = statsBuffer.current;
         if (events.length === 0) return;
         statsBuffer.current = [];
 
-        setStats(prev => {
+        setPersistentState(prev => {
             let nextState = { ...prev };
             events.forEach(data => {
                 // SCAN LIFECYCLE: Start populating on scan start, clear on complete
                 if (data.type === 'SCAN_UPDATE') {
                     const status = data.payload?.status;
+                    const incomingScanId = data.payload?.id;
+
                     if (status === 'Running' || status === 'Initializing') {
+                        const isNewScan = activeScanIdRef.current !== incomingScanId;
+
                         setScanActive(true);
                         scanActiveRef.current = true;
+                        nextState.activeScanId = incomingScanId;
+                        activeScanIdRef.current = incomingScanId;
+                        nextState.isCooldown = false;
+                        isCooldownRef.current = false;
+
+                        // [V7] Real-time Start Suppression: Empty data and wait 2 seconds
+                        if (isNewScan) {
+                            nextState.threat_feed = [];
+                            nextState.graph_data = [];
+                            requestCountRef.current = 0;
+
+                            nextState.isStartDelay = true;
+                            isStartDelayRef.current = true;
+                            setTimeout(() => {
+                                setPersistentState(p => ({ ...p, isStartDelay: false }));
+                                isStartDelayRef.current = false;
+                            }, 2000);
+                        }
+
                         // Store target URL for filtering
                         if (data.payload?.target_url) {
                             setScanTargetUrl(data.payload.target_url);
                             scanTargetUrlRef.current = data.payload.target_url;
-                        }
-                        // Clear previous data when a NEW scan starts
-                        if (status === 'Initializing') {
-                            nextState.threat_feed = [];
-                            nextState.graph_data = [];
-                            requestCountRef.current = 0;
                         }
                     } else if (status === 'Completed' || status === 'Finalizing') {
                         setScanActive(false);
                         scanActiveRef.current = false;
                         setScanTargetUrl('');
                         scanTargetUrlRef.current = '';
-                        // Clear threat feed and graph when scan completes
+
+                        // [V7] Auto-Cleanup Logic: Clear everything on finish and start cooldown
                         nextState.threat_feed = [];
                         nextState.graph_data = [];
+                        nextState.activeScanId = null;
+                        activeScanIdRef.current = null;
                         requestCountRef.current = 0;
+
+                        // Start 5-second cooldown
+                        nextState.isCooldown = true;
+                        isCooldownRef.current = true;
+                        setTimeout(() => {
+                            setPersistentState(p => ({ ...p, isCooldown: false }));
+                            isCooldownRef.current = false;
+                        }, 2000);
                     }
                 }
 
                 if (data.type === 'VULN_UPDATE') {
                     nextState.metrics = data.payload.metrics || data.payload;
+                    // [V7] Sync real-time performance counters from authoritative backend
+                    if (nextState.metrics.total_requests !== undefined) {
+                        requestCountRef.current = nextState.metrics.total_requests;
+                    }
+                    if (nextState.metrics.rps !== undefined) {
+                        nextState.rps = nextState.metrics.rps;
+                        // Map RPS spike to graph if scan is active
+                        if (scanActiveRef.current) {
+                            nextState.graph_data = [...(nextState.graph_data || []), nextState.metrics.rps].slice(-60);
+                        }
+                    }
                 }
                 else if (['LIVE_THREAT_LOG', 'ATTACK_HIT', 'VULN_CONFIRMED', 'LOG', 'JOB_ASSIGNED', 'RECON_PACKET', 'KEY_CAPTURE', 'LIVE_ATTACK_FEED'].includes(data.type)) {
+
+                    // [V7] ISOLATION PRISM: 
+                    // If we are in COOLDOWN or START DELAY, don't show ANYTHING.
+                    if (isCooldownRef.current || isStartDelayRef.current) return;
+
+                    // If a scan is active, ONLY show events belonging to that scan.
+                    if (activeScanIdRef.current && data.scan_id !== activeScanIdRef.current) {
+                        return;
+                    }
+
                     if (data.type === 'LIVE_THREAT_LOG') {
                         setLatestThreat(data.payload);
                     }
@@ -93,7 +126,6 @@ const Dashboard = ({ navigate }) => {
                     const currentV6 = nextState.v6_metrics || defaultV6;
                     const newMetrics = { ...currentV6 };
 
-                    // --- DYNAMIC RISK SCORING: Derive risk from severity, not hardcoded ---
                     const severityToRisk = (sev) => {
                         const map = { 'CRITICAL': 95, 'HIGH': 75, 'MEDIUM': 50, 'LOW': 25, 'INFO': 10 };
                         return map[sev?.toUpperCase()] || 30;
@@ -166,43 +198,20 @@ const Dashboard = ({ navigate }) => {
                         newMetrics.deceptive_ui_blocked += 1;
                     }
 
-                    // --- DYNAMIC RISK: Weighted moving average, more reactive to new events ---
                     let incomingScore = threat.risk_score || severityToRisk(threat.severity);
                     let prevScore = newMetrics.risk_score || 0;
                     newMetrics.risk_score = prevScore === 0 ? incomingScore : Math.round(0.45 * incomingScore + 0.55 * prevScore);
 
                     nextState.v6_metrics = newMetrics;
 
-                    // --- SCAN-AWARE FEED FILTERING (V7 FIX: Show all events during active scan) ---
-                    // During active scan: Show ALL scanner events (they're all relevant to the current operation)
-                    // When no scan is active: don't show noise
-                    let shouldAddToFeed = false;
+                    // [V7] UNLIMITED TELEMETRY: No more slicing or MAX_THREAT_ROWS
+                    nextState.threat_feed = [threat, ...(nextState.threat_feed || [])];
 
-                    const currentScanActive = scanActiveRef.current;
-                    const currentTargetUrl = scanTargetUrlRef.current;
-
-                    if (currentScanActive) {
-                        // During active scan: show ALL events from agents
-                        // These are ALL related to the current scan operation
-                        shouldAddToFeed = true;
-                    } else if (data.type === 'VULN_CONFIRMED') {
-                        // Always show confirmed vulns even when no scan is active
-                        shouldAddToFeed = true;
-                    }
-                    // When no scan is active and event is not a confirmed vuln, don't add noise
-
-                    if (shouldAddToFeed) {
-                        const updatedFeed = [threat, ...(nextState.threat_feed || [])];
-                        nextState.threat_feed = updatedFeed.length > MAX_THREAT_ROWS 
-                            ? updatedFeed.slice(0, MAX_THREAT_ROWS) 
-                            : updatedFeed;
-                    }
-                    
-                    // Sync graph with request count (Request Activity) - only during active scan
-                    if (currentScanActive) {
+                    // Sync graph with request count (Request Activity)
+                    if (scanActiveRef.current) {
+                        // V7: Authoritative counts are now handled by VULN_UPDATE for the graph Y-axis 
+                        // as actual RPS values. We keep incrementing for the text label until next sync.
                         requestCountRef.current += 1;
-                        const requestPoint = requestCountRef.current;
-                        nextState.graph_data = [...(nextState.graph_data || []), requestPoint].slice(-60);
                     }
                 }
             });
@@ -217,16 +226,16 @@ const Dashboard = ({ navigate }) => {
                 const res = await fetch(`http://${backendHost}/api/dashboard/stats`);
                 const data = await res.json();
 
-                setStats(prev => ({
+                setPersistentState(prev => ({
                     ...prev,
                     ...data,
-                    // Preserve live threat_feed and graph_data during scan
+                    // Preserve live threat_feed and graph_data if they are already populated from websocket
                     threat_feed: prev.threat_feed.length > 0 ? prev.threat_feed : (data.threat_feed || []),
                     graph_data: prev.graph_data.length > 0 ? prev.graph_data : (data.graph_data || []),
                     v6_metrics: data.v6_metrics || { injections_blocked: 0, deceptive_ui_blocked: 0, risk_score: 0 }
                 }));
-                
-                // Detect if there's an active scan
+
+                // Detect if there's an active scan to set local flags
                 if (data.metrics?.active_scans > 0) {
                     setScanActive(true);
                     scanActiveRef.current = true;
@@ -345,21 +354,21 @@ const Dashboard = ({ navigate }) => {
                         <p className="text-gray-400 text-sm">View and manage your security assessments overview.</p>
                     </motion.div>
 
-                    {stats && (
+                    {persistentState && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {[
-                                { title: 'Injections Blocked', value: stats?.v6_metrics?.injections_blocked || 0, icon: 'shield', color: 'purple', glow: 'card-glow-purple', bgIcon: 'bg-purple-500/20 text-purple-300', trend: 0 },
-                                { title: 'Deceptive UI', value: stats?.v6_metrics?.deceptive_ui_blocked || 0, icon: 'visibility_off', color: 'orange', glow: 'card-glow-orange', bgIcon: 'bg-orange-500/20 text-orange-300', trend: 0 },
+                                { title: 'Injections Blocked', value: persistentState?.v6_metrics?.injections_blocked || 0, icon: 'shield', color: 'purple', glow: 'card-glow-purple', bgIcon: 'bg-purple-500/20 text-purple-300', trend: 0 },
+                                { title: 'Deceptive UI', value: persistentState?.v6_metrics?.deceptive_ui_blocked || 0, icon: 'visibility_off', color: 'orange', glow: 'card-glow-orange', bgIcon: 'bg-orange-500/20 text-orange-300', trend: 0 },
                                 {
                                     title: 'Live Risk Score',
-                                    value: (stats?.v6_metrics?.risk_score || 0) + '%',
+                                    value: (persistentState?.v6_metrics?.risk_score || 0) + '%',
                                     icon: 'speed',
-                                    color: (stats?.v6_metrics?.risk_score || 0) > 80 ? 'red' : 'green',
-                                    glow: (stats?.v6_metrics?.risk_score || 0) > 80 ? 'card-glow-red' : 'card-glow-green',
-                                    bgIcon: (stats?.v6_metrics?.risk_score || 0) > 80 ? 'bg-red-500/20 text-red-300' : 'bg-green-500/20 text-green-300',
+                                    color: (persistentState?.v6_metrics?.risk_score || 0) > 80 ? 'red' : 'green',
+                                    glow: (persistentState?.v6_metrics?.risk_score || 0) > 80 ? 'card-glow-red' : 'card-glow-green',
+                                    bgIcon: (persistentState?.v6_metrics?.risk_score || 0) > 80 ? 'bg-red-500/20 text-red-300' : 'bg-green-500/20 text-green-300',
                                     trend: 0
                                 },
-                                { title: 'Active Scans', value: stats?.metrics?.active_scans || 0, icon: 'sensors', color: 'blue', glow: 'card-glow-blue', bgIcon: 'bg-blue-500/20 text-blue-300', isLive: true, trend: 0 }
+                                { title: 'Active Scans', value: persistentState?.metrics?.active_scans || 0, icon: 'sensors', color: 'blue', glow: 'card-glow-blue', bgIcon: 'bg-blue-500/20 text-blue-300', isLive: true, trend: 0 }
                             ].map((item, i) => (
                                 <motion.div
                                     key={i}
@@ -404,12 +413,12 @@ const Dashboard = ({ navigate }) => {
                                     </span>
                                 )}
                                 <span className="text-[10px] font-mono text-gray-500">
-                                    {stats.graph_data.length > 0 ? `${requestCountRef.current} requests` : 'Idle'}
+                                    {persistentState.graph_data.length > 0 ? `${requestCountRef.current} requests` : 'Idle'}
                                 </span>
                             </div>
                         </div>
                         <div className="flex-grow w-full h-full relative z-0 mt-2">
-                            {stats?.graph_data && Array.isArray(stats.graph_data) && stats.graph_data.length > 0 ? (
+                            {persistentState?.graph_data && Array.isArray(persistentState.graph_data) && persistentState.graph_data.length > 0 ? (
                                 <svg className="w-full h-full drop-shadow-[0_0_15px_rgba(139,92,246,0.3)]" preserveAspectRatio="none" viewBox="0 0 1000 300">
                                     <defs>
                                         <linearGradient id="lineGradient" x1="0%" x2="100%" y1="0%" y2="0%">
@@ -424,13 +433,13 @@ const Dashboard = ({ navigate }) => {
                                     </defs>
                                     <path
                                         className="transition-all duration-300 ease-in-out"
-                                        d={generateGraphPath(stats.graph_data)}
+                                        d={generateGraphPath(persistentState.graph_data)}
                                         fill="url(#areaGradient)"
                                         opacity="0.8"
                                     ></path>
                                     <path
                                         className="transition-all duration-300 ease-in-out"
-                                        d={generateLinePath(stats.graph_data)}
+                                        d={generateLinePath(persistentState.graph_data)}
                                         fill="none"
                                         stroke="url(#lineGradient)"
                                         strokeLinecap="round"
@@ -462,7 +471,7 @@ const Dashboard = ({ navigate }) => {
                                     REQUEST MONITORING
                                 </h3>
                                 <div className="flex gap-4 text-xs font-mono text-gray-500">
-                                    <span className="text-gray-600">{stats.threat_feed.length} / {MAX_THREAT_ROWS} max</span>
+                                    <span className="text-gray-600">{persistentState.threat_feed.length} requests captured</span>
                                     <span>STATUS: {scanActive ? 'ONLINE' : 'STANDBY'}</span>
                                 </div>
                             </div>
@@ -480,7 +489,7 @@ const Dashboard = ({ navigate }) => {
                             <div className="flex-grow overflow-y-auto font-mono text-xs bg-black/40 relative">
                                 <div className="absolute inset-0 pointer-events-none bg-[url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif')] opacity-[0.02]"></div>
 
-                                {stats.threat_feed && stats.threat_feed.length > 0 ? stats.threat_feed.map((item, idx) => {
+                                {persistentState.threat_feed && persistentState.threat_feed.length > 0 ? persistentState.threat_feed.map((item, idx) => {
                                     let agentName = "UNKNOWN";
                                     let agentColor = "text-gray-400";
 
@@ -518,8 +527,8 @@ const Dashboard = ({ navigate }) => {
                                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${item.severity === 'CRITICAL' ? 'bg-red-500 text-black' :
                                                     item.severity === 'HIGH' ? 'bg-orange-500 text-black' :
                                                         item.severity === 'MEDIUM' ? 'bg-yellow-500 text-black' :
-                                                        item.severity === 'LOW' ? 'bg-green-500 text-black' :
-                                                        'bg-blue-500 text-black'
+                                                            item.severity === 'LOW' ? 'bg-green-500 text-black' :
+                                                                'bg-blue-500 text-black'
                                                     }`}>
                                                     {item.severity}
                                                 </span>
@@ -541,7 +550,7 @@ const Dashboard = ({ navigate }) => {
                 </main>
 
                 <footer className="w-full text-center py-6 text-xs text-gray-600 relative z-10">
-                    Vul Agent Penetration Testing System
+                    Vulagent Scanner Intelligence Backbone © 2024
                 </footer>
             </div>
         </div>

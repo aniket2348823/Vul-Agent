@@ -478,7 +478,7 @@ class CortexEngine:
                 logger.warning(f"OpenRouter executive brief failed ({e}), falling back to local LLM.")
 
         # CORE 2: Granite AI narrative (enriched with GI5 data)
-        prompt = f"""You are a senior cybersecurity analyst writing a forensic report for Vul Agent.
+        prompt = f"""You are a senior cybersecurity analyst writing a forensic report for Vulagent Scanner.
 
 TARGET: {target}
 SCAN RESULTS: {success_count}/{total_count} requests returned HTTP 2xx ({hit_rate:.1f}% hit rate)
@@ -632,7 +632,7 @@ Output ONLY valid JSON. No markdown. No explanations."""
         return {
             "name": f"{vuln_type} Detection",
             "description": [
-                f"Antigravity detected a potential {vuln_type} pattern at this endpoint.",
+                f"Vulagent Scanner detected a potential {vuln_type} pattern at this endpoint.",
                 "Heuristic analysis confirms bypass of standard input validation.",
                 "Evidence suggests the application processed a malicious test vector."
             ],
@@ -787,7 +787,7 @@ Output ONLY valid JSON. No markdown. No explanations."""
         gi5_count = len(all_payloads)
 
         # CORE 2: Sigma Payload Forge (Qwen 2.5 Coder 0.5B via Ollama)
-        prompt = f"""You are Sigma, the weapon-smith agent inside the Antigravity V6 security scanner.
+        prompt = f"""You are Sigma, the weapon-smith agent inside the Vulagent Scanner intelligence platform.
 
 Your job is to generate exploit payloads designed to reveal vulnerabilities in APIs.
 

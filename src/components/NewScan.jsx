@@ -182,7 +182,7 @@ const NewScan = ({ navigate }) => {
         // Build headers
         const headers = {
             "Content-Type": "application/json",
-            "User-Agent": "VulAgent/3.0"
+            "User-Agent": "VulagentScanner/4.0"
         };
         if (authContent) {
             if (authType === 'Bearer') headers["Authorization"] = `Bearer ${authContent}`;
@@ -468,7 +468,7 @@ const NewScan = ({ navigate }) => {
                     </main>
 
                     <footer className="py-8 text-center text-sm text-gray-500">
-                        Vul Agent Penetration Testing System
+                        Vulagent Scanner Intelligence Backbone © 2024
                     </footer>
                 </div>
             </div>

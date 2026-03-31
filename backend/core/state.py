@@ -19,6 +19,7 @@ class StateManager:
             "scans": [],
             "active_scans": 0,
             "total_scans": 0,
+            "total_requests": 0, # Total requests sent in active session
             "vulnerabilities": 0,
             "critical": 0,
             "history": [0] * 30,  # Initialize with flatline for graph
@@ -88,11 +89,37 @@ class StateManager:
 
     async def register_scan(self, scan_data: Dict[str, Any]):
         async with self._lock:
+            # Initialize event buffer for this scan to satisfy reporting requirements
+            if "events" not in scan_data:
+                scan_data["events"] = []
+            
             # $O(1) appending is safer for high frequency, reports can sort by timestamp
             self._stats["scans"].append(scan_data)
             self._stats["active_scans"] += 1
             self._stats["total_scans"] += 1
             self._save()
+
+    async def add_scan_event(self, scan_id: str, event: Dict[str, Any]):
+        """Append a live event to a specific scan record with auto-pruning (Max 500)."""
+        async with self._lock:
+            for s in self._stats["scans"]:
+                if s["id"] == scan_id:
+                    if "events" not in s:
+                        s["events"] = []
+                    
+                    s["events"].append(event)
+                    
+                    # [V7] Auto-Pruning REMOVED as per user request for "Show All"
+                    # We keep all events for the current active session.
+                    
+                    self._dirty = True
+                    break
+
+    async def increment_request_count(self, count: int = 1):
+        """Atomically increment the global request counter for performance tracking."""
+        async with self._lock:
+            self._stats["total_requests"] += count
+            self._dirty = True
 
 
     async def record_finding(self, scan_id: str, severity: str = "Medium", signature_data: Dict[str, Any] = None):
@@ -189,16 +216,29 @@ class StateManager:
                 except (TypeError, ValueError):
                     s["duration"] = "N/A"
                 s["results"] = unique_results
-                s["report_ready"] = s.get("report_ready", False) # Preserve or init
+                s["report_ready"] = s.get("report_ready", False) 
                 break
         
-        self._save()
+        self.flush_immediate()
+
+    def sync_complete_scan(self, scan_id: str, status: str = "Completed", report_ready: bool = True):
+        """Atomic completion to avoid race conditions between 'Completed' and 'Report Ready'."""
+        self._stats["active_scans"] = max(0, self._stats["active_scans"] - 1)
+        for s in self._stats["scans"]:
+            if s["id"] == scan_id:
+                s["status"] = status
+                s["report_ready"] = report_ready
+                break
+        self.flush_immediate()
 
     def mark_report_ready(self, scan_id: str):
         """V6: Mark the AI report as generated and ready for instant download."""
         for s in self._stats["scans"]:
             if s["id"] == scan_id:
                 s["report_ready"] = True
+                # Safety: If it's ready, it shouldn't be in a 'Finalizing' or 'Running' state anymore
+                if s["status"] in ["Finalizing", "Running"]:
+                    s["status"] = "Completed"
                 break
         self.flush_immediate()
                 

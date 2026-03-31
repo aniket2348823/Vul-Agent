@@ -7,17 +7,17 @@ import os
 from contextlib import asynccontextmanager
 from typing import Optional, List, Dict, Any
 
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 # Vul Agent Core Imports
 from backend.core.config import settings, ConfigManager
 from backend.core.orchestrator import HiveOrchestrator, MasterNode, WorkerNode
-from backend.api import router as api_router
 from backend.api.socket_manager import manager
 from backend.core.state import stats_db_manager
-from backend.api.endpoints import recon, attack, reports, defense, dashboard
+from backend.api.endpoints import recon, attack, reports, dashboard
+from backend.api import defense
 
 # FIX: Windows charmap encoding crash
 if sys.platform == 'win32':
@@ -48,7 +48,7 @@ async def lifespan(app: FastAPI):
         await manager.stop_tasks()
         print("[LIFECYCLE] Shutdown complete.")
 
-app = FastAPI(title="Vul Agent", lifespan=lifespan)
+app = FastAPI(title="Vulagent Scanner", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -71,7 +71,7 @@ app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"]
 
 @app.websocket("/stream")
 @app.websocket("/ws/live")
-async def websocket_endpoint(websocket: WebSocket, client_type: str = "ui"):
+async def websocket_endpoint(websocket: WebSocket, client_type: str = Query("ui")):
     await manager.connect(websocket, client_type)
     try:
         while True:

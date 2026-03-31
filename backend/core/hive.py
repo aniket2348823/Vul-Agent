@@ -240,6 +240,8 @@ class DistributedEventBus(EventBus):
 
 # --- 3. THE DNA (Base Agent) ---
 
+from backend.core.database import db_manager
+
 class BaseAgent:
     """
     The template for all Hive Agents.
@@ -248,6 +250,7 @@ class BaseAgent:
     def __init__(self, name: str, bus: EventBus):
         self.name = name
         self.bus = bus
+        self.db = db_manager # Distributed Intelligence Backbone
         self.active = False
         self.status = "IDLE"
 
@@ -256,7 +259,11 @@ class BaseAgent:
         self.active = True
         self.status = "ACTIVE"
         self._agent_tasks = set()
-        logging.info(f"🤖 {self.name} is ONLINE.")
+        
+        # Ensure DB connections are active
+        await self.db.initialize()
+        
+        logging.info(f"🤖 {self.name} is ONLINE. Intelligence backbone synced.")
         
         # Subscribe to relevant events
         await self.setup()

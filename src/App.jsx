@@ -14,6 +14,22 @@ export default function App() {
     const [isLocked, setIsLocked] = useState(true); // Default to locked while checking
     const [checkingAuth, setCheckingAuth] = useState(true);
 
+    // [V7] Persistent Dashboard State (Lifted from components/Dashboard.jsx)
+    const [dashboardState, setDashboardState] = useState({
+        metrics: {
+            total_scans: 0,
+            active_scans: 0,
+            vulnerabilities: 0,
+            critical: 0
+        },
+        graph_data: [],
+        threat_feed: [],
+        recent_activity: [],
+        activeScanId: null, // Tracks currently focused scan for isolation
+        isCooldown: false,  // Dashboard cleanup cooldown
+        isStartDelay: false // Suppression delay for new scans
+    });
+
     // -- Font & Icon Loader --
     useEffect(() => {
         const links = [
@@ -185,7 +201,14 @@ export default function App() {
 
             {/* Render the specific page component based on state */}
             <AnimatePresence mode="wait">
-                {currentPage === 'dashboard' && <Dashboard key="dashboard" navigate={navigate} />}
+                {currentPage === 'dashboard' && (
+                    <Dashboard
+                        key="dashboard"
+                        navigate={navigate}
+                        persistentState={dashboardState}
+                        setPersistentState={setDashboardState}
+                    />
+                )}
                 {currentPage === 'scans' && <Scans key="scans" navigate={navigate} />}
                 {currentPage === 'newscan' && <NewScan key="newscan" navigate={navigate} />}
                 {currentPage === 'settings' && <Settings key="settings" navigate={navigate} />}

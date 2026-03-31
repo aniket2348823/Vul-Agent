@@ -31,6 +31,7 @@ class GlobalSettings:
     STATIC_DIR: str = STATIC_DIR
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
     SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
+    OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379")
 
 settings = GlobalSettings()
@@ -45,6 +46,7 @@ class RedisConfig:
 class SupabaseConfig:
     url: str = os.getenv("SUPABASE_URL", "")
     key: str = os.getenv("SUPABASE_KEY", "")
+    openrouter_key: str = os.getenv("OPENROUTER_API_KEY", "")
 
 @dataclass
 class WorkerConfig:
@@ -87,7 +89,7 @@ class ConfigManager:
         """Serializes current configuration for logging or UI sync."""
         return {
             "redis": self.redis.__dict__,
-            "supabase": {"url": self.supabase.url, "key": "MASKED"},
+            "supabase": {"url": self.supabase.url, "key": "MASKED", "openrouter_key": "MASKED"},
             "worker": self.worker.__dict__,
             "pinchtab": self.pinchtab.__dict__,
             "master": self.master.__dict__

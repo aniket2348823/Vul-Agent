@@ -5,6 +5,8 @@ import os
 import shutil
 import signal
 import psutil
+import importlib
+import aiohttp
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional, Any
 import redis
@@ -15,6 +17,7 @@ from playwright.async_api import async_playwright
 from backend.core.hive import EventBus, DistributedEventBus, EventType, HiveEvent
 from backend.core.protocol import ModuleConfig, AgentID, TaskPriority, TaskTarget
 from backend.core.state import stats_db_manager
+from backend.core.database import db_manager # [NEW] Distributed Intelligence Backbone
 from backend.core.config import settings
 from backend.api.socket_manager import manager
 from backend.core.graph_engine import GraphEngine
@@ -162,7 +165,16 @@ class MasterNode:
                 await self.redis_client.lpush(f"worker_queue:{worker_id}", json.dumps(task))
                 self.workers[worker_id].setdefault("current_tasks", []).append(task["task_id"])
                 try:
-                    self.supabase.table("task_assignments").insert({"task_id": task["task_id"], "worker_id": worker_id, "assigned_at": datetime.now().isoformat()}).execute()
+                    # [NEW] Elite Supabase Task Coordination
+                    await db_manager.initialize()
+                    await db_manager.supabase.table("distributed_tasks").insert({
+                        "scan_id": task["scan_id"] if "scan_id" in task else "GLOBAL",
+                        "task_id": task["task_id"], 
+                        "worker_id": worker_id, 
+                        "status": "RUNNING",
+                        "locked_by": worker_id,
+                        "lock_time": datetime.now().isoformat()
+                    }).execute()
                 except Exception: pass
 
     async def monitor_workers(self):
@@ -229,11 +241,97 @@ class WorkerNode:
 
     async def execute_task(self, task: Dict):
         tid = task.get("task_id", str(uuid.uuid4()))
+        scan_id = task.get("scan_id", "GLOBAL")
+        module_id = task.get("config", {}).get("module_id")
+        
         try:
             await self.update_task_status(tid, "RUNNING")
+            
+            # [V7] Dynamic Module Execution Engine
+            if not module_id:
+                raise ValueError("No module_id provided in task config")
+
+            # Map internal module IDs to actual python paths
+            module_map = {
+                "logic_tycoon": ("backend.modules.logic.tycoon", "TheTycoon"),
+                "logic_escalator": ("backend.modules.logic.escalator", "TheEscalator"),
+                "logic_skipper": ("backend.modules.logic.skipper", "TheSkipper"),
+                "logic_doppelganger": ("backend.modules.logic.doppelganger", "TheDoppelganger"),
+                "logic_chronomancer": ("backend.modules.logic.chronomancer", "TheChronomancer"),
+                "tech_sqli": ("backend.modules.tech.sqli", "SQLiModule"),
+                "tech_jwt": ("backend.modules.tech.jwt", "JWTModule"),
+                "tech_fuzzer": ("backend.modules.tech.fuzzer", "FuzzerModule"),
+                "tech_auth_bypass": ("backend.modules.tech.auth", "AuthBypassModule")
+            }
+
+            if module_id in module_map:
+                path, class_name = module_map[module_id]
+                module_pkg = importlib.import_module(path)
+                module_class = getattr(module_pkg, class_name)
+                instance = module_class()
+                
+                # Setup
+                from backend.core.protocol import JobPacket
+                packet = JobPacket(**task)
+                
+                # 1. Generate Payloads
+                targets = await instance.generate_payloads(packet)
+                
+                # 2. Real-Time Execution
+                interactions = []
+                from backend.api.socket_manager import publish_request_event
+                
+                async with aiohttp.ClientSession() as session:
+                    for t in targets:
+                        # Performance: Broadcast every physical request
+                        await publish_request_event({
+                            "timestamp": datetime.now().strftime("%H:%M:%S"),
+                            "method": t.method,
+                            "endpoint": t.url,
+                            "payload": str(t.payload)[:50],
+                            "agent": self.id,
+                            "result": "EXECUTING"
+                        }, scan_id=scan_id)
+                        
+                        start_time = datetime.now()
+                        try:
+                            # Actually send the request
+                            async with session.request(t.method, t.url, json=t.payload, headers=t.headers, timeout=10) as resp:
+                                text = await resp.text()
+                                latency = int((datetime.now() - start_time).total_seconds() * 1000)
+                                interactions.append((t, text))
+                                
+                                # Broadcast result
+                                await publish_request_event({
+                                    "timestamp": datetime.now().strftime("%H:%M:%S"),
+                                    "method": t.method,
+                                    "endpoint": t.url,
+                                    "payload": str(t.payload)[:50],
+                                    "status": resp.status,
+                                    "latency": latency,
+                                    "agent": self.id,
+                                    "result": "OK" if resp.status < 400 else "ERROR"
+                                }, scan_id=scan_id)
+                        except Exception as e:
+                            interactions.append((t, f"Error: {str(e)}"))
+
+                # 3. Analyze Responses
+                vulns = await instance.analyze_responses(interactions, packet)
+                
+                # 4. Report findings
+                for v in vulns:
+                    await self.bus.publish(HiveEvent(
+                        type=EventType.VULN_CONFIRMED,
+                        source=f"worker:{self.id}",
+                        scan_id=scan_id,
+                        payload=v.model_dump()
+                    ))
+
             await self.update_task_status(tid, "COMPLETED")
             await self.bus.publish(HiveEvent(type=EventType.JOB_COMPLETED, source=f"worker:{self.id}", payload={"job_id": tid, "status": "SUCCESS"}))
-        except Exception:
+            
+        except Exception as e:
+            print(f"❌ Worker Task Error [{tid}]: {e}")
             await self.update_task_status(tid, "FAILED")
 
     async def update_task_status(self, tid: str, status: str):
@@ -348,7 +446,10 @@ class HiveOrchestrator:
         # --- REPORTING LINK ---
         scan_events = []
         async def event_listener(event: HiveEvent):
-            scan_events.append(event.model_dump())
+            # [CRITICAL SYNC: V6] Persist every event to the scan's hot buffer for LiveMonitor/Reports
+            event_data = event.model_dump()
+            scan_events.append(event_data)
+            await stats_db_manager.add_scan_event(scan_id, event_data)
             
             # REAL-TIME DASHBOARD SYNC
             if event.type == EventType.VULN_CONFIRMED:
@@ -364,6 +465,18 @@ class HiveOrchestrator:
                     "type": str(real_payload.get('type', '')).upper(),
                     "data": str(real_payload.get('data', real_payload.get('payload', '')))
                 }
+                
+                # [NEW] Distributed Intelligence Injection (Supabase Backbone)
+                await db_manager.initialize()
+                await db_manager.report_vulnerability(
+                    scan_id=scan_id,
+                    endpoint=sig_data["url"],
+                    vuln_type=sig_data["type"],
+                    severity=severity,
+                    evidence=real_payload,
+                    validated_by=event.source
+                )
+
                 await stats_db_manager.record_finding(scan_id, severity, sig_data)
                 
                 # Broadcast authoritative stats to UI
@@ -388,9 +501,7 @@ class HiveOrchestrator:
 
 
                 # Broadcast LIVE THREAT LOG (New Feature)
-                await manager.broadcast({
-                    "type": "LIVE_THREAT_LOG",
-                    "payload": {
+                log_payload = {
                         "agent": event.source,
                         "threat_type": threat_type,
                         "url": real_payload.get("url", "Unknown Source"),
@@ -398,13 +509,20 @@ class HiveOrchestrator:
                         "timestamp": datetime.now().strftime("%H:%M:%S"),
                         "risk_score": risk_score
                     }
+                await manager.broadcast({
+                    "type": "LIVE_THREAT_LOG",
+                    "scan_id": scan_id, # [V7] Isolation Injection
+                    "payload": log_payload
                 })
+                # Ensure the filtered log also makes it to the scan buffer
+                await stats_db_manager.add_scan_event(scan_id, {"type": "LIVE_THREAT_LOG", "scan_id": scan_id, "payload": log_payload})
                 
             elif event.type == EventType.VULN_CANDIDATE:
                 real_payload = event.payload
                 threat_type = real_payload.get("tag", "Anomaly Target")
                 await manager.broadcast({
                     "type": "LIVE_THREAT_LOG",
+                    "scan_id": scan_id, # [V7] Isolation Injection
                     "payload": {
                         "agent": event.source,
                         "threat_type": f"[RECON] {threat_type}",
@@ -428,9 +546,7 @@ class HiveOrchestrator:
                     attack_severity = "LOW"
                     attack_risk = 25
 
-                await manager.broadcast({
-                    "type": "LIVE_ATTACK_FEED",
-                    "payload": {
+                attack_payload = {
                         "agent": event.source,
                         "url": event.payload.get("url", "N/A"),
                         "arsenal": event.payload.get("arsenal", "General"),
@@ -440,11 +556,18 @@ class HiveOrchestrator:
                         "risk_score": attack_risk,
                         "timestamp": datetime.now().strftime("%H:%M:%S")
                     }
+                await manager.broadcast({
+                    "type": "LIVE_ATTACK_FEED",
+                    "scan_id": scan_id, # [V7] Isolation Injection
+                    "payload": attack_payload
                 })
+                # Persistence for Feed History
+                await stats_db_manager.add_scan_event(scan_id, {"type": "LIVE_ATTACK_FEED", "scan_id": scan_id, "payload": attack_payload})
 
             elif event.type == EventType.RECON_PACKET:
                 await manager.broadcast({
                     "type": "RECON_PACKET",
+                    "scan_id": scan_id, # [V7] Isolation Injection
                     "payload": {
                         "url": event.payload.get("url", "Unknown"),
                         "severity": event.payload.get("severity", "INFO"),
@@ -462,6 +585,7 @@ class HiveOrchestrator:
                 job_module = config_data.get("module_id", "Unknown") if isinstance(config_data, dict) else "Unknown"
                 await manager.broadcast({
                     "type": "JOB_ASSIGNED",
+                    "scan_id": scan_id, # [V7] Isolation Injection
                     "payload": {
                         "source": event.source,
                         "url": job_url,
@@ -756,32 +880,34 @@ class HiveOrchestrator:
                             timeout=900.0
                         )
                         
-                        stats_db_manager.mark_report_ready(scan_id)
+                        # [V7] ADAPTIVE FINALIZATION DELAY
+                        # Cooldown scales with request volume: 2s base + 1s per 5000 requests (Cap 10s)
+                        total_reqs = telemetry.get("total_requests", 0)
+                        adaptive_delay = min(2.0 + (total_reqs / 5000.0), 10.0)
+                        
+                        # [ATOMIC SYNC: V6] Mark READY and COMPLETED in one atomic operation
+                        # We do this BEFORE the delay to ensure UI activation is instant
+                        stats_db_manager.sync_complete_scan(scan_id, status="Completed", report_ready=True)
                         await manager.broadcast({"type": "REPORT_READY", "payload": {"id": scan_id}})
                         await manager.broadcast({"type": "SCAN_UPDATE", "payload": {"id": scan_id, "status": "Completed"}})
                         
-                        for s in stats_db_manager._stats["scans"]:
-                            if s["id"] == scan_id:
-                                s["status"] = "Completed"
-                                break
+                        print(f"[Orchestrator] Report Generated. AI Report for {scan_id} is now READY.")
+                        print(f"[Orchestrator] Entering adaptive cooldown for {adaptive_delay:.1f}s before final release...")
+                        await asyncio.sleep(adaptive_delay)
                         
-                        stats_db_manager.flush_immediate()
-                        print(f"[Orchestrator] AI Report for {scan_id} is now READY and SYNCED with UI.")
                     except asyncio.TimeoutError:
-                        print(f"[Orchestrator] Report generation TIMED OUT for {scan_id}. Forcing ready.")
-                        stats_db_manager.mark_report_ready(scan_id)
+                        print(f"[Orchestrator] Report generation TIMED OUT for {scan_id}. Force completing.")
+                        # Fallback to ensure scan isn't stuck in 'Finalizing'
+                        stats_db_manager.sync_complete_scan(scan_id, status="Completed", report_ready=True)
                         await manager.broadcast({"type": "REPORT_READY", "payload": {"id": scan_id}})
                         await manager.broadcast({"type": "SCAN_UPDATE", "payload": {"id": scan_id, "status": "Completed"}})
                         
-                        for s in stats_db_manager._stats["scans"]:
-                            if s["id"] == scan_id:
-                                s["status"] = "Completed"
-                                break
-                                
-                        stats_db_manager.flush_immediate()
                     except Exception as ge:
                         print(f"[Orchestrator] Background Report Async Task Error: {ge}")
-                        stats_db_manager.mark_report_ready(scan_id)
+                        # Even if report failed, we MUST mark the scan as completed to release the UI
+                        stats_db_manager.sync_complete_scan(scan_id, status="Completed", report_ready=True)
+                        await manager.broadcast({"type": "REPORT_READY", "payload": {"id": scan_id}})
+                        await manager.broadcast({"type": "SCAN_UPDATE", "payload": {"id": scan_id, "status": "Completed"}})
                         await manager.broadcast({"type": "REPORT_READY", "payload": {"id": scan_id}})
                         await manager.broadcast({"type": "SCAN_UPDATE", "payload": {"id": scan_id, "status": "Completed"}})
                         

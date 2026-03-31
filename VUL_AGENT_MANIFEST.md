@@ -1,13 +1,13 @@
-# VUL AGENT: THE MASTER MANIFEST
+# VULGENT SCANNER: THE MASTER MANIFEST
 **Version**: 6.1-OMEGA (Project Singularity)  
 **Status**: Unified Architecture Active  
 
-This manifest is the primary blueprint for the **Vul Agent Penetration Testing System**. It synthesizes the project's evolution from the Antigravity/Xytherion era into a high-performance, tri-core autonomous security organism.
+This manifest is the primary blueprint for the **Vulagent Scanner Penetration Testing System**. It synthesizes the project's evolution from the Antigravity/Xytherion era into a high-performance, tri-core autonomous security organism.
 
 ---
 
 ## 1. System Identity: "The Hyper-Mind"
-**Vul Agent** is an autonomous, AI-driven cybersecurity ecosystem designed for deep forensic analysis and offensive orchestration.
+**Vulagent Scanner** is an autonomous, AI-driven cybersecurity ecosystem designed for deep forensic analysis and offensive orchestration.
 
 - **Vision**: To provide a persistent, self-evolving development and security fabric where AI agents oversee every project phase.
 - **Core Philosophy**: "Sovereign Aesthetics, Sovereign Logic." 
@@ -29,7 +29,7 @@ The system operates across three interconnected Sovereign Zones:
 ---
 
 ## 3. The Agent Swarm
-Vul Agent is powered by a decentralized swarm of specialized agents:
+Vulagent Scanner is powered by a decentralized swarm of specialized agents:
 
 | Agent | Identity | Mission |
 | :--- | :--- | :--- |
@@ -65,6 +65,6 @@ In accordance with the **Zero-Deletion Policy**, the following files remain acti
 
 ---
 
-**Authorized by**: Vul Agent Singularity Architect  
+**Authorized by**: Vulagent Scanner Singularity Architect  
 **Timestamp**: 2026-03-31  
 **Security Clearance**: Internal Only

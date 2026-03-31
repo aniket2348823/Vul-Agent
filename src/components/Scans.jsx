@@ -287,9 +287,9 @@ const Scans = ({ navigate }) => {
                                                                 whileHover={{ scale: 1.05 }}
                                                                 whileTap={{ scale: 0.95 }}
                                                                 onClick={() => handleDownloadPdf(scan.id)}
-                                                                disabled={!['Completed', 'Vulnerable', 'Secure'].includes(scan.status) || !scan.report_ready || downloading === scan.id}
+                                                                disabled={(scan.status === 'Running' || !scan.report_ready) || downloading === scan.id}
                                                                 title={(scan.status === 'Finalizing' || (scan.status === 'Completed' && !scan.report_ready)) ? "AI is finalizing the forensic report..." : "Download PDF Report"}
-                                                                className={`px-3 py-1.5 rounded-md text-[11px] font-medium flex items-center gap-1.5 shadow-[0_0_10px_rgba(138,43,226,0.2)] transition-all ${!['Completed', 'Vulnerable', 'Secure'].includes(scan.status) || !scan.report_ready
+                                                                className={`px-3 py-1.5 rounded-md text-[11px] font-medium flex items-center gap-1.5 shadow-[0_0_10px_rgba(138,43,226,0.2)] transition-all ${(scan.status === 'Running' || !scan.report_ready)
                                                                     ? 'bg-gray-700 text-gray-400 cursor-not-allowed opacity-50 shadow-none'
                                                                     : 'bg-[#8A2BE2] text-white hover:bg-[#9d47ff]'
                                                                     } ${downloading === scan.id ? 'opacity-70 cursor-wait' : ''}`}
@@ -316,7 +316,7 @@ const Scans = ({ navigate }) => {
                 </main>
 
                 <footer className="mt-8 pb-8 text-center text-xs text-gray-500 font-light">
-                    <p>VigilAgent API Endpoint Scanning System © 2023</p>
+                    <p>Vulagent Scanner Intelligence Backbone © 2024</p>
                 </footer>
             </div>
         </div>

@@ -76,7 +76,7 @@ class BetaAgent(BaseAgent):
             print(f"[{self.name}] >> AI Mutation Strategy: {mutated_polyglot}")
             
             # FIXED: Actually execute the attack via real HTTP requests
-            await self._execute_real_attack(url, mutated_polyglot)
+            await self._execute_real_attack(url, mutated_polyglot, scan_id=event.scan_id)
 
     async def handle_job(self, event: HiveEvent):
         payload = event.payload
@@ -94,7 +94,7 @@ class BetaAgent(BaseAgent):
         target_url = packet.target.url
         for polyglot in self.polyglots:
             mutated = await self.waf_mutate(polyglot)
-            await self._execute_real_attack(target_url, mutated)
+            await self._execute_real_attack(target_url, mutated, scan_id=event.scan_id)
 
     async def handle_sigma_payloads(self, event: HiveEvent):
         """Intercepts Sigma's payload shipments and executes the assault."""
@@ -112,7 +112,7 @@ class BetaAgent(BaseAgent):
         try:
             import aiohttp
             async with aiohttp.ClientSession() as session:
-                async def execute_payload_rl(p):
+                async def execute_payload_rl(p, scan_id=None):
                     try:
                         await self.bus.publish(HiveEvent(
                             type=EventType.LIVE_ATTACK,
@@ -120,7 +120,7 @@ class BetaAgent(BaseAgent):
                             payload={"url": target_url, "arsenal": "Adaptive Fuzzer", "action": "Executing Payload", "payload": p[:50]}
                         ))
                         
-                        reward = await self._execute_and_eval(session, target_url, p)
+                        reward = await self._execute_and_eval(session, target_url, p, scan_id=scan_id)
                         
                         if reward > 0:
                             print(f"[{self.name}] [+ REWARD] Successful payload interaction. Retaining strategy.")
@@ -133,17 +133,17 @@ class BetaAgent(BaseAgent):
                                     source=self.name,
                                     payload={"url": target_url, "arsenal": "RL Mutation", "action": "Retrying Mutated Payload", "payload": mutated[:50]}
                                 ))
-                                await self._execute_and_eval(session, target_url, mutated)
+                                await self._execute_and_eval(session, target_url, mutated, scan_id=scan_id)
                     except Exception as payload_err:
                         print(f"[{self.name}] [PAYLOAD ERROR] Skipping payload: {payload_err}")
                 
                 # Execute all AI generated payloads explicitly in parallel
                 print(f"[{self.name}] Dispatching {len(payloads)} AI generative payloads concurrently...")
-                await asyncio.gather(*[execute_payload_rl(p) for p in payloads])
+                await asyncio.gather(*[execute_payload_rl(p, event.scan_id) for p in payloads])
         except Exception as session_err:
             print(f"[{self.name}] [SESSION ERROR] Failed to create HTTP session: {session_err}")
 
-    async def _execute_real_attack(self, url: str, payload_str: str):
+    async def _execute_real_attack(self, url: str, payload_str: str, scan_id: str = None):
         """Execute a real HTTP attack against the target with the given payload."""
         import aiohttp
         import time
@@ -192,9 +192,8 @@ class BetaAgent(BaseAgent):
                             "status": status,
                             "latency": latency,
                             "result": result,
-                            "anomaly": anomaly,
-                            "rps": random.randint(300, 950)
-                        })
+                            "anomaly": anomaly
+                        }, scan_id=scan_id)
                     except Exception:
                         pass
                     
@@ -214,7 +213,7 @@ class BetaAgent(BaseAgent):
         except Exception as e:
             print(f"[{self.name}] [ATTACK ERROR] {e}")
 
-    async def _execute_and_eval(self, session, url: str, p: str):
+    async def _execute_and_eval(self, session, url: str, p: str, scan_id: str = None):
         """Executes a payload against a target URL and returns an RL reward score."""
         import time
         from datetime import datetime
@@ -265,13 +264,37 @@ class BetaAgent(BaseAgent):
                         "status": status,
                         "latency": latency,
                         "result": result,
-                        "anomaly": anomaly,
-                        "rps": random.randint(300, 950)
-                    })
+                        "anomaly": anomaly
+                    }, scan_id=scan_id)
                 except Exception:
                     pass
                     
                 if reward > 0:
+                    # [NEW] Log Exploit Evidence to Supabase Intelligence Backbone
+                    # We report a 'VULN_CANDIDATE' which Gamma will audit, 
+                    # but we also log the raw exploit interaction for forensic evidence.
+                    try:
+                        # Report to Supabase vulnerabilities (deduplicated)
+                        vuln_id = await self.db.report_vulnerability(
+                            scan_id=scan_id or "GLOBAL",
+                            endpoint=url,
+                            vuln_type=result,
+                            severity="HIGH" if reward >= 1 else "MEDIUM",
+                            evidence={"payload": p, "response_excerpt": text[:500], "reward": reward},
+                            validated_by=self.name
+                        )
+                        
+                        if vuln_id and vuln_id != "CACHED":
+                            await self.db.log_exploit_result(vuln_id, {
+                                "payload": p,
+                                "worker_id": self.name,
+                                "status": "EXPLOITED" if reward >= 1 else "PARTIAL",
+                                "response": text[:1000],
+                                "time_ms": latency
+                            })
+                    except Exception as db_err:
+                        print(f"[{self.name}] DB Logging Error: {db_err}")
+
                     await self.bus.publish(HiveEvent(
                         type=EventType.VULN_CANDIDATE,
                         source=self.name,

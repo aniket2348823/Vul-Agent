@@ -7,7 +7,10 @@ from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskTarget, 
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 import json
 import aiohttp
+import time
+from datetime import datetime
 from backend.core.graph_engine import graph_engine
+from backend.api.socket_manager import publish_request_event
 
 # Import Arsenals
 from backend.modules.tech.sqli import SQLInjectionProbe
@@ -95,7 +98,7 @@ class SigmaAgent(BaseAgent):
         elif signal == "RESUME":
             self._throttled = False
 
-    async def _fetch(self, target: TaskTarget) -> tuple[TaskTarget, str]:
+    async def _fetch(self, target: TaskTarget, scan_id: str = None) -> tuple[TaskTarget, str]:
         try:
             kwargs = {}
             if target.payload:
@@ -115,12 +118,27 @@ class SigmaAgent(BaseAgent):
                  target.headers["Authorization"] = f"Bearer {self.hybrid_token}"
                 
             async with self._session.request(target.method, target.url, headers=target.headers, **kwargs) as resp:
+                start_t = time.time()
                 chunks = []
                 async for chunk in resp.content.iter_chunked(1024 * 64):
                     chunks.append(chunk)
                     if sum(len(c) for c in chunks) > 5 * 1024 * 1024:
                         break
                 text = b"".join(chunks).decode("utf-8", errors="replace")
+                latency = int((time.time() - start_t) * 1000)
+                
+                # [V7] Publish real-time telemetry for Sigma interactions
+                await publish_request_event({
+                    "timestamp": datetime.now().strftime("%H:%M:%S"),
+                    "method": target.method,
+                    "endpoint": target.url[-40:] if len(target.url) > 40 else target.url,
+                    "payload": str(target.payload)[:25],
+                    "status": resp.status,
+                    "latency": latency,
+                    "agent": "sigma_orchestrator",
+                    "result": "OK" if resp.status < 400 else "ERROR"
+                }, scan_id=scan_id)
+                
                 return target, text
         except Exception as e:
             return target, ""
@@ -175,6 +193,7 @@ class SigmaAgent(BaseAgent):
             await self.bus.publish(HiveEvent(
                 type=EventType.LIVE_ATTACK,
                 source=self.name,
+                scan_id=event.scan_id,
                 payload={
                     "url": packet.target.url,
                     "arsenal": module_id,
@@ -201,6 +220,7 @@ class SigmaAgent(BaseAgent):
                     await self.bus.publish(HiveEvent(
                         type=EventType.LIVE_ATTACK,
                         source=self.name,
+                        scan_id=event.scan_id,
                         payload={
                             "url": t.url,
                             "arsenal": module_id,
@@ -208,7 +228,7 @@ class SigmaAgent(BaseAgent):
                             "payload": str(t.payload)[:100] + ("..." if len(str(t.payload)) > 100 else "")
                         }
                     ))
-                    res = await self._fetch(t)
+                    res = await self._fetch(t, scan_id=event.scan_id)
                     # Enforce RPS gap
                     if rate_limit_delay > 0:
                         await asyncio.sleep(rate_limit_delay)
@@ -227,6 +247,7 @@ class SigmaAgent(BaseAgent):
                     await self.bus.publish(HiveEvent(
                         type=EventType.VULN_CONFIRMED,
                         source=self.name,
+                        scan_id=event.scan_id,
                         payload={
                             "type": module_id.upper(),
                             "url": packet.target.url,
@@ -239,6 +260,7 @@ class SigmaAgent(BaseAgent):
             await self.bus.publish(HiveEvent(
                 type=EventType.JOB_COMPLETED,
                 source=self.name,
+                scan_id=event.scan_id,
                 payload={
                     "job_id": packet.id,
                     "status": "VULN_FOUND" if vulns else "SUCCESS",
@@ -299,6 +321,7 @@ class SigmaAgent(BaseAgent):
         await self.bus.publish(HiveEvent(
             type=EventType.JOB_COMPLETED,
             source=self.name,
+            scan_id=event.scan_id,
             payload={
                 "job_id": packet.id,
                 "status": "SUCCESS",
@@ -321,6 +344,7 @@ class SigmaAgent(BaseAgent):
         await self.bus.publish(HiveEvent(
             type=EventType.JOB_ASSIGNED,
             source=self.name,
+            scan_id=event.scan_id,
             payload=beta_handoff.model_dump()
         ))
 

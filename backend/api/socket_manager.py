@@ -5,6 +5,7 @@ import logging
 import asyncio
 import random
 import time
+import collections
 
 # --- Adaptive 300 Monitoring Logic ---
 def get_display_limit(rps):
@@ -16,24 +17,9 @@ def get_display_limit(rps):
         return 400
 
 def should_emit(event: Dict[str, Any], rps: float) -> bool:
-    # Priority: Always show anomalies or high severity — NEVER drop these
-    if event.get("anomaly") or event.get("severity") in ["high", "CRITICAL", "HIGH", "MEDIUM"]:
-        return True
-    
-    # Always show if result indicates a security event
-    result = str(event.get("result", "")).upper()
-    if any(kw in result for kw in ["ERROR", "INJECTION", "BYPASS", "LEAK", "BLOCKED", "SENSITIVE", "API"]):
-        return True
-    
-    # Low RPS: show everything
-    if rps <= 100:
-        return True
-    
-    # Adaptive sampling for low priority events at high RPS
-    display_limit = get_display_limit(rps)
-    display_rate = display_limit / max(rps, 1)
-    
-    return random.random() < display_rate
+    # V7: User requested ALL requests be shown without limits.
+    # Disabling sampling entirely.
+    return True
 
 # Global scan target URL for filtering (set by orchestrator)
 _active_scan_target = ""
@@ -45,14 +31,21 @@ def set_active_scan_target(url: str):
 def get_active_scan_target() -> str:
     return _active_scan_target
 
-async def publish_request_event(data: Dict[str, Any]):
-    """Publish a request event with adaptive sampling. Fully error-hardened."""
+async def publish_request_event(data: Dict[str, Any], scan_id: str = None):
+    """Publish a real-time request event and record metrics in StateManager."""
+    from backend.core.state import stats_db_manager
     try:
         if manager is None:
             return
         
-        # Approximate current RPS based on manager's recent volume
-        current_rps = getattr(manager, 'recent_rps', 0)
+        # [V7] Increment real global counter
+        await stats_db_manager.increment_request_count()
+        
+        # Track for real-time RPS gauge
+        manager.packet_count += 1
+        
+        # Approximate current RPS for log metadata
+        current_rps = manager.recent_rps
         
         if should_emit(data, current_rps):
             # Determine severity from event data
@@ -78,22 +71,42 @@ async def publish_request_event(data: Dict[str, Any]):
             # Format for Dashboard.jsx
             url_raw = str(data.get("url", data.get("endpoint", "Unknown")))
             formatted_event = {
-                "type": "LIVE_THREAT_LOG",
+                "type": "LIVE_ATTACK_FEED",
+                "scan_id": scan_id, # V7: Explicit Scan ID for isolation
                 "payload": {
                     "timestamp": data.get("timestamp", time.strftime("%H:%M:%S")),
                     "agent": data.get("agent", "alpha_recon"),
                     "threat_type": data.get("result", "TRAFFIC"),
                     "method": data.get("method", "GET"),
-                    "endpoint": data.get("endpoint", url_raw[-40:]),
+                    "endpoint": url_raw[-40:] if len(url_raw) > 40 else url_raw,
                     "url": url_raw,
                     "severity": raw_severity,
                     "risk_score": risk_score,
                     "status": data.get("status", 0),
                     "anomaly": data.get("anomaly", False),
-                    "result": data.get("result", "OK")
+                    "result": data.get("result", "OK"),
+                    "arsenal": data.get("result", "Standard Interaction"),
+                    "action": f"{data.get('method', 'GET')} request triggered"
                 }
             }
             await manager.broadcast(formatted_event)
+            
+            # Periodic Performance Update (Every 5 requests to avoid spam but remain reactive)
+            stats = stats_db_manager.get_stats()
+            if stats["total_requests"] % 5 == 0:
+                await manager.broadcast({
+                    "type": "VULN_UPDATE",
+                    "payload": {
+                        "metrics": {
+                            "vulnerabilities": stats["vulnerabilities"],
+                            "critical": stats["critical"],
+                            "active_scans": stats["active_scans"],
+                            "total_scans": stats["total_scans"],
+                            "total_requests": stats["total_requests"],
+                            "rps": manager.recent_rps
+                        }
+                    }
+                })
     except Exception as e:
         logging.getLogger("Antigravity.SocketManager").error(f"publish_request_event error: {e}")
 
@@ -106,7 +119,7 @@ class SocketManager:
         self.logger = logging.getLogger("Antigravity.SocketManager")
         
         self.last_spy_activity = 0.0
-        self.message_queue = collections.deque(maxlen=5000) # Memory Guard: Cap overflow
+        self.message_queue = collections.deque(maxlen=100000) # Memory Guard: Increased for Unlimited Monitoring
         self._batch_task = None
         
         # [NEW] RPS Tracking for Adaptive Sampling
@@ -215,7 +228,8 @@ class SocketManager:
             self.ui_connections.remove(websocket)
 
     async def broadcast(self, data: dict):
-        self.packet_count += 1
+        # We don't increment packet_count here anymore because 
+        # it's specifically for actual HTTP events in publish_request_event
         await self.broadcast_to_ui(data)
 
     async def broadcast_to_ui(self, data: dict):
