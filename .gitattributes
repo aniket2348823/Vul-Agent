@@ -1,0 +1,8 @@
+# Enforce Python as the primary language on GitHub by hiding the huge Go implementation files
+# GitHub calculates languages by bytes, so the 'pinchtab_core' backend skews the percentages.
+
+# Mark all Go backend files as vendored (ignored in language stats)
+*.go linguist-vendored
+*.mod linguist-vendored
+*.sum linguist-vendored
+*pinchtab_core*/** linguist-vendored
