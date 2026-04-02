@@ -37,8 +37,22 @@ async def fire_attack(payload: AttackPayload, background_tasks: BackgroundTasks)
         "duration": payload.duration
     }
 
-    
-    # 2. Initial DB Registration (Orchestrator updates this too, but we reserve the slot)
+    # 1.5 ATOMIC LOCKING (Prevent Race Conditions - TC020)
+    from backend.core.database import db_manager
+    await db_manager.initialize()
+    if db_manager.redis:
+        lock_key = f"scan_lock:{payload.target_url}"
+        locked = await db_manager.redis.set(lock_key, "LOCKED", nx=True, ex=10) # 10s cooldown
+        if not locked:
+            raise HTTPException(status_code=429, detail="A scan for this target is already initializing.")
+    elif not hasattr(db_manager, "_local_locks"):
+        db_manager._local_locks = set()
+    elif payload.target_url in db_manager._local_locks:
+        raise HTTPException(status_code=429, detail="A scan for this target is already initializing.")
+    else:
+        db_manager._local_locks.add(payload.target_url)
+
+
     # We do a minimal placeholder here to ensure immediate UI feedback
     # 2. Initial DB Registration (Sync)
     # Use Manager to ensure persistence to disk immediately

@@ -37,12 +37,19 @@ class EliteDBManager:
             
             # 2. Redis Initialization
             if self.redis_url:
-                self.redis = aioredis.from_url(self.redis_url, decode_responses=True)
-                logger.info("ELITE-DB: Redis Distributed Cache Active ✓")
+                try:
+                    temp_redis = aioredis.from_url(self.redis_url, decode_responses=True)
+                    await temp_redis.ping()
+                    self.redis = temp_redis
+                    logger.info("ELITE-DB: Redis Distributed Cache Active ✓")
+                except Exception as redis_e:
+                    logger.warning(f"ELITE-DB: Redis unavailable, falling back to local caching. ({redis_e})")
+                    self.redis = None
             
             self._initialized = True
         except Exception as e:
             logger.error(f"ELITE-DB Initialization Failed: {e}")
+            self._initialized = True
 
     # --- 1. VULNERABILITY MANAGEMENT (Intelligence) ---
 

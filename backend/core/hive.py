@@ -169,14 +169,32 @@ class DistributedEventBus(EventBus):
         self.redis_client = aioredis.from_url(redis_url, decode_responses=True)
         self.pubsub = self.redis_client.pubsub()
         self.is_running = False
+        self._is_redis_online = None # Lazy check
+
+
+    async def ping(self) -> bool:
+        """Verifies Redis connectivity."""
+        try:
+            await self.redis_client.ping()
+            self._is_redis_online = True
+            return True
+        except Exception:
+            self._is_redis_online = False
+            return False
 
 
     async def start(self):
         """Activates the distributed bridge."""
         self.is_running = True
-        await self.pubsub.subscribe("xytherion_events")
-        asyncio.create_task(self._listen_loop())
-        logger.info("📡 Distributed Event Bus Online (Async).")
+        try:
+            # We attempt to subscribe to the global channel
+            await self.pubsub.subscribe("xytherion_events")
+            asyncio.create_task(self._listen_loop())
+            logging.info("📡 Distributed Event Bus Online (Async).")
+        except Exception as e:
+            # V6-OMEGA HARDENING: If we can't subscribe, we stay in local-only mode
+            self.is_running = False
+            logging.warning(f"⚠️ [Hive] Redis subscribe failed: {e}. Event Bus staying local.")
 
 
     async def _listen_loop(self):
@@ -200,40 +218,34 @@ class DistributedEventBus(EventBus):
 
     async def publish(self, event: HiveEvent):
         """Broadcasts local events to the global cluster and routes jobs with safety locking."""
-        # 1. Local Broadcast
+        # 1. Local Broadcast (Memory-only sink always happens)
         await super().publish(event)
         
-        # 2. Global Broadcast (Redis Channel for UI/Sync)
+        # 2. Global Broadcast (Resilient Redis Attempt)
         try:
             event_json = event.model_dump_json()
             await self.redis_client.publish("xytherion_events", event_json)
             
-            # 3. WORKER ROUTING & SAFETY LOCKING (V6-HARDENED ASYNC)
+            # 3. WORKER ROUTING & SAFETY LOCKING (Async-Harden)
             if event.type == EventType.JOB_ASSIGNED:
                 task_id = event.payload.get("task_id", event.id)
                 lock_key = f"job_lock:{task_id}"
                 
-                # Attempt to acquire a global lock (Async)
+                # Check Redis connection or health
                 if await self.redis_client.set(lock_key, "LOCKED", nx=True, ex=3600):
-                    # ROUTE A: Audit Layer (Inspector)
+                    # ROUTE A: Audit Layer
                     await self.redis_client.lpush("xytherion_audit_queue", event_json)
                     
-                    # ROUTE B: Work Queue (Master will redistribute)
-                    task_payload = event.payload
-                    if "task_id" not in task_payload:
-                        task_payload["task_id"] = task_id
-                    
-                    # Log the Job Routing formally
+                    # ROUTE B: Work Queue
                     logging.info(f"🚀 [Hive] Routing Job {task_id} to global work queue.")
-                    await self.redis_client.lpush("pending_tasks", json.dumps(task_payload))
+                    await self.redis_client.lpush("pending_tasks", event_json)
                 else:
-                    logging.debug(f"[DistributedEventBus] Job {task_id} already locked. Skipping global push.")
-
-                
+                    logging.debug(f"[DistributedEventBus] Job {task_id} already locked.")
+                    
         except Exception as e:
-            # Stage 10 Hardening: Capture and log the full error with source
+            # V6-OMEGA Resilience: If Redis fails, we stop the global sync but keep the process alive
             err_type = type(e).__name__
-            logging.error(f"[DistributedEventBus] Global publishing failed ({err_type}): {e}")
+            logging.warning(f"⚠️ [Hive] Distributed broadcast failed ({err_type}). Reverting to Local memory sink.")
 
 
 

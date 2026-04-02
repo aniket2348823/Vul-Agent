@@ -65,3 +65,4 @@ class ResultPacket(BaseModel):
     data: Dict[str, Any] # Raw response data
     vulnerabilities: List[Vulnerability] = []
     next_step: Optional[str] = None # Hint for the next agent
+    timestamp: datetime = Field(default_factory=datetime.utcnow) # V6: Temporal Tracking

@@ -39,7 +39,13 @@ class AgentPrism(BaseAgent):
             r"delete all files",
             r"transfer .* funds",
             r"simulated mode",
-            r"debug mode"
+            r"debug mode",
+            # V6: Deterministic Hard-Fence against AI Jailbreaks
+            r"ignore\s+.*instructions",
+            r"set\s+verdict\s+to",
+            r"roleplay",
+            r"bypass.*security",
+            r"override.*protocol"
         ]
         
         # 1. Distributed Health Watchdog (Cluster Mode)

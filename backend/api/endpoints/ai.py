@@ -46,3 +46,22 @@ async def engage_autonomous(payload: MutationRequest, background_tasks: Backgrou
         "message": "Hive Mind Swarm Activated",
         "scan_id": scan_id 
     }
+
+@router.get("/status")
+async def get_ai_status():
+    """
+    Returns AI Core health, LLM metrics, and fallback state.
+    """
+    # Defensive access to telemetry
+    telemetry = brain._telemetry if hasattr(brain, "_telemetry") else {}
+    
+    return {
+        "core_status": {
+            "gi5": "online" if getattr(brain, "_gi5_available", False) else "error",
+            "ollama": "standby",
+            "openrouter": "active"
+        },
+        "llm_calls": telemetry.get("llm_calls", 0),
+        "circuit_breaker_trips": telemetry.get("circuit_breaker_trips", 0),
+        "fallback_status": "READY" if getattr(brain, "_gi5_available", False) else "DEGRADED"
+    }

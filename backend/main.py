@@ -16,7 +16,7 @@ from backend.core.config import settings, ConfigManager
 from backend.core.orchestrator import HiveOrchestrator, MasterNode, WorkerNode
 from backend.api.socket_manager import manager
 from backend.core.state import stats_db_manager
-from backend.api.endpoints import recon, attack, reports, dashboard
+from backend.api.endpoints import recon, attack, reports, dashboard, ai
 from backend.api import defense
 
 # FIX: Windows charmap encoding crash
@@ -68,6 +68,7 @@ app.include_router(attack.router, prefix="/api/attack", tags=["Attack"])
 app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
 app.include_router(defense.router, prefix="/api/defense", tags=["Defense"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
+app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
 
 @app.websocket("/stream")
 @app.websocket("/ws/live")

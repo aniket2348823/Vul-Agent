@@ -26,12 +26,27 @@ async def analyze_threat(payload: ThreatPayload):
     agent = HiveOrchestrator.active_agents.get(payload.agent_id)
     
     if not agent:
-        # Better to return IDLE to avoid extension error spam if backend is not currently scanning
-        return {
-            "verdict": "IDLE",
-            "reason": "Antigravity Hive is in Standby Mode",
-            "risk_score": 0
-        }
+        from backend.core.hive import DistributedEventBus, EventBus
+        # Use an ephemeral bus for independent analysis
+        try:
+            # We attempt to use the distributed bus first for shared state
+            ephemeral_bus = DistributedEventBus("redis://localhost:6379")
+        except Exception:
+            # V6 OMEGA HARDENING: Fall back to local bus if Redis is offline
+            ephemeral_bus = EventBus()
+            
+        if payload.agent_id == "agent_prism":
+            from backend.agents.prism import AgentPrism
+            agent = AgentPrism(ephemeral_bus)
+        elif payload.agent_id == "agent_chi":
+            from backend.agents.chi import AgentChi
+            agent = AgentChi(ephemeral_bus)
+        else:
+            return {
+                "verdict": "IDLE",
+                "reason": "Antigravity Hive is in Standby Mode",
+                "risk_score": 0
+            }
 
     # 2. Create a Job Packet for the Agent
     # We wrap the extension data into a format the Agent understands (JobPacket)
@@ -67,9 +82,12 @@ async def analyze_threat(payload: ThreatPayload):
     
     # HYBRID AI: Dynamic risk scoring instead of hardcoded 95/10
     if result.vulnerabilities:
-        context = f"{payload.url} {reason or ''}"
-        risk_assessment = cortex.assess_contextual_risk(context)
-        risk_score = risk_assessment.get("risk_score", 95)
+        # V6 REFINEMENT: Fix TypeError and handle integer return value
+        risk_score = await cortex.assess_contextual_risk(
+            threat_type=reason or "UI_ANOMALY", 
+            target_url=payload.url, 
+            context=payload.content
+        )
     else:
         risk_score = 10
 
