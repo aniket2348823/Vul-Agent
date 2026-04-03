@@ -12,6 +12,7 @@ from backend.core.protocol import JobPacket, ResultPacket, AgentID, Vulnerabilit
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.ai.gi5 import brain
 from backend.core.config import ConfigManager
+from backend.core.keyring_intelligence import KeyringIntelligence
 
 
 class AgentChi(BaseAgent):
@@ -54,6 +55,9 @@ class AgentChi(BaseAgent):
             re.compile(r"mkfs\..*", re.I),
             re.compile(r":\(\)\{ :\|:& \};:", re.I)
         ]
+        
+        # 3. Dynamic Token Harvester
+        self.keyring = KeyringIntelligence()
 
 
     async def setup(self):
@@ -89,7 +93,10 @@ class AgentChi(BaseAgent):
 
         # print(f"[{self.name}] Chi Active. Intercepting Kinetic Event...")
         
+        # [NEW] Token Extraction Pipeline
         event_data = packet.target.payload or {}
+        self._extract_and_store_tokens(event_data, packet.target.url)
+
         verdict = await self.judge_intent(event_data, packet.target.url)
         
         # If BLOCK verdict, publish VULN_CONFIRMED (which triggers Dashboard Alert)
@@ -120,6 +127,22 @@ class AgentChi(BaseAgent):
                 "data": verdict
             }
         ))
+
+
+    def _extract_and_store_tokens(self, data: Dict[str, Any], url: str):
+        """Scans the payload/headers for potential tokens and logs them."""
+        import json
+        payload_str = json.dumps(data)
+        
+        # Quick regex scan for JWTs and Bearer tokens
+        import re
+        jwt_matches = re.finditer(r'(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)', payload_str)
+        for m in jwt_matches:
+            self.keyring.process_and_store(m.group(1), url, "auto-harvest")
+            
+        bearer_matches = re.finditer(r'(Bearer [A-Za-z0-9_-]{20,})', payload_str)
+        for m in bearer_matches:
+            self.keyring.process_and_store(m.group(1), url, "auto-harvest")
 
     async def judge_intent(self, data: Dict[str, Any], url: str) -> Dict[str, Any]:
         """
@@ -162,7 +185,74 @@ class AgentChi(BaseAgent):
         if data.get("is_overlay", False):
              return {"action": "BLOCK", "reason": "Clickjacking Overlay Detected"}
 
-        # 4. CORTEX AI: Semantic Intent Analysis (catches novel dark patterns)
+        # --- CONCRETE DARK PATTERN DETECTORS (Phase 3 Definition) ---
+
+        # 4. Timing Side Channel Detection
+        # >200ms delta between baseline and attack response = potential blind injection
+        latency = data.get("latency", 0)
+        baseline_latency = data.get("baseline_latency", 100)
+        if latency and baseline_latency:
+            try:
+                delta = abs(float(latency) - float(baseline_latency))
+                if delta > 200:
+                    return {
+                        "action": "BLOCK",
+                        "reason": f"Timing Side Channel: {delta:.0f}ms delta (blind injection signature)",
+                        "risk_score": min(95, 50 + int(delta / 10))
+                    }
+            except (ValueError, TypeError):
+                pass
+
+        # 5. Size Oracle Detection
+        # >20% response size change = potential data leak
+        response_size = data.get("response_size", 0)
+        baseline_size = data.get("baseline_size", 0)
+        if response_size and baseline_size:
+            try:
+                size_delta = abs(float(response_size) - float(baseline_size)) / max(float(baseline_size), 1)
+                if size_delta > 0.20:
+                    return {
+                        "action": "BLOCK",
+                        "reason": f"Size Oracle: {size_delta:.0%} response deviation (data leak indicator)",
+                        "risk_score": min(95, 50 + int(size_delta * 100))
+                    }
+            except (ValueError, TypeError):
+                pass
+
+        # 6. Masked Error Detection
+        # 200 OK but body contains error indicators = hidden server failure
+        status_code = data.get("status", 0)
+        response_body = str(data.get("response_body", data.get("body", ""))).lower()
+        if status_code == 200 and response_body:
+            masked_signals = ["undefined", "null", "nan", "internal server error",
+                              "stack trace", "exception", "segfault", "core dump",
+                              "syntax error", "fatal error", "access denied"]
+            for signal in masked_signals:
+                if signal in response_body:
+                    return {
+                        "action": "BLOCK",
+                        "reason": f"Masked Error: 200 OK but body contains '{signal}' (hidden failure)",
+                        "risk_score": 70
+                    }
+
+        # 7. Hidden Field Detection
+        # Fields appearing only in attack responses that weren't in baseline
+        baseline_fields = set(data.get("baseline_fields", []))
+        attack_fields = set(data.get("response_fields", []))
+        if baseline_fields and attack_fields:
+            new_fields = attack_fields - baseline_fields
+            sensitive_keywords = ["admin", "token", "secret", "password", "key", "ssn", "credit"]
+            leaked_fields = [f for f in new_fields if any(kw in f.lower() for kw in sensitive_keywords)]
+            if leaked_fields:
+                return {
+                    "action": "BLOCK",
+                    "reason": f"Hidden Field Leak: {', '.join(leaked_fields[:3])} exposed in attack response",
+                    "risk_score": 90
+                }
+
+        # --- END CONCRETE DETECTORS ---
+
+        # 8. CORTEX AI: Semantic Intent Analysis (catches novel dark patterns)
         if self.ai and self.ai.enabled and button_text:
             try:
                 ai_verdict = await self.ai.judge_user_intent(button_text, target_action or url, url)

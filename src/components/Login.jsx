@@ -20,6 +20,7 @@ const Login = ({ onLoginSuccess }) => {
             const data = await res.json();
 
             if (data.status === 'success') {
+                if (data.token) localStorage.setItem('vulagent_ws_token', data.token);
                 onLoginSuccess();
             } else {
                 setError(data.message || 'Verification Failed');

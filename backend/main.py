@@ -17,6 +17,7 @@ from backend.core.orchestrator import HiveOrchestrator, MasterNode, WorkerNode
 from backend.api.socket_manager import manager
 from backend.core.state import stats_db_manager
 from backend.api.endpoints import recon, attack, reports, dashboard, ai
+from backend.api.endpoints.code_analysis import router as code_analysis_router
 from backend.api import defense
 
 # FIX: Windows charmap encoding crash
@@ -50,9 +51,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Vulagent Scanner", lifespan=lifespan)
 
+# PROBLEM 17 FIX: Env-driven CORS configuration
+ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -69,10 +73,22 @@ app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
 app.include_router(defense.router, prefix="/api/defense", tags=["Defense"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
+app.include_router(code_analysis_router, prefix="/api", tags=["Code Analysis"])  # PROBLEM 18
 
 @app.websocket("/stream")
 @app.websocket("/ws/live")
-async def websocket_endpoint(websocket: WebSocket, client_type: str = Query("ui")):
+async def websocket_endpoint(websocket: WebSocket, client_type: str = Query("ui"), token: str = Query(None)):
+    from backend.api.endpoints.dashboard import load_config, load_session
+    
+    # WebSocket Authentication Handshake
+    config = load_config()
+    if config.get("enabled", False):
+        session = load_session()
+        # Disconnect any unauthenticated or token-mismatched websockets
+        if not session.get("authenticated") or session.get("token") != token:
+            await websocket.close(code=1008, reason="Policy Violation: Invalid Auth Token")
+            return
+
     await manager.connect(websocket, client_type)
     try:
         while True:

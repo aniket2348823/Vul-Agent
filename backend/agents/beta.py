@@ -171,16 +171,24 @@ class BetaAgent(BaseAgent):
                     result = "OK"
                     text_lower = text.lower()
                     p_lower = payload_str.lower()
-                    is_malicious = any(k in p_lower for k in ["'", '"', "<", ">", "script", "union", "select", "etc/passwd", "sleep(", "drop "])
+                    from backend.core.exploit_engine import MultiLayerVerifier
+                    base_status = 200; base_text = ""
+                    try:
+                        async with session.get(url.split("?")[0], timeout=5) as b_resp:
+                            base_status = b_resp.status; base_text = await b_resp.text()
+                    except Exception: pass
                     
-                    if status >= 500 or any(kw in text_lower for kw in ["syntax error", "unexpected", "sql", "mysql", "database", "warning"]):
-                        anomaly = True
-                        result = "ERROR / SYNTAX"
-                    elif status == 200 and is_malicious:
-                        anomaly = True
-                        result = "INJECTION / BYPASS"
-                    elif status == 403 or status == 401:
-                        result = "WAF BLOCKED"
+                    verified, confidence, signals = MultiLayerVerifier.verify(
+                        {"status": base_status, "response": base_text},
+                        {"status": status, "body": text}
+                    )
+
+                    # [NEW] Strict mathematical payload verification
+                    if not verified or signals < 2:
+                        return # Strict Drop
+
+                    anomaly = True
+                    result = f"EXPLOIT VERIFIED (Signals: {signals})"
                     
                     # Publish live telemetry
                     try:
@@ -236,23 +244,26 @@ class BetaAgent(BaseAgent):
                 p_lower = p.lower()
                 is_malicious_payload = any(k in p_lower for k in ["'", '"', "<", ">", "script", "union", "select", "etc/passwd", "sleep(", "drop "])
                 
-                if status >= 500 or any(kw in text_lower for kw in ["syntax error", "unexpected", "sql", "mysql", "database", "warning"]):
-                    reward = 1
-                    evidence = "Server threw unhandled logic/syntax error indicating injection vulnerability."
+                from backend.core.exploit_engine import MultiLayerVerifier
+                base_status = 200; base_text = ""
+                try:
+                    async with session.get(url.split("?")[0], timeout=5) as b_resp:
+                        base_status = b_resp.status; base_text = await b_resp.text()
+                except Exception: pass
+
+                verified, conf, signals = MultiLayerVerifier.verify(
+                    {"status": base_status, "response": base_text},
+                    {"status": status, "body": text}
+                )
+
+                # [NEW] Strict mathematical evaluation for RL reward
+                if verified and signals >= 2:
+                    reward = 1.0
+                    evidence = f"Mathematical verification via Jaccard metrics passed. Confidence: {conf}%. Signals: {signals}"
                     anomaly = True
-                    result = "ERROR / SYNTAX"
-                elif status == 200 and len(text) > 1000 and not is_malicious_payload:
-                    reward = 0.5
-                    evidence = "Massive payload return size indicating potential data leak (IDOR/BOLA)."
-                    anomaly = True
-                    result = "DATA LEAK"
-                elif status == 200 and is_malicious_payload:
-                    reward = 1
-                    evidence = "Malicious payload successfully reflected or processed without sanitization (HTTP 200 OK), indicating an injection bypass."
-                    anomaly = True
-                    result = "INJECTION / BYPASS"
-                elif status == 403 or status == 401:
-                    result = "WAF BLOCKED"
+                    result = "HARD_VERIFIED"
+                else:
+                    return 0 # Strict Return
                     
                 # Publish Live Threat Telemetry
                 try:

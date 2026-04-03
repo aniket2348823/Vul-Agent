@@ -13,7 +13,8 @@ export default function LiveMonitor() {
         const connectWs = () => {
             const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
             const backendHost = window.location.hostname === "localhost" ? "localhost:8000" : "127.0.0.1:8000";
-            const wsUrl = `${protocol}//${backendHost}/stream?client_type=ui`;
+            const wsToken = localStorage.getItem('vulagent_ws_token') || '';
+            const wsUrl = `${protocol}//${backendHost}/stream?client_type=ui&token=${wsToken}`;
             ws = new WebSocket(wsUrl);
 
             ws.onmessage = (msg) => {

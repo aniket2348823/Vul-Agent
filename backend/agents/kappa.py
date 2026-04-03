@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import math
+import re
 import aiohttp
 import time as _time
 from backend.core.hive import BaseAgent, EventType, HiveEvent
@@ -96,6 +97,31 @@ class KappaAgent(BaseAgent):
             source=self.name,
             payload={"message": f"Vector Memory {archive_data['type']} stored with {len(embedding)}-dim embedding."}
         ))
+
+        # PROBLEM 6 FIX: Feed intelligence back to Omega for adaptive replanning
+        confidence = payload.get("confidence", 0.0)
+        vuln_type = payload.get("type", "")
+        url = payload.get("url", "")
+        if confidence > 0.7 and vuln_type:
+            pattern = {
+                "vuln_type": vuln_type,
+                "endpoint_pattern": self._extract_pattern(url),
+                "confidence": confidence,
+                "timestamp": _time.time()
+            }
+            await self.bus.publish(HiveEvent(
+                type=EventType.PATTERN_LEARNED,
+                source=self.name,
+                scan_id=event.scan_id,
+                payload={"pattern": pattern}
+            ))
+            print(f"[{self.name}] [PATTERN] Fed pattern '{vuln_type}' back to Omega for adaptive replanning.")
+
+    def _extract_pattern(self, url: str) -> str:
+        """Convert specific URL to a reusable pattern for cross-scan intelligence."""
+        pattern = re.sub(r'/\d+', '/{id}', url)
+        pattern = re.sub(r'/[a-f0-9-]{36}', '/{uuid}', pattern)
+        return pattern
 
     def _save_record(self, record):
         try:

@@ -21,6 +21,7 @@ from backend.core.database import db_manager # [NEW] Distributed Intelligence Ba
 from backend.core.config import settings
 from backend.api.socket_manager import manager
 from backend.core.graph_engine import GraphEngine
+from backend.core.guard_layer import guard_layer
 
 # --- INTEGRATED CLUSTER COMPONENTS ---
 
@@ -458,6 +459,12 @@ class HiveOrchestrator:
                 if 'payload' in real_payload and isinstance(real_payload['payload'], dict):
                      pass
 
+                # [NEW] GuardLayer Hallucination & Deduplication Filter
+                real_payload['validation'] = "VALID" # Inherent to VULN_CONFIRMED
+                if not guard_layer.filter_single(real_payload):
+                    logger.debug(f"🛡️ GuardLayer Dropped VULN_CONFIRMED: Did not meet mathematical strictness bounds.")
+                    return
+
                 severity = real_payload.get('severity', 'High')
                 # Passing normalized signature data to StateManager for robust deduplication
                 sig_data = {
@@ -478,6 +485,30 @@ class HiveOrchestrator:
                 )
 
                 await stats_db_manager.record_finding(scan_id, severity, sig_data)
+
+                # PROBLEM 7 FIX: Live CVSS scoring at confirmation time (not just report time)
+                try:
+                    from backend.reporting.cvss_engine import CVSSCalculator
+                    cvss_calc = CVSSCalculator(
+                        success_count=1,
+                        body_content=str(real_payload.get('data', '')),
+                        target_url=sig_data["url"],
+                        vuln_type=sig_data["type"]
+                    )
+                    cvss_score, cvss_vector = cvss_calc.calculate()
+                    # Inject CVSS into payload for downstream consumers
+                    real_payload["cvss_score"] = cvss_score
+                    real_payload["cvss_vector"] = cvss_vector
+                    real_payload["cvss_severity"] = "CRITICAL" if cvss_score >= 9.0 else "HIGH" if cvss_score >= 7.0 else "MEDIUM" if cvss_score >= 4.0 else "LOW"
+                    
+                    # Bayesian Fusion: Combine CVSS with existing signals
+                    gamma_score = real_payload.get("gamma_score", 0.5)
+                    gi5_score = real_payload.get("gi5_risk", 0.5)
+                    cvss_normalized = cvss_score / 10.0
+                    final_risk = (gi5_score * 0.35 + gamma_score * 0.30 + cvss_normalized * 0.35)
+                    real_payload["final_risk_score"] = round(final_risk, 4)
+                except Exception as cvss_err:
+                    logger.warning(f"Live CVSS scoring failed: {cvss_err}")
                 
                 # Broadcast authoritative stats to UI
                 current_stats = stats_db_manager.get_stats()
@@ -664,6 +695,25 @@ class HiveOrchestrator:
         for agent in agents:
             agent.mission_config = mission_profile # Inject Config
             await agent.start()
+            agent._is_active = True  # Marker for watchdog
+
+        # --- PROBLEM 8 FIX: Agent Watchdog for Self-Healing ---
+        async def agent_watchdog(active_agents):
+            while True:
+                await asyncio.sleep(15)
+                for a in active_agents:
+                    if hasattr(a, '_is_active') and not getattr(a, '_is_active', True):
+                        logger.warning(f"[WATCHDOG] Agent {a.name} is inactive/crashed! Restarting...")
+                        try:
+                            await a.start()
+                            a._is_active = True
+                            await manager.broadcast({"type": "GI5_LOG", "payload": f"WATCHDOG: Restarted dead agent {a.name}"})
+                        except Exception as e:
+                            logger.error(f"[WATCHDOG] Failed to restart {a.name}: {e}")
+
+        watchdog_task = asyncio.create_task(agent_watchdog(agents))
+        HiveOrchestrator._orphaned_tasks.add(watchdog_task)
+        watchdog_task.add_done_callback(HiveOrchestrator._orphaned_tasks.discard)
             
         # Register in Global State (Dual Keying for String and Enum access)
         HiveOrchestrator.active_agents["agent_prism"] = sentinel

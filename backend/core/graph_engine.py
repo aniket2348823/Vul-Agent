@@ -84,24 +84,14 @@ class GraphEngine:
     async def save_graph(self):
         """Persist graph state asynchronously with lock protection."""
         async with self._lock:
-            MAX_NODES = 1000
-            MAX_EDGES = 5000
-            
-            # Prune unbounded growth
-            if len(self.nodes) > MAX_NODES:
-                sorted_nodes = sorted(list(self.nodes), key=lambda x: x.weight, reverse=True)
-                self.nodes = set(sorted_nodes[:MAX_NODES])
-                
-            if len(self.edges) > MAX_EDGES:
-                sorted_edges = sorted(list(self.edges), key=lambda x: x.weight, reverse=True)
-                self.edges = set(sorted_edges[:MAX_EDGES])
+            # Auto-prune before saving
+            self._prune(max_nodes=500, max_edges=2500)
 
             data = {
                 "nodes": [n.to_dict() for n in self.nodes],
                 "edges": [e.to_dict() for e in self.edges]
             }
             try:
-                # Offload blocking IO to thread pool
                 def _write():
                     with open(TMP_GRAPH_FILE, "w") as f:
                         json.dump(data, f, indent=4)
@@ -110,6 +100,26 @@ class GraphEngine:
                 await asyncio.get_event_loop().run_in_executor(None, _write)
             except Exception as e:
                 print(f"[GraphEngine] Failed to persist intelligence graph: {e}")
+
+    def _prune(self, max_nodes: int = 500, max_edges: int = 2500):
+        """
+        Weight-based pruning to prevent unbounded graph growth.
+        Removes lowest-confidence nodes and their orphaned edges.
+        """
+        if len(self.nodes) > max_nodes:
+            sorted_nodes = sorted(list(self.nodes), key=lambda x: x.weight, reverse=True)
+            survivors = set(sorted_nodes[:max_nodes])
+            pruned_count = len(self.nodes) - max_nodes
+            self.nodes = survivors
+            # Remove edges referencing pruned nodes
+            self.edges = {e for e in self.edges if e.src in survivors and e.dst in survivors}
+            print(f"[GraphEngine] 🌿 Pruned {pruned_count} low-confidence nodes. Graph: {len(self.nodes)} nodes, {len(self.edges)} edges.")
+            
+        if len(self.edges) > max_edges:
+            sorted_edges = sorted(list(self.edges), key=lambda x: x.weight, reverse=True)
+            pruned_count = len(self.edges) - max_edges
+            self.edges = set(sorted_edges[:max_edges])
+            print(f"[GraphEngine] 🌿 Pruned {pruned_count} low-weight edges. Edges remaining: {len(self.edges)}.")
 
     def _add_or_update_node(self, type: str, endpoint: str, weight: int = 1, source: str = "UNKNOWN") -> VulnNode:
         

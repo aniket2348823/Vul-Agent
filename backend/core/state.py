@@ -265,6 +265,73 @@ class StateManager:
             self._save()
         return cleaned
 
+    # --- PROBLEM 9 FIX: Sharded per-scan state storage ---
+    SCANS_DIR = "scan_states"
+
+    def _ensure_scans_dir(self):
+        os.makedirs(self.SCANS_DIR, exist_ok=True)
+
+    def _scan_file(self, scan_id: str) -> str:
+        self._ensure_scans_dir()
+        safe_id = scan_id.replace("/", "_").replace("\\", "_")
+        return os.path.join(self.SCANS_DIR, f"scan_{safe_id}.json")
+
+    async def write_scan_state(self, scan_id: str, data: dict):
+        """Write individual scan to its own file — no contention with stats.json."""
+        path = self._scan_file(scan_id)
+        tmp = path + ".tmp"
+        async with self._lock:
+            try:
+                with open(tmp, "w") as f:
+                    json.dump(data, f, indent=2, default=str)
+                os.replace(tmp, path)
+            except Exception as e:
+                print(f"[StateManager] Sharded write error: {e}")
+
+    async def read_scan_state(self, scan_id: str) -> dict:
+        path = self._scan_file(scan_id)
+        try:
+            with open(path, "r") as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return {}
+        except Exception:
+            return {}
+
+    async def list_scan_states(self) -> list:
+        """Read all sharded scan state files."""
+        self._ensure_scans_dir()
+        scans = []
+        for fname in os.listdir(self.SCANS_DIR):
+            if fname.startswith("scan_") and fname.endswith(".json"):
+                try:
+                    with open(os.path.join(self.SCANS_DIR, fname)) as f:
+                        scans.append(json.load(f))
+                except Exception:
+                    continue
+        return sorted(scans, key=lambda x: x.get("started_at", 0), reverse=True)
+
+    async def find_vulnerability(self, vuln_id: str) -> dict:
+        """Search across all sharded scan files for a specific vulnerability."""
+        self._ensure_scans_dir()
+        for fname in os.listdir(self.SCANS_DIR):
+            if fname.startswith("scan_") and fname.endswith(".json"):
+                try:
+                    with open(os.path.join(self.SCANS_DIR, fname)) as f:
+                        scan = json.load(f)
+                        for v in scan.get("vulnerabilities", []):
+                            if v.get("vuln_id") == vuln_id:
+                                return v
+                except Exception:
+                    continue
+        # Fallback: search in stats.json scans
+        for s in self._stats.get("scans", []):
+            for r in s.get("results", []):
+                payload = r.get("payload", {})
+                if payload.get("vuln_id") == vuln_id or payload.get("id") == vuln_id:
+                    return payload
+        return None
+
 # Singleton Instance
 stats_db_manager = StateManager()
 # Legacy Accessor (for backward compatibility if needed, but prefer manager)

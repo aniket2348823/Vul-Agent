@@ -193,3 +193,100 @@ async def generate_consolidated_report():
     except Exception as e:
         print(f"❌ CONSOLIDATED GEN FAILED: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# --- PROBLEM 12 FIX: Scan Diff Engine ---
+
+@router.get("/diff/{scan_id_1}/{scan_id_2}")
+async def diff_scans(scan_id_1: str, scan_id_2: str):
+    """
+    Compare two scans to identify new, fixed, worsened, and improved vulnerabilities.
+    Essential for iterative security validation.
+    """
+    # Try sharded state first, fallback to stats.json
+    scan1_data = await stats_db_manager.read_scan_state(scan_id_1)
+    scan2_data = await stats_db_manager.read_scan_state(scan_id_2)
+
+    # Fallback to stats.json scans
+    if not scan1_data:
+        scan1_data = next((s for s in stats_db_manager.get_stats().get("scans", []) if s["id"] == scan_id_1), None)
+    if not scan2_data:
+        scan2_data = next((s for s in stats_db_manager.get_stats().get("scans", []) if s["id"] == scan_id_2), None)
+
+    if not scan1_data or not scan2_data:
+        raise HTTPException(status_code=404, detail="One or both scan IDs not found.")
+
+    # Extract vulnerabilities from results
+    def extract_vulns(scan_data):
+        vulns = {}
+        for r in scan_data.get("results", scan_data.get("vulnerabilities", [])):
+            payload = r.get("payload", r) if isinstance(r, dict) else {}
+            vid = payload.get("vuln_id", payload.get("id", payload.get("url", "") + "|" + payload.get("type", "")))
+            vulns[vid] = payload
+        return vulns
+
+    vulns1 = extract_vulns(scan1_data)
+    vulns2 = extract_vulns(scan2_data)
+
+    new_vulns = [v for vid, v in vulns2.items() if vid not in vulns1]
+    fixed_vulns = [v for vid, v in vulns1.items() if vid not in vulns2]
+    worsened = []
+    improved = []
+
+    for vid in set(vulns1) & set(vulns2):
+        old_score = vulns1[vid].get("final_risk_score", vulns1[vid].get("confidence", 0))
+        new_score = vulns2[vid].get("final_risk_score", vulns2[vid].get("confidence", 0))
+        if isinstance(old_score, (int, float)) and isinstance(new_score, (int, float)):
+            if new_score > old_score + 0.1:
+                worsened.append({"vuln_id": vid, "old_score": old_score, "new_score": new_score})
+            elif new_score < old_score - 0.1:
+                improved.append({"vuln_id": vid, "old_score": old_score, "new_score": new_score})
+
+    return {
+        "scan_1": scan_id_1,
+        "scan_2": scan_id_2,
+        "new_vulnerabilities": new_vulns,
+        "fixed_vulnerabilities": fixed_vulns,
+        "worsened": worsened,
+        "improved": improved,
+        "summary": {
+            "new": len(new_vulns),
+            "fixed": len(fixed_vulns),
+            "worsened": len(worsened),
+            "improved": len(improved)
+        }
+    }
+
+
+# --- PROBLEM 15 FIX: Incremental Live Reports ---
+
+@router.get("/live/{scan_id}")
+async def get_live_report(scan_id: str):
+    """
+    Get the current live report state for an active or completed scan.
+    Allows viewing findings mid-scan without waiting for completion.
+    """
+    # Try sharded state first
+    data = await stats_db_manager.read_scan_state(scan_id)
+
+    # Fallback to stats.json
+    if not data:
+        scan = next((s for s in stats_db_manager.get_stats().get("scans", []) if s["id"] == scan_id), None)
+        if not scan:
+            raise HTTPException(status_code=404, detail="Scan not found.")
+        data = scan
+
+    events = data.get("events", [])
+    vuln_events = [e for e in events if e.get("type") in ["VULN_CONFIRMED", "VULN_CANDIDATE"]]
+
+    return {
+        "scan_id": scan_id,
+        "status": data.get("status", "unknown"),
+        "vulnerability_count": len(vuln_events),
+        "vulnerabilities": vuln_events[:100],  # Cap for performance
+        "total_events": len(events),
+        "started_at": data.get("timestamp", data.get("started_at")),
+        "last_updated": data.get("last_updated", data.get("timestamp")),
+        "results": data.get("results", [])
+    }
+

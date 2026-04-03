@@ -2,10 +2,12 @@ from fastapi import APIRouter
 import random
 import json
 import os
+import time
 import pyotp
 import qrcode
 import io
 import base64
+import uuid
 from typing import List, Dict
 from pydantic import BaseModel
 from backend.core.state import stats_db_manager
@@ -14,6 +16,7 @@ router = APIRouter()
 
 # --- PERSISTENCE HELPERS ---
 CONFIG_FILE = "user_config.json"
+SESSION_FILE = ".session"
 
 def load_config():
     if not os.path.exists(CONFIG_FILE):
@@ -21,19 +24,34 @@ def load_config():
     try:
         with open(CONFIG_FILE, "r") as f:
             return json.load(f)
-    except Exception:return {"secret": None, "enabled": False}
+    except Exception:
+        return {"secret": None, "enabled": False}
 
 def save_config(config):
     with open(CONFIG_FILE, "w") as f:
         json.dump(config, f)
 
-# --- IN-MEMORY SESSION STATE ---
-# In a real app, use a proper session manager (e.g., redis, secure cookie)
-# For this local tool, a simple global variable works for the single active user session.
-# We reset this to False on server restart, forcing re-login if 2FA is enabled.
-session_state = {
-    "authenticated": False
-}
+# --- SESSION STATE PERSISTENCE ---
+def load_session():
+    if not os.path.exists(SESSION_FILE):
+        return {"authenticated": False, "token": None, "expires": 0}
+    try:
+        with open(SESSION_FILE, "r") as f:
+            data = json.load(f)
+            # Check expiration
+            if data.get("expires", 0) < time.time():
+                return {"authenticated": False, "token": None, "expires": 0}
+            return data
+    except Exception:
+        return {"authenticated": False, "token": None, "expires": 0}
+
+def save_session(session_data):
+    with open(SESSION_FILE, "w") as f:
+        json.dump(session_data, f)
+
+def clear_session():
+    if os.path.exists(SESSION_FILE):
+        os.remove(SESSION_FILE)
 
 # --- DATA MODELS ---
 
@@ -52,7 +70,8 @@ class LoginRequest(BaseModel):
 async def get_dashboard_stats():
     # Only allow stats if authenticated (or if 2FA is disabled)
     config = load_config()
-    if config["enabled"] and not session_state["authenticated"]:
+    session = load_session()
+    if config["enabled"] and not session["authenticated"]:
          return {"error": "Unauthorized", "metrics": {}, "graph_data": [], "recent_activity": []}
 
     recent = []
@@ -95,7 +114,8 @@ async def get_dashboard_stats():
 @router.get("/scans")
 async def get_scan_list():
     config = load_config()
-    if config["enabled"] and not session_state["authenticated"]:
+    session = load_session()
+    if config["enabled"] and not session["authenticated"]:
         return []
     return stats_db_manager.get_stats().get("scans", [])
 
@@ -139,15 +159,22 @@ async def generate_2fa():
 @router.post("/settings/2fa/verify")
 async def verify_2fa(payload: Verify2FA):
     config = load_config()
-    if not config["secret"]:
+    if not config.get("secret"):
         return {"status": "error", "message": "No secret generated."}
         
     totp = pyotp.TOTP(config["secret"])
     if totp.verify(payload.token):
         config["enabled"] = True
         save_config(config)
-        session_state["authenticated"] = True # Auto-login on setup
-        return {"status": "success", "message": "2FA Enabled Successfully."}
+        
+        # Auto-login on setup
+        token = str(uuid.uuid4())
+        save_session({
+            "authenticated": True, 
+            "token": token,
+            "expires": time.time() + 86400  # 24 hour session
+        })
+        return {"status": "success", "message": "2FA Enabled Successfully.", "token": token}
     else:
         return {"status": "error", "message": "Invalid Token."}
 
@@ -156,28 +183,38 @@ async def verify_2fa(payload: Verify2FA):
 @router.get("/auth/status")
 async def auth_status():
     config = load_config()
+    session = load_session()
     return {
         "2fa_required": config["enabled"],
-        "authenticated": session_state["authenticated"]
+        "authenticated": session["authenticated"],
+        "token": session.get("token")
     }
 
 @router.post("/auth/login")
 async def login(payload: LoginRequest):
     config = load_config()
     if not config["enabled"]:
-        return {"status": "success", "message": "No 2FA needed."}
+        # If no 2FA is needed, grant a dummy token for WS usage
+        token = str(uuid.uuid4())
+        save_session({"authenticated": True, "token": token, "expires": time.time() + 86400})
+        return {"status": "success", "message": "No 2FA needed.", "token": token}
         
     totp = pyotp.TOTP(config["secret"])
     if totp.verify(payload.token):
-        session_state["authenticated"] = True
-        return {"status": "success", "message": "Authenticated."}
+        token = str(uuid.uuid4())
+        save_session({
+            "authenticated": True, 
+            "token": token,
+            "expires": time.time() + 86400  # 24 hour session
+        })
+        return {"status": "success", "message": "Authenticated.", "token": token}
     else:
         # Prevent brute force (simple delay could be added here)
         return {"status": "error", "message": "Invalid 2FA Code."}
 
 @router.post("/auth/logout")
 async def logout():
-    session_state["authenticated"] = False
+    clear_session()
     return {"status": "success"}
 
 @router.post("/reset")

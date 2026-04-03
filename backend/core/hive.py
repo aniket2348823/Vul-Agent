@@ -23,6 +23,7 @@ class EventType(str, Enum):
     LIVE_ATTACK = "LIVE_ATTACK"
     RECON_PACKET = "RECON_PACKET"
     REPORT_READY = "REPORT_READY"
+    PATTERN_LEARNED = "PATTERN_LEARNED"
 
 class HiveEvent(BaseModel):
     """
@@ -52,6 +53,8 @@ class EventBus:
         self.scan_contexts: Dict[str, ScanContext] = {}
         self._context_tasks: Dict[str, asyncio.Task] = {}
         self._global_tasks = set()
+        self.dead_letters: List[Dict[str, Any]] = []  # Dead Letter Queue
+        self._max_dead_letters = 500  # Prevent unbounded DLQ growth
 
 
     def get_or_create_context(self, scan_id: str) -> ScanContext:
@@ -130,9 +133,38 @@ class EventBus:
         except Exception as e:
             err_msg = str(e).encode('ascii', errors='replace').decode('ascii')
             logging.error(f"[CRITICAL] Handler failed processing {event.type}: {err_msg}")
+            
+            # Dead Letter Queue: Capture failed events instead of losing them
+            dead_entry = {
+                "event_id": event.id,
+                "event_type": str(event.type),
+                "scan_id": event.scan_id,
+                "source": event.source,
+                "handler": handler.__qualname__,
+                "error": err_msg,
+                "timestamp": datetime.utcnow().isoformat(),
+                "payload_summary": str(event.payload)[:200]
+            }
+            self.dead_letters.append(dead_entry)
+            
+            # Enforce DLQ size limit
+            if len(self.dead_letters) > self._max_dead_letters:
+                self.dead_letters = self.dead_letters[-self._max_dead_letters:]
+
+    def get_dead_letters(self, limit: int = 50) -> list:
+        """Retrieve recent dead letter entries for diagnostics."""
+        return self.dead_letters[-limit:]
+
+    def flush_dead_letters(self):
+        """Clear the dead letter queue after processing."""
+        flushed = len(self.dead_letters)
+        self.dead_letters = []
+        return flushed
 
     async def shutdown(self):
         """Gracefully waits for and cancels all pending EventBus tasks."""
+        if self.dead_letters:
+            logging.warning(f"⚠️ [EventBus] Shutting down with {len(self.dead_letters)} dead letters in queue.")
         for ctx in self.scan_contexts.values():
             ctx.is_cancelled = True
         for task in self._context_tasks.values():
