@@ -1,4 +1,4 @@
-from pydantic import BaseModel, StrictInt
+from pydantic import BaseModel
 from typing import Dict, Optional, Any
 
 class ReconPayload(BaseModel):
@@ -15,7 +15,7 @@ class TargetConfig(BaseModel):
     body: Optional[str] = ""
 
 class AttackConfig(BaseModel):
-    concurrency: StrictInt = 50
+    concurrency: int = 50
     strategy: str = "LAST_BYTE_SYNC"
 
 class AttackPayload(BaseModel):
@@ -23,10 +23,11 @@ class AttackPayload(BaseModel):
     method: str
     headers: Dict[str, str] = {}
     body: Optional[str] = ""
-    velocity: StrictInt = 50 # Legacy mapping
-    concurrency: StrictInt = 50 # New Performance Control
-    rps: StrictInt = 100 # New Performance Control (Requests Per Second)
+    velocity: int = 50
+    concurrency: int = 50
+    rps: int = 100
     modules: list[str] = []
     filters: list[str] = []
-    duration: Optional[StrictInt] = 600  # Default 10 mins
+    duration: Optional[int] = 600
+
 

@@ -63,5 +63,7 @@ async def get_ai_status():
         },
         "llm_calls": telemetry.get("llm_calls", 0),
         "circuit_breaker_trips": telemetry.get("circuit_breaker_trips", 0),
-        "fallback_status": "READY" if getattr(brain, "_gi5_available", False) else "DEGRADED"
+        "circuit_breaker_tripped": telemetry.get("circuit_breaker_trips", 0) > 0,
+        "agent_capabilities": ["singularity", "recon", "attack", "defense"],
+        "fallback": "OpenRouter" if getattr(brain, "_gi5_available", False) else "GI5_only"
     }

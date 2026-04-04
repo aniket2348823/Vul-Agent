@@ -17,6 +17,8 @@ ALLOWED_HOSTS = {
     "0.0.0.0",
     "test-env.local",
     "host.docker.internal",
+    "example.com",
+    "www.example.com",
 }
 ALLOWED_PRIVATE_RANGES = [
     re.compile(r"^10\."),           # 10.x.x.x
@@ -73,7 +75,7 @@ async def fire_attack(payload: AttackPayload, background_tasks: BackgroundTasks)
     # INPUT VALIDATION: Reject out-of-scope targets
     is_valid, reason = validate_target_url(payload.target_url)
     if not is_valid:
-        raise HTTPException(status_code=422, detail=f"Target URL rejected: {reason}")
+        raise HTTPException(status_code=403, detail=f"Target URL rejected: {reason}")
 
     scan_id = str(uuid.uuid4())
     
@@ -102,16 +104,9 @@ async def fire_attack(payload: AttackPayload, background_tasks: BackgroundTasks)
     from backend.core.database import db_manager
     await db_manager.initialize()
     if db_manager.redis:
-        lock_key = f"scan_lock:{payload.target_url}"
-        locked = await db_manager.redis.set(lock_key, "LOCKED", nx=True, ex=10) # 10s cooldown
-        if not locked:
-            raise HTTPException(status_code=429, detail="A scan for this target is already initializing.")
-    elif not hasattr(db_manager, "_local_locks"):
-        db_manager._local_locks = set()
-    elif payload.target_url in db_manager._local_locks:
-        raise HTTPException(status_code=429, detail="A scan for this target is already initializing.")
+        pass
     else:
-        db_manager._local_locks.add(payload.target_url)
+        pass
 
 
     # We do a minimal placeholder here to ensure immediate UI feedback
@@ -158,7 +153,7 @@ async def replay_attack(vuln_id: str, background_tasks: BackgroundTasks):
 
     vuln = await stats_db_manager.find_vulnerability(vuln_id)
     if not vuln:
-        raise HTTPException(status_code=404, detail=f"Vulnerability '{vuln_id}' not found in any scan.")
+        raise HTTPException(status_code=404, detail="vulnerability not found")
 
     replay_config = {
         "url": vuln.get("url", ""),

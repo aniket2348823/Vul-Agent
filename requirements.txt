@@ -2,6 +2,7 @@ fastapi
 uvicorn
 pydantic>=2.0.0
 websockets
+websocket-client
 requests
 fpdf2
 psutil
@@ -15,3 +16,4 @@ scikit-learn
 numpy
 playwright
 playwright-stealth
+python-dotenv

@@ -228,9 +228,13 @@ class SocketManager:
             self.ui_connections.remove(websocket)
 
     async def broadcast(self, data: dict):
-        # We don't increment packet_count here anymore because 
-        # it's specifically for actual HTTP events in publish_request_event
         await self.broadcast_to_ui(data)
+
+    async def broadcast_immediate(self, data: dict):
+        """Bypass batching for critical TC010 control events."""
+        message = json.dumps(data)
+        if self.ui_connections:
+            await asyncio.gather(*(conn.send_text(message) for conn in self.ui_connections), return_exceptions=True)
 
     async def broadcast_to_ui(self, data: dict):
         self.message_queue.append(data)

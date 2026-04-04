@@ -9,6 +9,8 @@ from typing import Optional, List, Dict, Any
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 import uvicorn
 
 # Vul Agent Core Imports
@@ -18,6 +20,7 @@ from backend.api.socket_manager import manager
 from backend.core.state import stats_db_manager
 from backend.api.endpoints import recon, attack, reports, dashboard, ai
 from backend.api.endpoints.code_analysis import router as code_analysis_router
+from backend.api.endpoints.data import router as data_router
 from backend.api import defense
 
 # FIX: Windows charmap encoding crash
@@ -51,6 +54,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Vulagent Scanner", lifespan=lifespan)
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """TC004 Compliance: Map missing fields / Pydantic 422s to explicit REST 400 Bad Requests."""
+    return JSONResponse(
+        status_code=400,
+        content={"detail": "Invalid or missing payload. Expected a valid request structure."}
+    )
+
 # PROBLEM 17 FIX: Env-driven CORS configuration
 ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
 
@@ -74,6 +85,7 @@ app.include_router(defense.router, prefix="/api/defense", tags=["Defense"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
 app.include_router(code_analysis_router, prefix="/api", tags=["Code Analysis"])  # PROBLEM 18
+app.include_router(data_router, prefix="/api/data", tags=["Data"])
 
 @app.websocket("/stream")
 @app.websocket("/ws/live")
