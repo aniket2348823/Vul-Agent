@@ -28,7 +28,7 @@ async def generate_mutations(payload: MutationRequest):
         "method": payload.method,
         "body": payload.body
     }
-    variants = brain.synthesize_payloads(base_request)
+    variants = await brain.synthesize_payloads(base_request)
     return {"status": "success", "variants": variants}
 
 @router.post("/autonomous/engage")

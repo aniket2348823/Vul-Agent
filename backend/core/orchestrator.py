@@ -258,12 +258,12 @@ class WorkerNode:
                 "logic_tycoon": ("backend.modules.logic.tycoon", "TheTycoon"),
                 "logic_escalator": ("backend.modules.logic.escalator", "TheEscalator"),
                 "logic_skipper": ("backend.modules.logic.skipper", "TheSkipper"),
-                "logic_doppelganger": ("backend.modules.logic.doppelganger", "TheDoppelganger"),
-                "logic_chronomancer": ("backend.modules.logic.chronomancer", "TheChronomancer"),
-                "tech_sqli": ("backend.modules.tech.sqli", "SQLiModule"),
-                "tech_jwt": ("backend.modules.tech.jwt", "JWTModule"),
-                "tech_fuzzer": ("backend.modules.tech.fuzzer", "FuzzerModule"),
-                "tech_auth_bypass": ("backend.modules.tech.auth", "AuthBypassModule")
+                "logic_doppelganger": ("backend.modules.logic.doppelganger", "Doppelganger"),
+                "logic_chronomancer": ("backend.modules.logic.chronomancer", "Chronomancer"),
+                "tech_sqli": ("backend.modules.tech.sqli", "SQLInjectionProbe"),
+                "tech_jwt": ("backend.modules.tech.jwt", "JWTTokenCracker"),
+                "tech_fuzzer": ("backend.modules.tech.fuzzer", "APIFuzzer"),
+                "tech_auth_bypass": ("backend.modules.tech.auth_bypass", "AuthBypassTester")
             }
 
             if module_id in module_map:

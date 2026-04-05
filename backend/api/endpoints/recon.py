@@ -95,6 +95,7 @@ async def ingest_recon_data(payload: ReconPayload):
         except Exception as e:
             print(f"Brain Ingest Error: {e}")
     # -----------------------------------
+    return {"status": "ingested"}
 
 @router.get("/keyring")
 async def get_keyring():

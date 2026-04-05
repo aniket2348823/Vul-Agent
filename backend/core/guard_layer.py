@@ -58,7 +58,12 @@ class GuardLayer:
 
     def filter_single(self, finding: Dict[str, Any]) -> bool:
         """Validate a single finding. Returns True if it passes the guard."""
-        result, _ = self._validate_single(finding)
+        self._stats["total_received"] += 1
+        result, reason = self._validate_single(finding)
+        if result:
+            self._stats["passed"] += 1
+        else:
+            logger.debug(f"GUARD: Rejected single [{reason}] — {finding.get('url', 'unknown')}")
         return result
 
     def _validate_single(self, f: Dict[str, Any]) -> tuple:
