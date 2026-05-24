@@ -117,6 +117,7 @@ python -m pytest tests/ -v --tb=short
 - **[Agent Manifest](docs/VUL_AGENT_MANIFEST.md)** - Agent capabilities and specifications
 - **[Exhaustive Audit](docs/exhaustive_audit.md)** - Comprehensive system audit
 - **[Cleanup Assessment](docs/cleanup_assessment_7_tracks.md)** - Code cleanup analysis
+- **[Codebase Audit 2026](docs/COMPREHENSIVE_CODEBASE_AUDIT_2026.md)** - Complete audit with action plan
 
 ### Specifications
 - **[OpenClaw Integration](.kiro/specs/openclaw-integration/)** - Browser automation integration
