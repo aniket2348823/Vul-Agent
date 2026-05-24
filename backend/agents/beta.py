@@ -7,6 +7,8 @@ from backend.ai.cortex import CortexEngine, get_cortex_engine
 import json
 from backend.core.content_boundary import content_boundary
 from backend.core.proxy import network_interceptor
+from backend.core.sandbox import TempWorkspace
+from backend.core.queue import command_lane, LanePriority
 
 class BetaAgent(BaseAgent):
     """
@@ -54,6 +56,10 @@ class BetaAgent(BaseAgent):
     async def handle_candidate(self, event: HiveEvent):
         # Handle polyglot injections on candidate detection
         payload = event.payload
+        # ScanContext: record event for transcript causality
+        if hasattr(self.bus, "get_or_create_context"):
+            _ctx = self.bus.get_or_create_context(getattr(event, "scan_id", "GLOBAL"))
+            _ctx.append_event(event)
         url = payload.get("url")
         tag = payload.get("tag")
         
@@ -324,6 +330,7 @@ class BetaAgent(BaseAgent):
             try:
                 mutated = await self.ai.mutate_waf_bypass(payload)
                 if mutated and mutated != payload:
+                    mutated = content_boundary.sanitize_control_tokens(mutated)
                     return mutated
             except Exception as e:
                 pass

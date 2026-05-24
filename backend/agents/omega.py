@@ -4,6 +4,8 @@ from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskPriority, ModuleConfig, TaskTarget
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.graph_engine import graph_engine
+from backend.core.queue import command_lane
+from backend.core.content_boundary import content_boundary
 
 class OmegaAgent(BaseAgent):
     """
@@ -299,6 +301,16 @@ class OmegaAgent(BaseAgent):
             payload={"message": f"👑 OMEGA: Campaign '{target_url}' | Strategy: {strategy_name} | Hypothesis: {selected_hypothesis}"}
         ))
 
+        # Log to ScanContext transcript
+        ctx = getattr(self.bus, "scan_contexts", {}).get(scan_id)
+        if ctx and hasattr(ctx, "append_event"):
+            ctx.append_event(HiveEvent(
+                type=EventType.LOG,
+                source=self.name,
+                scan_id=scan_id,
+                payload={"message": f"Omega campaign initiated: strategy={strategy_name}, target={target_url}"}
+            ))
+
         # 3. RESOLVE MODULES
         if strategy_name == "GRAPH_DRIVEN":
             modules = self._build_graph_driven_modules(target_url)
@@ -349,7 +361,13 @@ class OmegaAgent(BaseAgent):
         ])
 
     async def dispatch_job(self, packet: JobPacket, scan_id: str = "GLOBAL"):
-        """Dispatches a job and tracks it in the campaign state."""
+        """Dispatches a job with CommandLane backpressure awareness."""
+        # CommandLane saturation check — defer if queue is overloaded
+        telemetry = command_lane.telemetry
+        if telemetry["waiting_count"] > 20:
+            print(f"[{self.name}] CommandLane saturated (waiting={telemetry['waiting_count']}). Deferring dispatch.")
+            await asyncio.sleep(1.0)
+
         await self.bus.publish(HiveEvent(
             type=EventType.JOB_ASSIGNED,
             source=self.name,

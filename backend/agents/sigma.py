@@ -12,6 +12,7 @@ from datetime import datetime
 from backend.core.graph_engine import graph_engine
 from backend.core.content_boundary import content_boundary
 from backend.core.proxy import network_interceptor
+from backend.core.queue import command_lane, LanePriority
 from backend.api.socket_manager import publish_request_event
 
 # Import Arsenals
@@ -149,6 +150,10 @@ class SigmaAgent(BaseAgent):
 
     async def handle_generation_request(self, event: HiveEvent):
         packet_dict = event.payload
+        # ScanContext: record event for transcript causality
+        if hasattr(self.bus, 'get_or_create_context'):
+            _ctx = self.bus.get_or_create_context(getattr(event, 'scan_id', 'GLOBAL'))
+            _ctx.append_event(event)
         try:
              packet = JobPacket(**packet_dict)
         except Exception:return

@@ -1,3 +1,5 @@
+from backend.core.content_boundary import content_boundary
+from backend.core.queue import command_lane
 """
 PROBLEM 18 FIX: Lambda Agent — PRE-CODE SCANNER
 Detects vulnerabilities in source code before deployment.

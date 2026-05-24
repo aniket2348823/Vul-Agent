@@ -9,6 +9,7 @@ from backend.core.protocol import JobPacket
 from backend.core.queue import command_lane
 # Hybrid AI Engine
 from backend.ai.cortex import CortexEngine, get_cortex_engine
+from backend.core.content_boundary import content_boundary
 
 class ZetaAgent(BaseAgent):
     """
@@ -48,6 +49,10 @@ class ZetaAgent(BaseAgent):
 
     async def handle_job_completion(self, event: HiveEvent):
         payload = event.payload
+        # ScanContext: record event for transcript causality
+        if hasattr(self.bus, "get_or_create_context"):
+            _ctx = self.bus.get_or_create_context(getattr(event, "scan_id", "GLOBAL"))
+            _ctx.append_event(event)
         if "duration_ms" in payload:
             self.latency_window.append(payload["duration_ms"])
         

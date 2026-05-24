@@ -79,6 +79,8 @@ class AgentPrism(BaseAgent):
         Process incoming DOM Snapshot for analysis.
         """
         payload = event.payload
+        ctx = self.bus.get_or_create_context(event.scan_id)
+        ctx.append_event(event)
         try:
             packet = JobPacket(**payload)
         except Exception as e:

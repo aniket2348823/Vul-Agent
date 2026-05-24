@@ -4,6 +4,7 @@
 
 import asyncio
 import json
+from backend.core.content_boundary import content_boundary
 import redis
 import re
 from typing import Dict, List, Any, Pattern
@@ -13,6 +14,7 @@ from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.ai.gi5 import brain
 from backend.core.config import ConfigManager
 from backend.core.keyring_intelligence import KeyringIntelligence
+from backend.core.queue import command_lane
 
 
 class AgentChi(BaseAgent):
@@ -82,6 +84,10 @@ class AgentChi(BaseAgent):
         Process incoming Intercepted Event (Click/Request).
         """
         payload = event.payload
+        # ScanContext: record event for transcript causality
+        if hasattr(self.bus, "get_or_create_context"):
+            _ctx = self.bus.get_or_create_context(getattr(event, "scan_id", "GLOBAL"))
+            _ctx.append_event(event)
         try:
             packet = JobPacket(**payload)
         except Exception as e:

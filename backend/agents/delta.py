@@ -2,6 +2,8 @@ import asyncio
 import re
 import aiohttp
 import os
+from backend.core.queue import command_lane, LanePriority
+from backend.core.content_boundary import content_boundary
 from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskTarget
 from backend.core.sandbox import TempWorkspace
@@ -77,6 +79,10 @@ class AgentDelta(BaseAgent):
 
     async def handle_hybrid_request(self, event: HiveEvent):
         packet_dict = event.payload
+        # ScanContext: record event for transcript causality
+        if hasattr(self.bus, 'get_or_create_context'):
+            _ctx = self.bus.get_or_create_context(getattr(event, 'scan_id', 'GLOBAL'))
+            _ctx.append_event(event)
         try:
             packet = JobPacket(**packet_dict)
             if packet.config.module_id == "delta_pinch_extract":

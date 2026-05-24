@@ -1,5 +1,6 @@
 import asyncio
 import json
+from backend.core.content_boundary import content_boundary
 import os
 import math
 import re
@@ -9,6 +10,7 @@ from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID
 from backend.core.memory import memory_store, cosine_similarity
 from backend.core.sandbox import TempWorkspace
+from backend.core.queue import command_lane
 
 class KappaAgent(BaseAgent):
     """
@@ -64,6 +66,10 @@ class KappaAgent(BaseAgent):
 
     async def archive_victory(self, event: HiveEvent):
         payload = event.payload
+        # ScanContext: record event for transcript causality
+        if hasattr(self.bus, "get_or_create_context"):
+            _ctx = self.bus.get_or_create_context(getattr(event, "scan_id", "GLOBAL"))
+            _ctx.append_event(event)
         print(f"[{self.name}] [ARCHIVE] Verified Vulnerability Exploit Captured. Embedding...")
         
         # RICHER SCHEMA (V6 Enhancement)
@@ -135,7 +141,12 @@ class KappaAgent(BaseAgent):
 
         semantic_hits = memory_store.recall_semantic(query_vec, top_k=top_k)
         if semantic_hits:
-            return semantic_hits
+            sanitized_hits = []
+        for hit in semantic_hits:
+            if isinstance(hit, dict) and "payload" in hit:
+                hit["payload"] = content_boundary.sanitize_control_tokens(str(hit["payload"]))
+            sanitized_hits.append(hit)
+        return sanitized_hits
 
         async with TempWorkspace(prefix="kappa-recall") as workspace:
             workspace.write_file("query.txt", query)
