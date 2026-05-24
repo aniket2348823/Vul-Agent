@@ -49,6 +49,7 @@ from backend.core.guard_layer import PromptInjectionBlocked, guard_layer
 from backend.core.stdout_watchdog import watch_output
 from backend.core.memory import memory_store
 from backend.core.knowledge_graph import knowledge_graph
+from backend.core.task_manager import TaskManager
 import collections
 
 class EventBus:
@@ -63,6 +64,7 @@ class EventBus:
         self._global_tasks = set()
         self.dead_letters: List[Dict[str, Any]] = []  # Dead Letter Queue
         self._max_dead_letters = 500  # Prevent unbounded DLQ growth
+        self._task_manager = TaskManager("EventBus")
 
 
     def get_or_create_context(self, scan_id: str) -> ScanContext:
@@ -139,9 +141,10 @@ class EventBus:
         if event.scan_id == "GLOBAL":
             if event.type in self.subscribers:
                 for handler in self.subscribers[event.type]:
-                    task = asyncio.create_task(self._safe_execute(handler, event))
-                    self._global_tasks.add(task)
-                    task.add_done_callback(self._global_tasks.discard)
+                    task = self._task_manager.create_task(
+                        self._safe_execute(handler, event),
+                        name=f"handler_{event.type}"
+                    )
             return
             
         ctx = self.get_or_create_context(event.scan_id)
@@ -213,13 +216,12 @@ class EventBus:
             ctx.is_cancelled = True
         for task in self._context_tasks.values():
             task.cancel()
-        for task in self._global_tasks:
-            task.cancel()
             
-        if self._global_tasks:
-            await asyncio.gather(*self._global_tasks, return_exceptions=True)
         if self._context_tasks:
             await asyncio.gather(*self._context_tasks.values(), return_exceptions=True)
+        
+        # Cancel all tracked tasks
+        await self._task_manager.cancel_all()
 
     async def evict_scan_context(self, scan_id: str):
         """Standard Memory Guard: Purge historical scan state and tasks."""
@@ -265,7 +267,7 @@ class DistributedEventBus(EventBus):
         try:
             # We attempt to subscribe to the global channel
             await self.pubsub.subscribe("xytherion_events")
-            asyncio.create_task(self._listen_loop())
+            self._task_manager.create_task(self._listen_loop(), name="redis_listener")
             logging.info("📡 Distributed Event Bus Online (Async).")
         except Exception as e:
             # V6-OMEGA HARDENING: If we can't subscribe, we stay in local-only mode

@@ -23,6 +23,9 @@ from backend.api.endpoints import recon, attack, reports, dashboard, ai, runtime
 from backend.api.endpoints.code_analysis import router as code_analysis_router
 from backend.api.endpoints.data import router as data_router
 from backend.api import defense
+from backend.core.task_manager import TaskManager
+from backend.core.rate_limiter import start_cleanup_task
+from backend.core.csrf_protection import start_csrf_cleanup_task
 
 # FIX: Windows charmap encoding crash
 if sys.platform == 'win32':
@@ -47,6 +50,14 @@ async def lifespan(app: FastAPI):
     print("[PILLAR] Activating Governance Frameworks...")
     register_default_tools()
     
+    # Start rate limiter cleanup task
+    cleanup_task = asyncio.create_task(start_cleanup_task())
+    print("[RATE_LIMITER] Background cleanup task started")
+    
+    # Start CSRF protection cleanup task
+    csrf_cleanup_task = asyncio.create_task(start_csrf_cleanup_task())
+    print("[CSRF_PROTECTION] Background cleanup task started")
+    
     await manager.broadcast({
         "type": "LIFECYCLE_EVENT",
         "payload": {"state": "ACTIVE", "mode": "Unified"}
@@ -56,6 +67,16 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         print("[LIFECYCLE] Shutting down background tasks...")
+        cleanup_task.cancel()
+        csrf_cleanup_task.cancel()
+        try:
+            await cleanup_task
+        except asyncio.CancelledError:
+            pass
+        try:
+            await csrf_cleanup_task
+        except asyncio.CancelledError:
+            pass
         await manager.stop_tasks()
         print("[LIFECYCLE] Shutdown complete.")
 
@@ -157,6 +178,7 @@ class DistributedAttackCluster:
         self.running = False
         self.master_node: Optional[MasterNode] = None
         self.worker_node: Optional[WorkerNode] = None
+        self._task_manager = TaskManager("DistributedCluster")
         
         try:
             signal.signal(signal.SIGINT, self._signal_handler)
@@ -200,12 +222,19 @@ class DistributedAttackCluster:
             raise
 
     async def start_cluster(self, num_workers: int = 5):
-        master_task = asyncio.create_task(self.start_master())
+        master_task = self._task_manager.create_task(
+            self.start_master(),
+            name="master_node"
+        )
         await asyncio.sleep(2)
         worker_tasks = []
         for i in range(num_workers):
             wid = f"worker-{i+1}-{uuid.uuid4().hex[:4]}"
-            worker_tasks.append(asyncio.create_task(self.start_worker(wid)))
+            worker_task = self._task_manager.create_task(
+                self.start_worker(wid),
+                name=f"worker_{wid}"
+            )
+            worker_tasks.append(worker_task)
             await asyncio.sleep(0.5)
         print(f"🔗 Cluster Handshake: 1 Master + {num_workers} Workers Linked.")
         await asyncio.gather(master_task, *worker_tasks)

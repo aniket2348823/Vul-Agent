@@ -1,32 +1,183 @@
 """
 Hybrid Session Manager for OpenClaw + PinchTab Integration
 Handles session persistence, restoration, and sharing between both browser engines.
+Includes session data sanitization for security.
 """
 
 import json
 import os
-from typing import Dict, Any, Optional
+import re
+from typing import Dict, Any, Optional, List
 from pathlib import Path
 from datetime import datetime, timedelta
 import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class HybridSessionManager:
     """
     Manages browser sessions across OpenClaw and PinchTab engines.
     Supports session save/restore, cross-engine session sharing, and cleanup.
+    Includes session data sanitization for security.
     """
     
-    def __init__(self, storage_dir: str = "scan_states/sessions"):
+    # Sensitive cookie/storage keys that should be sanitized
+    SENSITIVE_PATTERNS = [
+        r'.*token.*',
+        r'.*secret.*',
+        r'.*password.*',
+        r'.*api[_-]?key.*',
+        r'.*auth.*',
+        r'.*session[_-]?id.*',
+        r'.*csrf.*',
+        r'.*bearer.*',
+        r'.*credential.*',
+    ]
+    
+    def __init__(self, storage_dir: str = "scan_states/sessions", sanitize_sensitive: bool = True):
         """
         Initialize the session manager.
         
         Args:
             storage_dir: Directory to store session files
+            sanitize_sensitive: Whether to sanitize sensitive data before storage
         """
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
         self.sessions: Dict[str, Dict[str, Any]] = {}
+        self.sanitize_sensitive = sanitize_sensitive
+        
+        # Compile regex patterns for performance
+        self.sensitive_regex = [re.compile(pattern, re.IGNORECASE) for pattern in self.SENSITIVE_PATTERNS]
+    
+    def _is_sensitive_key(self, key: str) -> bool:
+        """
+        Check if a key contains sensitive information.
+        
+        Args:
+            key: Key name to check
+            
+        Returns:
+            True if key is sensitive, False otherwise
+        """
+        return any(pattern.match(key) for pattern in self.sensitive_regex)
+    
+    def _sanitize_value(self, value: str) -> str:
+        """
+        Sanitize a sensitive value by masking it.
+        
+        Args:
+            value: Value to sanitize
+            
+        Returns:
+            Sanitized value
+        """
+        if not value or len(value) < 4:
+            return "[REDACTED]"
+        
+        # Show first 4 chars, mask the rest
+        return f"{value[:4]}{'*' * (len(value) - 4)}"
+    
+    def _sanitize_cookies(self, cookies: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Sanitize sensitive cookie data.
+        
+        Args:
+            cookies: List of cookie dictionaries
+            
+        Returns:
+            Sanitized cookies
+        """
+        if not self.sanitize_sensitive:
+            return cookies
+        
+        sanitized = []
+        for cookie in cookies:
+            cookie_copy = cookie.copy()
+            
+            # Check if cookie name is sensitive
+            if self._is_sensitive_key(cookie_copy.get('name', '')):
+                cookie_copy['value'] = self._sanitize_value(cookie_copy.get('value', ''))
+                cookie_copy['_sanitized'] = True
+            
+            sanitized.append(cookie_copy)
+        
+        return sanitized
+    
+    def _sanitize_storage(self, storage: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Sanitize sensitive storage data (localStorage/sessionStorage).
+        
+        Args:
+            storage: Storage dictionary
+            
+        Returns:
+            Sanitized storage
+        """
+        if not self.sanitize_sensitive:
+            return storage
+        
+        sanitized = {}
+        for key, value in storage.items():
+            if self._is_sensitive_key(key):
+                sanitized[key] = self._sanitize_value(str(value))
+            else:
+                sanitized[key] = value
+        
+        return sanitized
+    
+    def _sanitize_session_data(self, session_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Sanitize all sensitive data in session.
+        
+        Args:
+            session_data: Session data to sanitize
+            
+        Returns:
+            Sanitized session data
+        """
+        if not self.sanitize_sensitive:
+            return session_data
+        
+        sanitized = session_data.copy()
+        
+        # Sanitize cookies
+        if 'cookies' in sanitized:
+            sanitized['cookies'] = self._sanitize_cookies(sanitized['cookies'])
+        
+        # Sanitize localStorage
+        if 'localStorage' in sanitized:
+            sanitized['localStorage'] = self._sanitize_storage(sanitized['localStorage'])
+        
+        # Sanitize sessionStorage
+        if 'sessionStorage' in sanitized:
+            sanitized['sessionStorage'] = self._sanitize_storage(sanitized['sessionStorage'])
+        
+        # Sanitize storage_state (OpenClaw format)
+        if 'storage_state' in sanitized and 'origins' in sanitized['storage_state']:
+            for origin in sanitized['storage_state']['origins']:
+                if 'localStorage' in origin:
+                    origin['localStorage'] = [
+                        {
+                            'name': item['name'],
+                            'value': self._sanitize_value(item['value']) if self._is_sensitive_key(item['name']) else item['value']
+                        }
+                        for item in origin['localStorage']
+                    ]
+                
+                if 'sessionStorage' in origin:
+                    origin['sessionStorage'] = [
+                        {
+                            'name': item['name'],
+                            'value': self._sanitize_value(item['value']) if self._is_sensitive_key(item['name']) else item['value']
+                        }
+                        for item in origin['sessionStorage']
+                    ]
+        
+        sanitized['_sanitized'] = True
+        return sanitized
         
     async def save_session(
         self,
@@ -36,7 +187,7 @@ class HybridSessionManager:
         metadata: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
-        Save a browser session to disk.
+        Save a browser session to disk with sanitization.
         
         Args:
             session_id: Unique identifier for the session
@@ -50,12 +201,16 @@ class HybridSessionManager:
         try:
             session_file = self.storage_dir / f"{session_id}_{engine}.json"
             
+            # Sanitize sensitive data before saving
+            sanitized_data = self._sanitize_session_data(session_data)
+            
             session_bundle = {
                 "session_id": session_id,
                 "engine": engine,
                 "timestamp": datetime.utcnow().isoformat(),
                 "metadata": metadata or {},
-                "data": session_data
+                "data": sanitized_data,
+                "sanitized": self.sanitize_sensitive
             }
             
             with open(session_file, 'w') as f:
@@ -64,10 +219,11 @@ class HybridSessionManager:
             # Cache in memory
             self.sessions[f"{session_id}_{engine}"] = session_bundle
             
+            logger.info(f"[HybridSessionManager] Saved session {session_id} for {engine}")
             return True
             
         except Exception as e:
-            print(f"[HybridSessionManager] Failed to save session {session_id}: {e}")
+            logger.error(f"[HybridSessionManager] Failed to save session {session_id}: {e}")
             return False
     
     async def restore_session(
@@ -96,6 +252,7 @@ class HybridSessionManager:
             session_file = self.storage_dir / f"{session_id}_{engine}.json"
             
             if not session_file.exists():
+                logger.warning(f"[HybridSessionManager] Session {session_id} not found")
                 return None
             
             with open(session_file, 'r') as f:
@@ -104,10 +261,11 @@ class HybridSessionManager:
             # Cache in memory
             self.sessions[cache_key] = session_bundle
             
+            logger.info(f"[HybridSessionManager] Restored session {session_id} for {engine}")
             return session_bundle["data"]
             
         except Exception as e:
-            print(f"[HybridSessionManager] Failed to restore session {session_id}: {e}")
+            logger.error(f"[HybridSessionManager] Failed to restore session {session_id}: {e}")
             return None
     
     async def _export_openclaw_session(self, context) -> Dict[str, Any]:
@@ -134,7 +292,7 @@ class HybridSessionManager:
             }
             
         except Exception as e:
-            print(f"[HybridSessionManager] Failed to export OpenClaw session: {e}")
+            logger.error(f"[HybridSessionManager] Failed to export OpenClaw session: {e}")
             return {}
     
     async def _import_openclaw_session(self, context, session_data: Dict[str, Any]) -> bool:
@@ -176,7 +334,7 @@ class HybridSessionManager:
             return True
             
         except Exception as e:
-            print(f"[HybridSessionManager] Failed to import OpenClaw session: {e}")
+            logger.error(f"[HybridSessionManager] Failed to import OpenClaw session: {e}")
             return False
     
     async def _export_pinchtab_session(self, pinchtab_client) -> Dict[str, Any]:
@@ -201,7 +359,7 @@ class HybridSessionManager:
             return session_data
             
         except Exception as e:
-            print(f"[HybridSessionManager] Failed to export PinchTab session: {e}")
+            logger.error(f"[HybridSessionManager] Failed to export PinchTab session: {e}")
             return {}
     
     async def _import_pinchtab_session(self, pinchtab_client, session_data: Dict[str, Any]) -> bool:
@@ -228,7 +386,7 @@ class HybridSessionManager:
             return True
             
         except Exception as e:
-            print(f"[HybridSessionManager] Failed to import PinchTab session: {e}")
+            logger.error(f"[HybridSessionManager] Failed to import PinchTab session: {e}")
             return False
     
     async def share_session(
@@ -262,7 +420,7 @@ class HybridSessionManager:
             return await self.save_session(session_id, to_engine, converted_session)
             
         except Exception as e:
-            print(f"[HybridSessionManager] Failed to share session: {e}")
+            logger.error(f"[HybridSessionManager] Failed to share session: {e}")
             return False
     
     def _convert_session_format(
@@ -321,13 +479,14 @@ class HybridSessionManager:
                         self.sessions.pop(cache_key, None)
                         
                 except Exception as e:
-                    print(f"[HybridSessionManager] Error cleaning {session_file}: {e}")
+                    logger.error(f"[HybridSessionManager] Error cleaning {session_file}: {e}")
                     continue
             
+            logger.info(f"[HybridSessionManager] Cleaned up {cleaned} expired sessions")
             return cleaned
             
         except Exception as e:
-            print(f"[HybridSessionManager] Cleanup failed: {e}")
+            logger.error(f"[HybridSessionManager] Cleanup failed: {e}")
             return 0
     
     def list_sessions(self, engine: Optional[str] = None) -> list:

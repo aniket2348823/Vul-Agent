@@ -17,6 +17,7 @@ import psutil
 from backend.core.hive import DistributedEventBus, EventType, HiveEvent
 from backend.core.stdout_watchdog import watch_output
 from backend.core.cluster.pinchtab import PinchTabInstance
+from backend.core.task_manager import TaskManager
 
 logger = logging.getLogger("WorkerNode")
 
@@ -34,13 +35,14 @@ class WorkerNode:
         self.pinchtab = PinchTabInstance(worker_id, 9867 + hash(worker_id) % 1000)
         self.bus = DistributedEventBus(redis_url)
         self.running = False
+        self._task_manager = TaskManager("WorkerNode")
 
     async def start(self):
         self.running = True
         await self.bus.start()
         if self.specialty in ["browser", "hybrid"]:
             await self.pinchtab.start()
-        asyncio.create_task(self.send_heartbeat())
+        self._task_manager.create_task(self.send_heartbeat(), name="heartbeat")
         try:
             while self.running:
                 if psutil.virtual_memory().percent > 85.0:
@@ -49,7 +51,10 @@ class WorkerNode:
                 task_data = await self.redis_client.brpop(f"worker_queue:{self.id}", timeout=5)
                 if task_data:
                     task = json.loads(task_data[1])
-                    asyncio.create_task(self.execute_task(task))
+                    self._task_manager.create_task(
+                        self.execute_task(task),
+                        name=f"task_{task.get('task_id', 'unknown')}"
+                    )
         except asyncio.CancelledError:
             pass
         finally:
@@ -59,6 +64,7 @@ class WorkerNode:
         if not self.running:
             return
         self.running = False
+        await self._task_manager.cancel_all()
         await self.pinchtab.stop()
         try:
             await self.redis_client.hdel("workers", self.id)

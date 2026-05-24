@@ -2,7 +2,8 @@ import asyncio
 import base64
 import random
 import urllib.parse
-from backend.core.hive import BaseAgent, EventType, HiveEvent
+from backend.core.hive import EventType, HiveEvent
+from backend.core.browser_agent import BrowserEnabledAgent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskTarget, ModuleConfig, TaskPriority
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 import json
@@ -15,11 +16,6 @@ from backend.core.proxy import network_interceptor
 from backend.core.queue import command_lane, LanePriority
 from backend.api.socket_manager import publish_request_event
 
-# Browser Integration (Phase 2)
-from backend.core.browser_orchestrator import BrowserOrchestrator
-from backend.core.hybrid_session_manager import HybridSessionManager
-from backend.core.forensic_collector import ForensicCollector
-
 # Import Arsenals
 from backend.modules.tech.sqli import SQLInjectionProbe
 from backend.modules.tech.jwt import JWTTokenCracker
@@ -30,7 +26,7 @@ from backend.modules.logic.skipper import TheSkipper
 from backend.modules.logic.chronomancer import Chronomancer
 from backend.modules.logic.escalator import TheEscalator
 
-class SigmaAgent(BaseAgent):
+class SigmaAgent(BrowserEnabledAgent):
     """
     AGENT SIGMA: THE ORCHESTRATOR
     Role: Execution Pipeline & Generative Weaponssmith with Browser-Aware Payloads.
@@ -57,11 +53,6 @@ class SigmaAgent(BaseAgent):
         
         # Hybrid Engine State Map
         self.hybrid_token = None
-        
-        # Browser Integration
-        self.browser = BrowserOrchestrator()
-        self.session_manager = HybridSessionManager()
-        self.forensics = ForensicCollector()
 
         self.arsenal = {
             "tech_sqli": SQLInjectionProbe(),
@@ -413,29 +404,51 @@ class SigmaAgent(BaseAgent):
     async def _analyze_dom_structure(self, url: str) -> dict:
         """Analyze DOM structure to understand forms, inputs, and framework."""
         try:
-            # Navigate and analyze page
-            result = await self.browser.navigate(url, stealth=False)
+            print(f"[{self.name}] Analyzing DOM structure for: {url}")
             
-            if not result.get("success"):
+            # Navigate to page using browser
+            nav_result = await self.browser.navigate(url, stealth=False)
+            
+            if not nav_result.get("success"):
+                print(f"[{self.name}] Navigation failed for DOM analysis")
                 return {}
             
             # Detect framework
             framework = await self.browser.detect_framework(url)
             
-            # Extract forms and inputs (would use actual browser API)
+            # Extract DOM elements using browser
+            # In a real implementation, this would use browser automation to:
+            # 1. Find all forms on the page
+            # 2. Extract input fields with their attributes
+            # 3. Identify buttons and their actions
+            # 4. Detect validation patterns
+            
             dom_structure = {
                 "framework": framework,
                 "forms": [],
                 "inputs": [],
-                "buttons": []
+                "buttons": [],
+                "scripts": [],
+                "url": url
             }
             
-            # Placeholder - would extract actual DOM elements
-            # In real implementation, this would use OpenClaw to:
-            # - Find all forms
-            # - Extract input fields with types, names, IDs
-            # - Identify submit buttons
-            # - Detect validation patterns
+            # Placeholder for actual DOM extraction
+            # This would use browser.execute_script() or similar to run JavaScript
+            # that extracts form data, input fields, etc.
+            
+            # Example structure that would be populated:
+            # dom_structure["forms"] = [
+            #     {
+            #         "action": "/login",
+            #         "method": "POST",
+            #         "inputs": [
+            #             {"name": "username", "type": "text", "required": True},
+            #             {"name": "password", "type": "password", "required": True}
+            #         ]
+            #     }
+            # ]
+            
+            print(f"[{self.name}] DOM analysis complete. Framework: {framework}")
             
             return dom_structure
             

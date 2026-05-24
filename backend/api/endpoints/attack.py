@@ -1,89 +1,33 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Request
 from backend.schemas.payloads import AttackPayload
 from backend.core.orchestrator import HiveOrchestrator
 from backend.api.socket_manager import manager
 from datetime import datetime
-from urllib.parse import urlparse
 import uuid
-import re
 import asyncio
 import time
 from backend.core.state import stats_db_manager
+from backend.core.rate_limiter import rate_limit
+from backend.core.url_validator import validate_url
 
 router = APIRouter()
 
 # --- INPUT VALIDATION: URL ALLOWLIST ---
-ALLOWED_HOSTS = {
-    "localhost",
-    "127.0.0.1",
-    "0.0.0.0",
-    "test-env.local",
-    "host.docker.internal",
-    "example.com",
-    "www.example.com",
-}
 _active_scan_targets: dict[str, float] = {}
 _active_scan_targets_lock = asyncio.Lock()
-ALLOWED_PRIVATE_RANGES = [
-    re.compile(r"^10\."),           # 10.x.x.x
-    re.compile(r"^172\.(1[6-9]|2[0-9]|3[01])\."),  # 172.16-31.x.x
-    re.compile(r"^192\.168\."),     # 192.168.x.x
-]
-BLOCKED_PATTERNS = [
-    re.compile(r"169\.254\.169\.254"),  # AWS metadata
-    re.compile(r"metadata\.google\.internal"),  # GCP metadata
-    re.compile(r"^file://", re.I),
-    re.compile(r"^ftp://", re.I),
-]
-
-def validate_target_url(url: str) -> tuple[bool, str]:
-    """Validates the target URL against the allowlist. Returns (is_valid, reason)."""
-    try:
-        parsed = urlparse(url)
-    except Exception:
-        return False, "Malformed URL"
-
-    if parsed.scheme not in ("http", "https"):
-        return False, f"Invalid scheme '{parsed.scheme}'. Only HTTP/HTTPS allowed."
-    if any(ch in url for ch in ["<", ">", "\"", "'", "`"]):
-        return False, "Malformed URL content. Potential injection characters are not allowed in target URLs."
-
-    hostname = parsed.hostname or ""
-    
-    # Check blocked patterns first
-    for pattern in BLOCKED_PATTERNS:
-        if pattern.search(url):
-            return False, f"Target URL matches blocked pattern: {pattern.pattern}"
-
-    # Allow explicitly whitelisted hosts
-    if hostname in ALLOWED_HOSTS:
-        return True, "OK"
-    if hostname.endswith(".test"):
-        return True, "OK"
-
-    # Allow private IP ranges
-    for pattern in ALLOWED_PRIVATE_RANGES:
-        if pattern.match(hostname):
-            return True, "OK"
-
-    # Allow any hostname with a port (likely a local service)
-    if parsed.port and parsed.port != 80 and parsed.port != 443:
-        return True, "OK"
-
-    # Reject everything else (public domains)
-    return False, f"Target '{hostname}' is not in the allowed scope. Add it to ALLOWED_HOSTS or use a private IP."
 
 
 @router.post("/fire")
-async def fire_attack(payload: AttackPayload, background_tasks: BackgroundTasks):
+@rate_limit("/api/attack/fire")
+async def fire_attack(request: Request, payload: AttackPayload, background_tasks: BackgroundTasks):
     """
     Triggers the Antigravity V5 Singularity Swarm.
     Replaces legacy Gatekeeper Engine.
     """
-    # INPUT VALIDATION: Reject out-of-scope targets
-    is_valid, reason = validate_target_url(payload.target_url)
+    # INPUT VALIDATION: Reject out-of-scope targets using centralized validator
+    is_valid, reason = validate_url(payload.target_url, allow_private=True)
     if not is_valid:
-        status = 422 if reason.startswith("Invalid scheme") or reason.startswith("Malformed") else 403
+        status = 422 if "scheme" in reason.lower() or "malformed" in reason.lower() else 403
         raise HTTPException(status_code=status, detail=f"Target URL rejected: {reason}")
 
     lock_key = f"{payload.method.upper()}:{payload.target_url.lower()}"
@@ -163,7 +107,8 @@ async def fire_attack(payload: AttackPayload, background_tasks: BackgroundTasks)
 # --- PROBLEM 13 FIX: Attack Replay Mechanism ---
 
 @router.post("/replay/{vuln_id}")
-async def replay_attack(vuln_id: str, background_tasks: BackgroundTasks):
+@rate_limit()
+async def replay_attack(request: Request, vuln_id: str, background_tasks: BackgroundTasks):
     """
     Re-run a specific attack against a confirmed vulnerability to verify if a fix was applied.
     Avoids re-running the entire scan.

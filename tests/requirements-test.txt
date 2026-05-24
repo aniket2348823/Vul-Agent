@@ -1,0 +1,31 @@
+# Testing dependencies for Antigravity V5
+
+# Core testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.1
+
+# Async testing
+asyncio-test>=0.13.0
+
+# Mocking and fixtures
+pytest-fixtures>=0.1.0
+
+# Code coverage
+coverage>=7.2.7
+
+# Test reporting
+pytest-html>=3.2.0
+pytest-json-report>=1.5.0
+
+# Performance testing
+pytest-benchmark>=4.0.0
+
+# Property-based testing (for future PBT tests)
+hypothesis>=6.82.0
+
+# Additional utilities
+faker>=19.2.0  # For generating test data
+freezegun>=1.2.2  # For mocking time
+responses>=0.23.1  # For mocking HTTP requests

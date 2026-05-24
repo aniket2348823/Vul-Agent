@@ -6,18 +6,14 @@ import math
 import re
 import aiohttp
 import time as _time
-from backend.core.hive import BaseAgent, EventType, HiveEvent
+from backend.core.hive import EventType, HiveEvent
+from backend.core.browser_agent import BrowserEnabledAgent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID
 from backend.core.memory import memory_store, cosine_similarity
 from backend.core.sandbox import TempWorkspace
 from backend.core.queue import command_lane
 
-# Browser Integration (Phase 4)
-from backend.core.browser_orchestrator import BrowserOrchestrator
-from backend.core.hybrid_session_manager import HybridSessionManager
-from backend.core.forensic_collector import ForensicCollector
-
-class KappaAgent(BaseAgent):
+class KappaAgent(BrowserEnabledAgent):
     """
     AGENT KAPPA: THE LIBRARIAN
     Role: Knowledge & Memory with Browser Session Persistence.
@@ -42,11 +38,6 @@ class KappaAgent(BaseAgent):
             
         self._embeddings_disabled = False
         self._ensure_memory()
-        
-        # Browser Integration
-        self.browser = BrowserOrchestrator()
-        self.session_manager = HybridSessionManager()
-        self.forensics = ForensicCollector()
 
     def _ensure_memory(self):
         os.makedirs(os.path.dirname(self.memory_file), exist_ok=True)

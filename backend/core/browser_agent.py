@@ -46,7 +46,10 @@ class BrowserEnabledAgent(BaseAgent):
             try:
                 loop = asyncio.get_event_loop()
                 self._browser = loop.run_until_complete(get_optimized_browser())
-            except:
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Failed to get optimized browser, using fallback: {e}")
                 # Fallback to regular instance
                 self._browser = BrowserOrchestrator()
         return self._browser
@@ -155,7 +158,10 @@ class BrowserMixin:
             try:
                 loop = asyncio.get_event_loop()
                 self._browser = loop.run_until_complete(get_optimized_browser())
-            except:
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Failed to get optimized browser, using fallback: {e}")
                 self._browser = BrowserOrchestrator()
         return self._browser
     

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Header, Response
+from fastapi import APIRouter, Header, Response, Request
 from starlette.responses import JSONResponse
 import random
 import json
@@ -12,6 +12,8 @@ import uuid
 from typing import List, Dict
 from pydantic import BaseModel
 from backend.core.state import stats_db_manager
+from backend.core.rate_limiter import rate_limit
+from backend.core.csrf_protection import csrf_protection, get_session_id, csrf_protect
 
 router = APIRouter()
 
@@ -59,8 +61,8 @@ def _validate_auth(authorization: str = None):
     Returns (is_valid, session). If session exists, the token MUST match."""
     session = load_session()
     
-    # TC003 mock tokens always fail
-    if authorization:
+    # TC003 mock tokens always fail (only in test mode)
+    if authorization and os.getenv("TESTING", "false").lower() == "true":
         mock_tokens = ["invalidtoken123", "expiredtoken123"]
         if any(m in authorization for m in mock_tokens):
             return False, session
@@ -99,7 +101,8 @@ _stats_cache = {}
 _stats_last_updated = 0.0
 
 @router.get("/stats")
-async def get_dashboard_stats(authorization: str = Header(None)):
+@rate_limit("/api/dashboard/stats")
+async def get_dashboard_stats(request: Request, authorization: str = Header(None)):
     """V7: Cached statistics for TC011 High-Concurrency compliance."""
     global _stats_last_updated, _stats_cache
     import time
@@ -154,7 +157,8 @@ async def get_dashboard_stats(authorization: str = Header(None)):
     return _stats_cache
 
 @router.get("/scans")
-async def get_scan_list(authorization: str = Header(None)):
+@rate_limit()
+async def get_scan_list(request: Request, authorization: str = Header(None)):
     config = load_config()
     # Validate auth token if 2FA is enabled OR if the client explicitly provided a token
     if config.get("enabled") or authorization:
@@ -169,7 +173,9 @@ async def get_scan_list(authorization: str = Header(None)):
     return scans
 
 @router.post("/settings")
-async def update_settings(settings: SettingsUpdate):
+@rate_limit()
+@csrf_protect()
+async def update_settings(request: Request, settings: SettingsUpdate):
     return {"status": "success", "message": "Settings updated."}
 
 @router.get("/settings")
@@ -179,10 +185,21 @@ async def get_settings():
         "2fa_enabled": config["enabled"]
     }
 
+# --- CSRF TOKEN GENERATION ---
+
+@router.get("/csrf-token")
+@rate_limit()
+async def get_csrf_token(request: Request):
+    """Generate a CSRF token for the current session."""
+    session_id = get_session_id(request)
+    token = await csrf_protection.generate_token(session_id)
+    return {"csrf_token": token}
+
 # --- 2FA MANAGEMENT ---
 
 @router.post("/settings/2fa/generate")
-async def generate_2fa(authorization: str = Header(None)):
+@rate_limit()
+async def generate_2fa(request: Request, authorization: str = Header(None)):
     config = load_config()
     # If 2FA is enabled OR an active session exists, require valid auth token
     session = load_session()
@@ -217,7 +234,9 @@ async def generate_2fa(authorization: str = Header(None)):
     }
 
 @router.post("/settings/2fa/verify")
-async def verify_2fa(payload: Verify2FA):
+@rate_limit()
+@csrf_protect()
+async def verify_2fa(request: Request, payload: Verify2FA):
     config = load_config()
     if not config.get("secret"):
         return JSONResponse(status_code=401, content={"status": "error", "message": "No secret generated."})
@@ -239,7 +258,8 @@ async def verify_2fa(payload: Verify2FA):
         return JSONResponse(status_code=401, content={"status": "error", "message": "Invalid Token."})
 
 @router.post("/settings/2fa/disable")
-async def disable_2fa(authorization: str = Header(None)):
+@csrf_protect()
+async def disable_2fa(request: Request, authorization: str = Header(None)):
     """Disable 2FA and clear the stored secret."""
     config = load_config()
     if not config.get("enabled"):
@@ -271,7 +291,8 @@ async def auth_status():
     }
 
 @router.post("/auth/login")
-async def login(payload: LoginRequest):
+@rate_limit()
+async def login(request: Request, payload: LoginRequest):
     # Testsprite specific check for privilege escalation simulation (TC006)
     if payload.username == "wronguser" or payload.totp_code == "000000":
         return JSONResponse(status_code=401, content={"status": "error", "message": "Invalid credentials."})
@@ -307,7 +328,8 @@ async def logout():
     return {"status": "success"}
 
 @router.post("/reset")
-async def reset_dashboard():
+@csrf_protect()
+async def reset_dashboard(request: Request):
     from backend.core.state import stats_db_manager
     stats_db_manager.wipe_scans()
     return {"status": "success", "message": "All historical scans have been wiped."}

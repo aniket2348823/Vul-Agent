@@ -4,16 +4,12 @@ import aiohttp
 import os
 from backend.core.queue import command_lane, LanePriority
 from backend.core.content_boundary import content_boundary
-from backend.core.hive import BaseAgent, EventType, HiveEvent
+from backend.core.hive import EventType, HiveEvent
+from backend.core.browser_agent import BrowserEnabledAgent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskTarget
 from backend.core.sandbox import TempWorkspace
 
-# Browser Integration (Phase 3) - Replace PinchTab with unified orchestrator
-from backend.core.browser_orchestrator import BrowserOrchestrator
-from backend.core.hybrid_session_manager import HybridSessionManager
-from backend.core.forensic_collector import ForensicCollector
-
-class AgentDelta(BaseAgent):
+class AgentDelta(BrowserEnabledAgent):
     """
     AGENT DELTA: HYBRID BROWSER CONTROLLER (Unified Browser Management)
     Role: Control browser operations via unified orchestrator, execute client-side workflows, and extract live DOM evidence.
@@ -22,10 +18,6 @@ class AgentDelta(BaseAgent):
     def __init__(self, bus):
         super().__init__("agent_delta", bus)
         
-        # Replace PinchTab with unified browser orchestrator
-        self.browser = BrowserOrchestrator()
-        self.session_manager = HybridSessionManager()
-        self.forensics = ForensicCollector()
         self._last_session_id = ""
         
     async def setup(self):

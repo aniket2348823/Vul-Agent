@@ -1,18 +1,14 @@
 import asyncio
 import random
-from backend.core.hive import BaseAgent, EventType, HiveEvent
+from backend.core.hive import EventType, HiveEvent
+from backend.core.browser_agent import BrowserEnabledAgent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskPriority, ModuleConfig, TaskTarget
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.graph_engine import graph_engine
 from backend.core.queue import command_lane
 from backend.core.content_boundary import content_boundary
 
-# Browser Integration (Phase 3)
-from backend.core.browser_orchestrator import BrowserOrchestrator
-from backend.core.hybrid_session_manager import HybridSessionManager
-from backend.core.forensic_collector import ForensicCollector
-
-class OmegaAgent(BaseAgent):
+class OmegaAgent(BrowserEnabledAgent):
     """
     AGENT OMEGA: THE STRATEGIST
     Role: Campaign Intelligence & Attack Chain Orchestration with Browser-Aware Strategies.
@@ -37,11 +33,6 @@ class OmegaAgent(BaseAgent):
         self._active_campaigns = {}  # scan_id -> campaign state
         self._confirmed_vulns = []   # Accumulator for mid-scan adaptation
         self._job_results = {}       # job_id -> result tracking
-        
-        # Browser Integration
-        self.browser = BrowserOrchestrator()
-        self.session_manager = HybridSessionManager()
-        self.forensics = ForensicCollector()
 
     async def setup(self):
         self.bus.subscribe(EventType.TARGET_ACQUIRED, self.handle_target)

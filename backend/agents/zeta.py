@@ -4,19 +4,15 @@ import time
 import random
 from typing import List, Dict, Any
 from collections import deque
-from backend.core.hive import BaseAgent, EventType, HiveEvent
+from backend.core.hive import EventType, HiveEvent
+from backend.core.browser_agent import BrowserEnabledAgent
 from backend.core.protocol import JobPacket
 from backend.core.queue import command_lane
 # Hybrid AI Engine
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.content_boundary import content_boundary
 
-# Browser Integration (Phase 4)
-from backend.core.browser_orchestrator import BrowserOrchestrator
-from backend.core.hybrid_session_manager import HybridSessionManager
-from backend.core.forensic_collector import ForensicCollector
-
-class ZetaAgent(BaseAgent):
+class ZetaAgent(BrowserEnabledAgent):
     """
     AGENT ZETA: THE CORTEX
     Capabilities:
@@ -41,11 +37,6 @@ class ZetaAgent(BaseAgent):
         self.priority_queue = {0: [], 1: [], 2: []}
         # Hybrid AI Engine for stress analysis
         self.cortex = get_cortex_engine()
-        
-        # Browser Integration
-        self.browser = BrowserOrchestrator()
-        self.session_manager = HybridSessionManager()
-        self.forensics = ForensicCollector()
         
         # Browser resource tracking
         self.browser_memory_threshold = 500 * 1024 * 1024  # 500MB
@@ -247,13 +238,36 @@ class ZetaAgent(BaseAgent):
             return {}
     
     async def _get_active_contexts(self) -> list:
-        """Get list of active browser contexts."""
+        """Get list of active browser contexts from the orchestrator."""
         try:
-            # This would query OpenClaw for active contexts
-            # Placeholder implementation
+            # Query browser orchestrator for active contexts
+            from backend.core.browser_orchestrator import browser_orchestrator
+            
+            if not browser_orchestrator:
+                return []
+            
+            # Get context statistics
+            stats = browser_orchestrator.get_context_stats()
+            
+            # Build list of active contexts with metadata
             active_contexts = []
+            current_time = asyncio.get_event_loop().time()
+            
+            async with browser_orchestrator._context_lock:
+                for context_id, context_data in browser_orchestrator._active_contexts.items():
+                    idle_time = current_time - context_data["last_activity"]
+                    
+                    active_contexts.append({
+                        "context_id": context_id,
+                        "scan_id": context_data["scan_id"],
+                        "created_at": context_data["created_at"],
+                        "last_activity": context_data["last_activity"],
+                        "idle_time": idle_time,
+                        "engine": context_data.get("engine", "unknown")
+                    })
             
             return active_contexts
+            
         except Exception as e:
             print(f"[{self.name}] Context enumeration failed: {e}")
             return []
@@ -263,17 +277,27 @@ class ZetaAgent(BaseAgent):
         try:
             print(f"[{self.name}] Closing idle browser contexts...")
             
+            from backend.core.browser_orchestrator import browser_orchestrator
+            
+            if not browser_orchestrator:
+                return 0
+            
+            # Get active contexts
             active_contexts = await self._get_active_contexts()
             
             closed_count = 0
             for context in active_contexts:
-                # Check if context is idle (no activity for >5 minutes)
+                # Close contexts idle for more than 5 minutes (300 seconds)
                 if context.get("idle_time", 0) > 300:
-                    # Close context
-                    # This would call OpenClaw API to close context
-                    closed_count += 1
+                    try:
+                        await browser_orchestrator.close_context(context["context_id"])
+                        closed_count += 1
+                        print(f"[{self.name}] Closed idle context: {context['context_id']} (idle: {context['idle_time']:.0f}s)")
+                    except Exception as close_err:
+                        print(f"[{self.name}] Failed to close context {context['context_id']}: {close_err}")
             
-            print(f"[{self.name}] Closed {closed_count} idle contexts")
+            if closed_count > 0:
+                print(f"[{self.name}] Closed {closed_count} idle contexts")
             
             return closed_count
             

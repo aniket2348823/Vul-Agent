@@ -404,7 +404,9 @@ class OpenClawEngine:
         for context in self.active_contexts.values():
             try:
                 await context.close()
-            except:
-                pass
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Failed to close context: {e}")
                 
         self.active_contexts.clear()

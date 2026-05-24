@@ -16,6 +16,7 @@ from pathlib import Path
 import json
 
 from backend.core.browser_orchestrator import BrowserOrchestrator
+from backend.core.task_manager import TaskManager
 
 
 class BrowserContextPool:
@@ -174,6 +175,7 @@ class BrowserResourceMonitor:
         self.memory_threshold_mb = memory_threshold_mb
         self._monitoring = False
         self._monitor_task = None
+        self._task_manager = TaskManager("BrowserResourceMonitor")
         
     async def start_monitoring(self, context_pool: BrowserContextPool):
         """Start resource monitoring."""
@@ -181,18 +183,17 @@ class BrowserResourceMonitor:
             return
         
         self._monitoring = True
-        self._monitor_task = asyncio.create_task(self._monitor_loop(context_pool))
+        self._monitor_task = self._task_manager.create_task(
+            self._monitor_loop(context_pool),
+            name="resource_monitor"
+        )
         print(f"[BrowserResourceMonitor] Started monitoring (threshold: {self.memory_threshold_mb}MB)")
     
     async def stop_monitoring(self):
         """Stop resource monitoring."""
         self._monitoring = False
-        if self._monitor_task:
-            self._monitor_task.cancel()
-            try:
-                await self._monitor_task
-            except asyncio.CancelledError:
-                pass
+        await self._task_manager.cancel_all()
+        self._monitor_task = None
         print(f"[BrowserResourceMonitor] Stopped monitoring")
     
     async def _monitor_loop(self, context_pool: BrowserContextPool):
@@ -223,7 +224,15 @@ class BrowserResourceMonitor:
             process = psutil.Process()
             memory_mb = process.memory_info().rss / 1024 / 1024
             return int(memory_mb)
-        except:
+        except ImportError:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning("psutil not installed, memory monitoring disabled")
+            return 0
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to get memory usage: {e}")
             return 0
 
 

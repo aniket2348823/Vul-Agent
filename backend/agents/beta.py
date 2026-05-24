@@ -1,6 +1,7 @@
 import asyncio
 import random
-from backend.core.hive import BaseAgent, EventType, HiveEvent
+from backend.core.hive import EventType, HiveEvent
+from backend.core.browser_agent import BrowserEnabledAgent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskPriority, ModuleConfig, TaskTarget
 
 from backend.ai.cortex import CortexEngine, get_cortex_engine
@@ -10,12 +11,7 @@ from backend.core.proxy import network_interceptor
 from backend.core.sandbox import TempWorkspace
 from backend.core.queue import command_lane, LanePriority
 
-# Browser Integration (Phase 2)
-from backend.core.browser_orchestrator import BrowserOrchestrator
-from backend.core.hybrid_session_manager import HybridSessionManager
-from backend.core.forensic_collector import ForensicCollector
-
-class BetaAgent(BaseAgent):
+class BetaAgent(BrowserEnabledAgent):
     """
     AGENT BETA: THE BREAKER
     Role: Heavy Offensive Operations with Browser Exploitation.
@@ -46,10 +42,8 @@ class BetaAgent(BaseAgent):
         # Governance: throttle flag from Zeta
         self._throttled = False
         
-        # Browser Integration
-        self.browser = BrowserOrchestrator()
-        self.session_manager = HybridSessionManager()
-        self.forensics = ForensicCollector()
+        # Browser Integration inherited from BrowserEnabledAgent
+        # self.browser, self.session_manager, self.forensics available via properties
 
     async def setup(self):
         self.bus.subscribe(EventType.JOB_ASSIGNED, self.handle_job)
@@ -467,9 +461,106 @@ class BetaAgent(BaseAgent):
             print(f"[{self.name}] CSRF test failed: {e}")
     
     async def _test_csrf_bypass(self, url: str, token: dict, scan_id: str) -> dict:
-        """Attempt to bypass CSRF protection."""
-        # Placeholder - would test various CSRF bypass techniques
-        return {"bypassed": False}
+        """Attempt to bypass CSRF protection using various techniques."""
+        try:
+            print(f"[{self.name}] Testing CSRF bypass for token: {token.get('name')}")
+            
+            bypassed = False
+            bypass_method = None
+            
+            # Technique 1: Try request without CSRF token
+            try:
+                import aiohttp
+                async with aiohttp.ClientSession() as session:
+                    # Make request without token
+                    response = await network_interceptor.fetch(
+                        "POST",
+                        url,
+                        session=session,
+                        headers={"Content-Type": "application/x-www-form-urlencoded"},
+                        timeout=10
+                    )
+                    
+                    # If request succeeds (2xx status), CSRF protection is bypassed
+                    if 200 <= response.status < 300:
+                        bypassed = True
+                        bypass_method = "missing_token"
+                        print(f"[{self.name}] CSRF bypass: Request succeeded without token")
+            except Exception:
+                pass
+            
+            # Technique 2: Try with empty token value
+            if not bypassed:
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        response = await network_interceptor.fetch(
+                            "POST",
+                            url,
+                            session=session,
+                            headers={
+                                "Content-Type": "application/x-www-form-urlencoded",
+                                token.get("name", "csrf_token"): ""
+                            },
+                            timeout=10
+                        )
+                        
+                        if 200 <= response.status < 300:
+                            bypassed = True
+                            bypass_method = "empty_token"
+                            print(f"[{self.name}] CSRF bypass: Request succeeded with empty token")
+                except Exception:
+                    pass
+            
+            # Technique 3: Try with wrong token value
+            if not bypassed:
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        response = await network_interceptor.fetch(
+                            "POST",
+                            url,
+                            session=session,
+                            headers={
+                                "Content-Type": "application/x-www-form-urlencoded",
+                                token.get("name", "csrf_token"): "invalid_token_12345"
+                            },
+                            timeout=10
+                        )
+                        
+                        if 200 <= response.status < 300:
+                            bypassed = True
+                            bypass_method = "invalid_token"
+                            print(f"[{self.name}] CSRF bypass: Request succeeded with invalid token")
+                except Exception:
+                    pass
+            
+            # Technique 4: Try changing request method (POST -> GET)
+            if not bypassed:
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        response = await network_interceptor.fetch(
+                            "GET",
+                            url,
+                            session=session,
+                            timeout=10
+                        )
+                        
+                        if 200 <= response.status < 300:
+                            bypassed = True
+                            bypass_method = "method_change"
+                            print(f"[{self.name}] CSRF bypass: Request succeeded with method change")
+                except Exception:
+                    pass
+            
+            return {
+                "bypassed": bypassed,
+                "method": bypass_method,
+                "token_name": token.get("name"),
+                "url": url
+            }
+            
+        except Exception as e:
+            print(f"[{self.name}] CSRF bypass test failed: {e}")
+            return {"bypassed": False, "error": str(e)}
     
     async def _test_dom_xss(self, url: str, scan_id: str):
         """Test for DOM-based XSS vulnerabilities."""

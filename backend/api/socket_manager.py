@@ -6,6 +6,7 @@ import asyncio
 import random
 import time
 import collections
+from backend.core.task_manager import TaskManager
 
 # --- Adaptive 300 Monitoring Logic ---
 def get_display_limit(rps):
@@ -127,25 +128,29 @@ class SocketManager:
         self.recent_rps = 0
         self._rps_task = None
         self._running = False
+        self._task_manager = TaskManager("SocketManager")
 
 
     def _start_tasks(self):
         if self._running: return
         self._running = True
         if self._batch_task is None:
-            self._batch_task = asyncio.create_task(self._process_batch_queue())
+            self._batch_task = self._task_manager.create_task(
+                self._process_batch_queue(),
+                name="batch_processor"
+            )
         if self._rps_task is None:
-            self._rps_task = asyncio.create_task(self._track_rps())
+            self._rps_task = self._task_manager.create_task(
+                self._track_rps(),
+                name="rps_tracker"
+            )
 
     async def stop_tasks(self):
         """Cleanup Lifecycle: Stop background monitoring tasks."""
         self._running = False
-        if self._batch_task:
-            self._batch_task.cancel()
-            self._batch_task = None
-        if self._rps_task:
-            self._rps_task.cancel()
-            self._rps_task = None
+        await self._task_manager.cancel_all()
+        self._batch_task = None
+        self._rps_task = None
 
 
     async def _track_rps(self):

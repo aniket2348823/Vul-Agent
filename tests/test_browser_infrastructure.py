@@ -4,9 +4,9 @@ Verifies BrowserOrchestrator, OpenClawEngine, PinchTabEngine, HybridSessionManag
 """
 
 import asyncio
-from browser_orchestrator import BrowserOrchestrator, BrowserEngine
-from hybrid_session_manager import HybridSessionManager
-from forensic_collector import ForensicCollector
+from backend.core.browser_orchestrator import BrowserOrchestrator, BrowserEngine
+from backend.core.hybrid_session_manager import HybridSessionManager
+from backend.core.forensic_collector import ForensicCollector
 
 
 async def test_browser_orchestrator():

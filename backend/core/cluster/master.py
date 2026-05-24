@@ -11,6 +11,7 @@ from typing import Dict, List, Optional, Any
 
 from backend.core.database import db_manager
 from backend.core.graph_engine import GraphEngine
+from backend.core.task_manager import TaskManager
 
 logger = logging.getLogger("MasterNode")
 
@@ -25,11 +26,12 @@ class MasterNode:
         self.supabase: Client = create_client(supabase_url, supabase_key)
         self.workers: Dict[str, Dict[str, Any]] = {}
         self.attack_graph = GraphEngine()
+        self._task_manager = TaskManager("MasterNode")
 
     async def start(self):
         self.active = True
         await self._discover_swarm()
-        asyncio.create_task(self.monitor_workers())
+        self._task_manager.create_task(self.monitor_workers(), name="worker_monitor")
         while self.active:
             try:
                 task_data = await self.redis_client.brpop("pending_tasks", timeout=5)

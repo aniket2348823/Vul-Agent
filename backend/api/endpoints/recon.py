@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from backend.schemas.payloads import ReconPayload
 from backend.api.socket_manager import manager, publish_request_event
 from pydantic import BaseModel
@@ -7,6 +7,10 @@ import os
 import json
 from datetime import datetime
 import random
+from backend.core.url_validator import validate_url
+import logging
+
+logger = logging.getLogger(__name__)
 
 KEYRING_FILE = "keyring.json"
 
@@ -108,6 +112,12 @@ async def get_keyring():
 
 @router.post("/keys")
 async def ingest_keys(payload: KeyringPayload):
+    # Validate URL to prevent SSRF
+    is_valid, reason = validate_url(payload.url, allow_private=True)
+    if not is_valid:
+        logger.warning(f"Rejected keyring URL: {payload.url} - {reason}")
+        raise HTTPException(status_code=400, detail=f"Invalid URL: {reason}")
+    
     data = payload.model_dump()
     keyring = []
     if os.path.exists(KEYRING_FILE):

@@ -26,6 +26,7 @@ from backend.core.guard_layer import guard_layer
 from backend.core.stdout_watchdog import watch_output
 from backend.core.scope import ScopePolicy
 from backend.modules.tech.http_client import http_client
+from backend.core.task_manager import TaskManager
 
 # --- CLUSTER COMPONENTS (Extracted to backend.core.cluster for Clean Architecture) ---
 from backend.core.cluster.pinchtab import PinchTabInstance  # noqa: F401
@@ -65,6 +66,7 @@ class HiveOrchestrator:
     # Global Registry for API Access (Nervous System)
     active_agents = {}
     _orphaned_tasks = set()
+    _task_manager = TaskManager("HiveOrchestrator")
 
     @staticmethod
     async def bootstrap_hive(target_config, scan_id=None):
@@ -214,19 +216,22 @@ class HiveOrchestrator:
             # --- START DISTRIBUTED COMMAND LAYER ---
             # Automatically start Master for this scan
             master = MasterNode(redis_url, settings.SUPABASE_URL, settings.SUPABASE_KEY)
-            asyncio.create_task(master.start())
+            HiveOrchestrator._task_manager.create_task(master.start(), name="master_node")
             
             # Start Worker for dynamic execution
             worker_id = f"local-hive-{uuid.uuid4().hex[:4]}"
             worker = WorkerNode(worker_id, "hybrid", redis_url, settings.SUPABASE_URL, settings.SUPABASE_KEY)
-            asyncio.create_task(worker.start())
+            HiveOrchestrator._task_manager.create_task(worker.start(), name="worker_node")
             
             # The Unified Agents (Prism/Chi) handle individual guardian duties
             # they are already in the core_agents list and started below.
             logger.info("🛡️ Xytherion Command Matrix Activated (Master + Local Worker). Safety Guardians Unified.")
             
             # V6-HARDENED: Start Cluster Telemetry Loop
-            asyncio.create_task(HiveOrchestrator._cluster_telemetry_loop(redis_url, scan_id))
+            HiveOrchestrator._task_manager.create_task(
+                HiveOrchestrator._cluster_telemetry_loop(redis_url, scan_id),
+                name="cluster_telemetry"
+            )
             # ----------------------------------------
 
         else:

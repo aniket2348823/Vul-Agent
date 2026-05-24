@@ -1,6 +1,7 @@
 """
 Forensic Evidence Collector for Browser-Based Testing
 Captures screenshots, DOM snapshots, network logs, and console output.
+Supports encryption for sensitive forensic data.
 """
 
 import json
@@ -10,24 +11,107 @@ from pathlib import Path
 from datetime import datetime
 import base64
 import asyncio
+import os
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class ForensicCollector:
     """
     Collects and stores forensic evidence from browser-based security testing.
     Supports both OpenClaw and PinchTab engines.
+    Includes encryption for sensitive forensic data.
     """
     
-    def __init__(self, storage_dir: str = "scan_states/forensics"):
+    def __init__(self, storage_dir: str = "scan_states/forensics", encryption_key: Optional[str] = None):
         """
         Initialize the forensic collector.
         
         Args:
             storage_dir: Directory to store forensic evidence
+            encryption_key: Optional encryption key for sensitive data (uses env var if not provided)
         """
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
         self.evidence_cache: Dict[str, List[Dict[str, Any]]] = {}
+        
+        # Initialize encryption
+        self._init_encryption(encryption_key)
+    
+    def _init_encryption(self, encryption_key: Optional[str] = None):
+        """
+        Initialize encryption for forensic data.
+        
+        Args:
+            encryption_key: Optional encryption key (uses env var FORENSIC_ENCRYPTION_KEY if not provided)
+        """
+        try:
+            # Get encryption key from parameter or environment
+            key_material = encryption_key or os.getenv("FORENSIC_ENCRYPTION_KEY")
+            
+            if not key_material:
+                # Generate a new key if none provided (for development only)
+                logger.warning("[ForensicCollector] No encryption key provided, generating temporary key")
+                self.cipher = Fernet(Fernet.generate_key())
+                self.encryption_enabled = True
+                return
+            
+            # Derive encryption key from password using PBKDF2
+            kdf = PBKDF2(
+                algorithm=hashes.SHA256(),
+                length=32,
+                salt=b'forensic_salt_v1',  # In production, use a random salt stored securely
+                iterations=100000,
+            )
+            key = base64.urlsafe_b64encode(kdf.derive(key_material.encode()))
+            self.cipher = Fernet(key)
+            self.encryption_enabled = True
+            logger.info("[ForensicCollector] Encryption initialized successfully")
+            
+        except Exception as e:
+            logger.error(f"[ForensicCollector] Failed to initialize encryption: {e}")
+            self.cipher = None
+            self.encryption_enabled = False
+    
+    def _encrypt_data(self, data: bytes) -> bytes:
+        """
+        Encrypt data if encryption is enabled.
+        
+        Args:
+            data: Raw data to encrypt
+            
+        Returns:
+            Encrypted data or original data if encryption disabled
+        """
+        if self.encryption_enabled and self.cipher:
+            try:
+                return self.cipher.encrypt(data)
+            except Exception as e:
+                logger.error(f"[ForensicCollector] Encryption failed: {e}")
+                return data
+        return data
+    
+    def _decrypt_data(self, data: bytes) -> bytes:
+        """
+        Decrypt data if encryption is enabled.
+        
+        Args:
+            data: Encrypted data
+            
+        Returns:
+            Decrypted data or original data if encryption disabled
+        """
+        if self.encryption_enabled and self.cipher:
+            try:
+                return self.cipher.decrypt(data)
+            except Exception as e:
+                logger.error(f"[ForensicCollector] Decryption failed: {e}")
+                return data
+        return data
         
     async def capture_screenshot(
         self,
@@ -52,18 +136,27 @@ class ForensicCollector:
         """
         try:
             timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
-            filename = f"{scan_id}_{label}_{timestamp}.png"
+            ext = ".png.enc" if self.encryption_enabled else ".png"
+            filename = f"{scan_id}_{label}_{timestamp}{ext}"
             filepath = self.storage_dir / scan_id / "screenshots" / filename
             filepath.parent.mkdir(parents=True, exist_ok=True)
             
             if engine == "openclaw":
                 # OpenClaw/Playwright screenshot
-                await context.screenshot(path=str(filepath), full_page=full_page)
+                screenshot_bytes = await context.screenshot(full_page=full_page)
+                
+                # Encrypt if enabled
+                encrypted_data = self._encrypt_data(screenshot_bytes)
+                
+                with open(filepath, 'wb') as f:
+                    f.write(encrypted_data)
+                    
             elif engine == "pinchtab":
                 # PinchTab screenshot (placeholder - depends on PinchTab API)
                 # screenshot_data = await context.screenshot()
+                # encrypted_data = self._encrypt_data(screenshot_data)
                 # with open(filepath, 'wb') as f:
-                #     f.write(screenshot_data)
+                #     f.write(encrypted_data)
                 pass
             
             # Store metadata
@@ -73,13 +166,14 @@ class ForensicCollector:
                 "filepath": str(filepath),
                 "timestamp": timestamp,
                 "engine": engine,
-                "full_page": full_page
+                "full_page": full_page,
+                "encrypted": self.encryption_enabled
             })
             
             return str(filepath)
             
         except Exception as e:
-            print(f"[ForensicCollector] Screenshot capture failed: {e}")
+            logger.error(f"[ForensicCollector] Screenshot capture failed: {e}")
             return None
     
     async def capture_dom_snapshot(
@@ -105,7 +199,13 @@ class ForensicCollector:
         """
         try:
             timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
-            ext = ".html.gz" if compress else ".html"
+            
+            # Determine file extension based on compression and encryption
+            if self.encryption_enabled:
+                ext = ".html.gz.enc" if compress else ".html.enc"
+            else:
+                ext = ".html.gz" if compress else ".html"
+                
             filename = f"{scan_id}_{label}_{timestamp}{ext}"
             filepath = self.storage_dir / scan_id / "dom" / filename
             filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -119,13 +219,18 @@ class ForensicCollector:
             else:
                 return None
             
-            # Save with optional compression
+            # Prepare data (compress if needed)
             if compress:
-                with gzip.open(filepath, 'wt', encoding='utf-8') as f:
-                    f.write(html_content)
+                data = gzip.compress(html_content.encode('utf-8'))
             else:
-                with open(filepath, 'w', encoding='utf-8') as f:
-                    f.write(html_content)
+                data = html_content.encode('utf-8')
+            
+            # Encrypt if enabled
+            encrypted_data = self._encrypt_data(data)
+            
+            # Save
+            with open(filepath, 'wb') as f:
+                f.write(encrypted_data)
             
             # Store metadata
             self._add_evidence(scan_id, {
@@ -135,13 +240,14 @@ class ForensicCollector:
                 "timestamp": timestamp,
                 "engine": engine,
                 "compressed": compress,
+                "encrypted": self.encryption_enabled,
                 "size_bytes": len(html_content)
             })
             
             return str(filepath)
             
         except Exception as e:
-            print(f"[ForensicCollector] DOM snapshot failed: {e}")
+            logger.error(f"[ForensicCollector] DOM snapshot failed: {e}")
             return None
     
     async def capture_network_logs(
@@ -165,7 +271,13 @@ class ForensicCollector:
         """
         try:
             timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
-            ext = ".json.gz" if compress else ".json"
+            
+            # Determine file extension
+            if self.encryption_enabled:
+                ext = ".json.gz.enc" if compress else ".json.enc"
+            else:
+                ext = ".json.gz" if compress else ".json"
+                
             filename = f"{scan_id}_{label}_{timestamp}{ext}"
             filepath = self.storage_dir / scan_id / "network" / filename
             filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -173,13 +285,18 @@ class ForensicCollector:
             # Serialize network events
             json_data = json.dumps(network_events, indent=2)
             
-            # Save with optional compression
+            # Prepare data (compress if needed)
             if compress:
-                with gzip.open(filepath, 'wt', encoding='utf-8') as f:
-                    f.write(json_data)
+                data = gzip.compress(json_data.encode('utf-8'))
             else:
-                with open(filepath, 'w', encoding='utf-8') as f:
-                    f.write(json_data)
+                data = json_data.encode('utf-8')
+            
+            # Encrypt if enabled
+            encrypted_data = self._encrypt_data(data)
+            
+            # Save
+            with open(filepath, 'wb') as f:
+                f.write(encrypted_data)
             
             # Store metadata
             self._add_evidence(scan_id, {
@@ -188,13 +305,14 @@ class ForensicCollector:
                 "filepath": str(filepath),
                 "timestamp": timestamp,
                 "compressed": compress,
+                "encrypted": self.encryption_enabled,
                 "event_count": len(network_events)
             })
             
             return str(filepath)
             
         except Exception as e:
-            print(f"[ForensicCollector] Network log capture failed: {e}")
+            logger.error(f"[ForensicCollector] Network log capture failed: {e}")
             return None
     
     async def capture_console_logs(
@@ -218,7 +336,13 @@ class ForensicCollector:
         """
         try:
             timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
-            ext = ".json.gz" if compress else ".json"
+            
+            # Determine file extension
+            if self.encryption_enabled:
+                ext = ".json.gz.enc" if compress else ".json.enc"
+            else:
+                ext = ".json.gz" if compress else ".json"
+                
             filename = f"{scan_id}_{label}_{timestamp}{ext}"
             filepath = self.storage_dir / scan_id / "console" / filename
             filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -226,13 +350,18 @@ class ForensicCollector:
             # Serialize console messages
             json_data = json.dumps(console_messages, indent=2)
             
-            # Save with optional compression
+            # Prepare data (compress if needed)
             if compress:
-                with gzip.open(filepath, 'wt', encoding='utf-8') as f:
-                    f.write(json_data)
+                data = gzip.compress(json_data.encode('utf-8'))
             else:
-                with open(filepath, 'w', encoding='utf-8') as f:
-                    f.write(json_data)
+                data = json_data.encode('utf-8')
+            
+            # Encrypt if enabled
+            encrypted_data = self._encrypt_data(data)
+            
+            # Save
+            with open(filepath, 'wb') as f:
+                f.write(encrypted_data)
             
             # Store metadata
             self._add_evidence(scan_id, {
@@ -241,13 +370,14 @@ class ForensicCollector:
                 "filepath": str(filepath),
                 "timestamp": timestamp,
                 "compressed": compress,
+                "encrypted": self.encryption_enabled,
                 "message_count": len(console_messages)
             })
             
             return str(filepath)
             
         except Exception as e:
-            print(f"[ForensicCollector] Console log capture failed: {e}")
+            logger.error(f"[ForensicCollector] Console log capture failed: {e}")
             return None
     
     async def bundle_evidence(
@@ -269,10 +399,13 @@ class ForensicCollector:
         """
         try:
             timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-            bundle_name = f"{scan_id}_evidence_{timestamp}.json.gz"
+            
+            # Determine file extension
+            ext = ".json.gz.enc" if self.encryption_enabled else ".json.gz"
+            bundle_name = f"{scan_id}_evidence_{timestamp}{ext}"
             
             if vuln_id:
-                bundle_name = f"{scan_id}_{vuln_id}_evidence_{timestamp}.json.gz"
+                bundle_name = f"{scan_id}_{vuln_id}_evidence_{timestamp}{ext}"
             
             bundle_path = self.storage_dir / scan_id / bundle_name
             bundle_path.parent.mkdir(parents=True, exist_ok=True)
@@ -288,17 +421,25 @@ class ForensicCollector:
                 "vuln_id": vuln_id,
                 "timestamp": timestamp,
                 "evidence_count": len(evidence_list),
+                "encrypted": self.encryption_enabled,
                 "evidence": evidence_list
             }
             
+            # Serialize and compress
+            json_data = json.dumps(bundle_data, indent=2)
+            compressed_data = gzip.compress(json_data.encode('utf-8'))
+            
+            # Encrypt if enabled
+            encrypted_data = self._encrypt_data(compressed_data)
+            
             # Save bundle
-            with gzip.open(bundle_path, 'wt', encoding='utf-8') as f:
-                json.dump(bundle_data, f, indent=2)
+            with open(bundle_path, 'wb') as f:
+                f.write(encrypted_data)
             
             return str(bundle_path)
             
         except Exception as e:
-            print(f"[ForensicCollector] Evidence bundling failed: {e}")
+            logger.error(f"[ForensicCollector] Evidence bundling failed: {e}")
             return None
     
     def _add_evidence(self, scan_id: str, evidence: Dict[str, Any]):
@@ -376,8 +517,9 @@ class ForensicCollector:
                         evidence_file.unlink()
                         cleaned += 1
             
+            logger.info(f"[ForensicCollector] Cleaned up {cleaned} old evidence files")
             return cleaned
             
         except Exception as e:
-            print(f"[ForensicCollector] Cleanup failed: {e}")
+            logger.error(f"[ForensicCollector] Cleanup failed: {e}")
             return 0

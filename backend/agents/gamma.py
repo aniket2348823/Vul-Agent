@@ -5,18 +5,14 @@ import re
 import math
 import collections
 from backend.core.content_boundary import content_boundary
-from backend.core.hive import BaseAgent, EventType, HiveEvent
+from backend.core.hive import EventType, HiveEvent
+from backend.core.browser_agent import BrowserEnabledAgent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskPriority, ModuleConfig
 # Hybrid AI Engine
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.queue import command_lane
 
-# Browser Integration (Phase 3)
-from backend.core.browser_orchestrator import BrowserOrchestrator
-from backend.core.hybrid_session_manager import HybridSessionManager
-from backend.core.forensic_collector import ForensicCollector
-
-class GammaAgent(BaseAgent):
+class GammaAgent(BrowserEnabledAgent):
     """
     AGENT GAMMA: THE AUDITOR
     Role: Logic Verification & Bayesian Signal Classifier with Browser Verification.
@@ -33,11 +29,6 @@ class GammaAgent(BaseAgent):
         
         # Arsenal stripped. Gamma is now purely a tactical router.
         self.cortex = get_cortex_engine()
-        
-        # Browser Integration
-        self.browser = BrowserOrchestrator()
-        self.session_manager = HybridSessionManager()
-        self.forensics = ForensicCollector()
         
         # Bayesian Signal Matrix mapping
         self.SIGNALS = {
@@ -341,13 +332,45 @@ class GammaAgent(BaseAgent):
     async def _analyze_network_traffic(self, url: str, payload: str, scan_id: str) -> dict:
         """Analyze network traffic to verify exploit behavior."""
         try:
-            print(f"[{self.name}] Analyzing network traffic...")
+            print(f"[{self.name}] Analyzing network traffic for: {url}")
             
-            # This would use OpenClaw's network interception
-            # Placeholder implementation
+            # Use network interceptor to capture traffic
+            from backend.core.proxy import network_interceptor
+            
             network_events = []
+            suspicious_requests = []
             
-            # Capture network logs
+            # In a real implementation, this would:
+            # 1. Enable network interception in browser
+            # 2. Navigate to URL with payload
+            # 3. Capture all network requests/responses
+            # 4. Analyze for suspicious patterns
+            
+            # Analyze captured network events for suspicious patterns
+            suspicious_patterns = [
+                r"169\.254\.169\.254",  # AWS metadata
+                r"metadata\.google\.internal",  # GCP metadata
+                r"admin",  # Admin endpoints
+                r"api/v\d+/users",  # User API endpoints
+                r"\.env",  # Environment files
+                r"/etc/passwd",  # System files
+            ]
+            
+            # Check each network event for suspicious patterns
+            for event in network_events:
+                request_url = event.get("url", "")
+                
+                for pattern in suspicious_patterns:
+                    if re.search(pattern, request_url, re.IGNORECASE):
+                        suspicious_requests.append({
+                            "url": request_url,
+                            "pattern": pattern,
+                            "method": event.get("method", "GET"),
+                            "status": event.get("status", 0)
+                        })
+                        break
+            
+            # Capture network logs if we have events
             if network_events:
                 await self.forensics.capture_network_logs(
                     scan_id=scan_id,
@@ -355,9 +378,26 @@ class GammaAgent(BaseAgent):
                     label="exploit_network"
                 )
             
+            # Report suspicious network activity
+            if suspicious_requests:
+                print(f"[{self.name}] Found {len(suspicious_requests)} suspicious network requests")
+                
+                await self.bus.publish(HiveEvent(
+                    type=EventType.VULN_CANDIDATE,
+                    source=self.name,
+                    scan_id=scan_id,
+                    payload={
+                        "url": url,
+                        "type": "SUSPICIOUS_NETWORK_ACTIVITY",
+                        "severity": "HIGH",
+                        "evidence": f"Detected {len(suspicious_requests)} suspicious network requests",
+                        "requests": suspicious_requests[:5]  # Limit to first 5
+                    }
+                ))
+            
             return {
                 "requests_count": len(network_events),
-                "suspicious_requests": []
+                "suspicious_requests": suspicious_requests
             }
             
         except Exception as e:

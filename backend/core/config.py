@@ -1,9 +1,12 @@
 import os
 import json
-from typing import Dict, Any
+import logging
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from pathlib import Path
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 # Initialize Environment
 load_dotenv()
@@ -114,13 +117,14 @@ class MasterConfig:
     worker_timeout: int = 180
 
 class ConfigManager:
-    """Central configuration management using the Singleton pattern."""
+    """Central configuration management using the Singleton pattern with validation."""
     _instance = None
     
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._load_all()
+            cls._instance._validate_all()
         return cls._instance
     
     def _load_all(self):
@@ -131,6 +135,129 @@ class ConfigManager:
         self.openclaw = OpenClawConfig()
         self.hybrid_browser = HybridBrowserConfig()
         self.master = MasterConfig()
+        self.validation_errors: List[str] = []
+    
+    def _validate_all(self):
+        """Validate all configuration settings."""
+        self.validation_errors = []
+        
+        # Validate Redis configuration
+        self._validate_redis()
+        
+        # Validate Supabase configuration
+        self._validate_supabase()
+        
+        # Validate Worker configuration
+        self._validate_worker()
+        
+        # Validate Browser configurations
+        self._validate_browser_configs()
+        
+        # Validate paths
+        self._validate_paths()
+        
+        # Log validation results
+        if self.validation_errors:
+            logger.warning(f"[ConfigManager] Configuration validation found {len(self.validation_errors)} issues:")
+            for error in self.validation_errors:
+                logger.warning(f"  - {error}")
+        else:
+            logger.info("[ConfigManager] Configuration validation passed")
+    
+    def _validate_redis(self):
+        """Validate Redis configuration."""
+        if not self.redis.url:
+            self.validation_errors.append("Redis URL is not configured")
+        
+        if self.redis.max_connections < 1:
+            self.validation_errors.append("Redis max_connections must be at least 1")
+        
+        if self.redis.socket_timeout < 1:
+            self.validation_errors.append("Redis socket_timeout must be at least 1 second")
+    
+    def _validate_supabase(self):
+        """Validate Supabase configuration."""
+        if self.supabase.url and not self.supabase.url.startswith(('http://', 'https://')):
+            self.validation_errors.append("Supabase URL must start with http:// or https://")
+        
+        if self.supabase.url and not self.supabase.key:
+            self.validation_errors.append("Supabase key is required when URL is configured")
+    
+    def _validate_worker(self):
+        """Validate Worker configuration."""
+        valid_specialties = ['hybrid', 'recon', 'attack', 'analysis']
+        if self.worker.specialty not in valid_specialties:
+            self.validation_errors.append(f"Worker specialty must be one of {valid_specialties}")
+        
+        if self.worker.max_concurrent_tasks < 1:
+            self.validation_errors.append("Worker max_concurrent_tasks must be at least 1")
+        
+        if self.worker.heartbeat_interval < 5:
+            self.validation_errors.append("Worker heartbeat_interval must be at least 5 seconds")
+    
+    def _validate_browser_configs(self):
+        """Validate browser configurations."""
+        # Validate PinchTab
+        if self.pinchtab.enabled:
+            if not self.pinchtab.base_url.startswith(('http://', 'https://')):
+                self.validation_errors.append("PinchTab base_url must start with http:// or https://")
+            
+            if self.pinchtab.timeout < 1000:
+                self.validation_errors.append("PinchTab timeout must be at least 1000ms")
+            
+            valid_browsers = ['chromium', 'firefox', 'webkit']
+            if self.pinchtab.browser_type not in valid_browsers:
+                self.validation_errors.append(f"PinchTab browser_type must be one of {valid_browsers}")
+        
+        # Validate OpenClaw
+        if self.openclaw.enabled:
+            if self.openclaw.timeout < 1000:
+                self.validation_errors.append("OpenClaw timeout must be at least 1000ms")
+            
+            valid_browsers = ['chromium', 'firefox', 'webkit']
+            if self.openclaw.browser_type not in valid_browsers:
+                self.validation_errors.append(f"OpenClaw browser_type must be one of {valid_browsers}")
+            
+            if self.openclaw.viewport_width < 100 or self.openclaw.viewport_height < 100:
+                self.validation_errors.append("OpenClaw viewport dimensions must be at least 100x100")
+            
+            if self.openclaw.max_contexts < 1:
+                self.validation_errors.append("OpenClaw max_contexts must be at least 1")
+        
+        # Validate Hybrid Browser
+        if self.hybrid_browser.enabled:
+            valid_engines = ['auto', 'openclaw', 'pinchtab']
+            if self.hybrid_browser.default_engine not in valid_engines:
+                self.validation_errors.append(f"Hybrid default_engine must be one of {valid_engines}")
+            
+            if not self.openclaw.enabled and not self.pinchtab.enabled:
+                self.validation_errors.append("Hybrid browser requires at least one engine (OpenClaw or PinchTab) to be enabled")
+    
+    def _validate_paths(self):
+        """Validate critical paths exist and are writable."""
+        critical_paths = [
+            (REPORTS_DIR, "Reports directory"),
+            (STATIC_DIR, "Static directory"),
+        ]
+        
+        for path, name in critical_paths:
+            path_obj = Path(path)
+            if not path_obj.exists():
+                try:
+                    path_obj.mkdir(parents=True, exist_ok=True)
+                    logger.info(f"[ConfigManager] Created {name}: {path}")
+                except Exception as e:
+                    self.validation_errors.append(f"{name} could not be created: {e}")
+            elif not os.access(path, os.W_OK):
+                self.validation_errors.append(f"{name} is not writable: {path}")
+    
+    def is_valid(self) -> bool:
+        """Check if configuration is valid."""
+        return len(self.validation_errors) == 0
+    
+    def get_validation_errors(self) -> List[str]:
+        """Get list of validation errors."""
+        return self.validation_errors.copy()
 
     def get_all(self) -> Dict[str, Any]:
         """Serializes current configuration for logging or UI sync."""
@@ -141,7 +268,12 @@ class ConfigManager:
             "pinchtab": self.pinchtab.__dict__,
             "openclaw": self.openclaw.__dict__,
             "hybrid_browser": self.hybrid_browser.__dict__,
-            "master": self.master.__dict__
+            "master": self.master.__dict__,
+            "validation": {
+                "is_valid": self.is_valid(),
+                "error_count": len(self.validation_errors),
+                "errors": self.validation_errors
+            }
         }
 
 if __name__ == "__main__":

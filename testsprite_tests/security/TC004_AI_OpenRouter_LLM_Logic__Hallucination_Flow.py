@@ -127,7 +127,8 @@ def test_ai_openrouter_llm_logic_and_hallucination_flow():
                     err_json = resp.json()
                     assert 'stack' not in err_json.get('error', '').lower(), "Stack trace leaked in error."
                     assert 'exception' not in err_json.get('error', '').lower(), "Exception details leaked in error."
-            except:
+            except (requests.RequestException, AssertionError, KeyError) as e:
+                # Expected errors during hallucination testing
                 pass
 
 # test_ai_openrouter_llm_logic_and_hallucination_flow()

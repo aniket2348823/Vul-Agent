@@ -8,19 +8,19 @@ import json
 import redis
 from datetime import datetime
 from typing import Dict, List, Any, Optional
-from backend.core.hive import BaseAgent, EventType, HiveEvent
+from backend.core.hive import EventType, HiveEvent
+from backend.core.browser_agent import BrowserEnabledAgent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, Vulnerability, TaskPriority
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.config import ConfigManager
 from backend.core.content_boundary import content_boundary
+from backend.core.task_manager import TaskManager
+import logging
 
-# Browser Integration (Phase 4)
-from backend.core.browser_orchestrator import BrowserOrchestrator
-from backend.core.hybrid_session_manager import HybridSessionManager
-from backend.core.forensic_collector import ForensicCollector
+logger = logging.getLogger("AgentPrism")
 
 
-class AgentPrism(BaseAgent):
+class AgentPrism(BrowserEnabledAgent):
     """
     AGENT PRISM (THE SENTINEL): The Optical Truth Engine.
     Visual Logic: A prism splits light to reveal what is hidden.
@@ -36,16 +36,12 @@ class AgentPrism(BaseAgent):
     def __init__(self, bus):
         super().__init__("agent_prism", bus) # AgentID.PRISM
         self.name = "agent_prism"
+        self._task_manager = TaskManager("AgentPrism")
         
         # CORTEX AI Engine (Local Ollama)
         try:
             self.ai = get_cortex_engine()
         except Exception:self.ai = None
-        
-        # Browser Integration
-        self.browser = BrowserOrchestrator()
-        self.session_manager = HybridSessionManager()
-        self.forensics = ForensicCollector()
         
         # Knowledge Base: Prompt Injection Signatures (regex fallback)
         self.injection_patterns = [
@@ -84,10 +80,17 @@ class AgentPrism(BaseAgent):
                 import redis.asyncio as aioredis
                 self.redis_client = aioredis.from_url(redis_url, decode_responses=True)
                 # Start result interception (Monitoring the swarm stream)
-                asyncio.create_task(self._subscribe_to_results())
+                self._task_manager.create_task(
+                    self._subscribe_to_results(),
+                    name="redis_subscriber"
+                )
             except Exception as e:
                 logger.error(f"AgentPrism setup failure: {e}")
  
+    async def stop(self):
+        """Cleanup tasks on agent shutdown."""
+        await self._task_manager.cancel_all()
+        await super().stop()
 
 
     async def handle_job(self, event: HiveEvent):
@@ -290,8 +293,50 @@ class AgentPrism(BaseAgent):
                     logger.debug(f"Lock check failure: {e}")
 
             
-            # Placeholder for active HTTP probes (Target endpoint)
-            await asyncio.sleep(1)
+            # Active HTTP probes to detect server behavior
+            try:
+                # Probe for common security headers
+                import aiohttp
+                async with aiohttp.ClientSession() as session:
+                    response = await network_interceptor.fetch(
+                        "GET",
+                        url,
+                        session=session,
+                        timeout=10
+                    )
+                    
+                    # Check for security headers
+                    headers = response.headers
+                    missing_headers = []
+                    
+                    security_headers = [
+                        "X-Frame-Options",
+                        "X-Content-Type-Options",
+                        "Strict-Transport-Security",
+                        "Content-Security-Policy"
+                    ]
+                    
+                    for header in security_headers:
+                        if header.lower() not in [h.lower() for h in headers.keys()]:
+                            missing_headers.append(header)
+                    
+                    if missing_headers:
+                        print(f"[{self.name}] Missing security headers: {', '.join(missing_headers)}")
+                        
+                        # Report as low-severity finding
+                        await self.bus.publish(HiveEvent(
+                            type=EventType.VULN_CANDIDATE,
+                            source=self.name,
+                            scan_id=scan_id,
+                            payload={
+                                "url": url,
+                                "type": "MISSING_SECURITY_HEADERS",
+                                "severity": "LOW",
+                                "evidence": f"Missing headers: {', '.join(missing_headers)}"
+                            }
+                        ))
+            except Exception as probe_err:
+                logger.debug(f"HTTP probe failed: {probe_err}")
 
 
 
@@ -405,16 +450,66 @@ class AgentPrism(BaseAgent):
     async def _analyze_iframes(self, url: str) -> list:
         """Inspect iframe content for suspicious behavior."""
         try:
-            # This would use OpenClaw to enumerate and analyze iframes
-            # Placeholder implementation
+            print(f"[{self.name}] Analyzing iframes on: {url}")
+            
+            # Navigate to page and extract iframes
+            result = await self.browser.navigate(url, stealth=False)
+            
+            if not result.get("success"):
+                return []
+            
             iframes = []
             
-            # Would check for:
-            # - Cross-origin iframes
-            # - Hidden iframes
-            # - Iframes with suspicious src
+            # In a real implementation, this would use browser automation to:
+            # 1. Find all iframe elements
+            # 2. Extract src attributes
+            # 3. Check for cross-origin iframes
+            # 4. Detect hidden iframes (display:none, visibility:hidden, etc.)
+            # 5. Analyze iframe content if same-origin
+            
+            # Placeholder structure for detected iframes:
+            # iframes = [
+            #     {
+            #         "src": "https://example.com/frame",
+            #         "cross_origin": True,
+            #         "hidden": False,
+            #         "suspicious": False,
+            #         "risk_score": 30
+            #     }
+            # ]
+            
+            # Check for suspicious patterns in iframe sources
+            suspicious_patterns = [
+                r"data:text/html",  # Data URI iframes
+                r"javascript:",  # JavaScript protocol
+                r"about:blank",  # Blank iframes (often used for attacks)
+                r"\.onion",  # Tor hidden services
+                r"169\.254\.169\.254",  # AWS metadata
+            ]
+            
+            # This would be populated by actual browser inspection
+            # For now, return empty list as placeholder
+            
+            if iframes:
+                print(f"[{self.name}] Found {len(iframes)} iframes")
+                
+                # Report suspicious iframes
+                suspicious_iframes = [i for i in iframes if i.get("suspicious")]
+                if suspicious_iframes:
+                    await self.bus.publish(HiveEvent(
+                        type=EventType.VULN_CANDIDATE,
+                        source=self.name,
+                        payload={
+                            "url": url,
+                            "type": "SUSPICIOUS_IFRAME",
+                            "severity": "MEDIUM",
+                            "evidence": f"Found {len(suspicious_iframes)} suspicious iframes",
+                            "iframes": suspicious_iframes
+                        }
+                    ))
             
             return iframes
+            
         except Exception as e:
             print(f"[{self.name}] Iframe analysis failed: {e}")
             return []

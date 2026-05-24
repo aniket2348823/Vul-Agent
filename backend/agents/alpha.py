@@ -1,6 +1,7 @@
 import asyncio
 import aiohttp
-from backend.core.hive import BaseAgent, EventType, HiveEvent
+from backend.core.hive import EventType, HiveEvent
+from backend.core.browser_agent import BrowserEnabledAgent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, ModuleConfig, TaskTarget
 from backend.core.config import settings
 from backend.core.content_boundary import content_boundary
@@ -11,12 +12,7 @@ from backend.agents.alpha_v6 import AlphaOrchestrator
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.queue import command_lane
 
-# Browser Integration (Phase 2)
-from backend.core.browser_orchestrator import BrowserOrchestrator
-from backend.core.hybrid_session_manager import HybridSessionManager
-from backend.core.forensic_collector import ForensicCollector
-
-class AlphaAgent(BaseAgent):
+class AlphaAgent(BrowserEnabledAgent):
     """
     AGENT ALPHA: THE SCOUT
     Role: Real-time Recon & API Detection with Hybrid Browser Capabilities.
@@ -37,10 +33,8 @@ class AlphaAgent(BaseAgent):
         self._session = None
         self.alpha_recon = AlphaOrchestrator(bus, agent_name=self.name)
         
-        # Browser Integration
-        self.browser = BrowserOrchestrator()
-        self.session_manager = HybridSessionManager()
-        self.forensics = ForensicCollector()
+        # Browser Integration inherited from BrowserEnabledAgent
+        # self.browser, self.session_manager, self.forensics available via properties
 
     async def setup(self):
         # Listen for assigned jobs

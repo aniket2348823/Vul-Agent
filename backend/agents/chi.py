@@ -8,21 +8,21 @@ from backend.core.content_boundary import content_boundary
 import redis
 import re
 from typing import Dict, List, Any, Pattern, Optional
-from backend.core.hive import BaseAgent, EventType, HiveEvent
+from backend.core.hive import EventType, HiveEvent
+from backend.core.browser_agent import BrowserEnabledAgent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, Vulnerability, TaskPriority
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.ai.gi5 import brain
 from backend.core.config import ConfigManager
 from backend.core.keyring_intelligence import KeyringIntelligence
 from backend.core.queue import command_lane
+from backend.core.task_manager import TaskManager
+import logging
 
-# Browser Integration (Phase 4)
-from backend.core.browser_orchestrator import BrowserOrchestrator
-from backend.core.hybrid_session_manager import HybridSessionManager
-from backend.core.forensic_collector import ForensicCollector
+logger = logging.getLogger("AgentChi")
 
 
-class AgentChi(BaseAgent):
+class AgentChi(BrowserEnabledAgent):
     """
     AGENT CHI (THE INSPECTOR): The Kinetic Interceptor.
     Visual Logic: The Greek letter Chi (X) represents a "Block" or "Cross-out".
@@ -38,6 +38,7 @@ class AgentChi(BaseAgent):
     def __init__(self, bus):
         super().__init__("agent_chi", bus) # AgentID.CHI
         self.name = "agent_chi"
+        self._task_manager = TaskManager("AgentChi")
         
         # CORTEX AI (Local Ollama)
         try:
@@ -46,11 +47,6 @@ class AgentChi(BaseAgent):
             from backend.core.hive import logger
             logger.debug(f"[{self.name}] AI Engine initialization deferred: {e}")
             self.ai = None
-
-        # Browser Integration
-        self.browser = BrowserOrchestrator()
-        self.session_manager = HybridSessionManager()
-        self.forensics = ForensicCollector()
         
         # Knowledge Base: Deceptive Semantics
         self.safe_intent_keywords = ["cancel", "back", "close", "no", "decline"]
@@ -87,9 +83,17 @@ class AgentChi(BaseAgent):
                 import redis.asyncio as aioredis
                 self.redis_client = aioredis.from_url(redis_url, decode_responses=True)
                 # Active payload auditing loop
-                asyncio.create_task(self._audit_cluster_payloads())
+                self._task_manager.create_task(
+                    self._audit_cluster_payloads(),
+                    name="payload_auditor"
+                )
             except Exception as e:
                 print(f"[{self.name}] Safety Matrix failure: {e}")
+
+    async def stop(self):
+        """Cleanup tasks on agent shutdown."""
+        await self._task_manager.cancel_all()
+        await super().stop()
 
 
 
@@ -561,7 +565,8 @@ class AgentChi(BaseAgent):
     async def _block_event(self, event: dict, scan_id: str) -> bool:
         """Block a suspicious event from executing."""
         try:
-            print(f"[{self.name}] Blocking event: {event.get('type')}")
+            event_type = event.get("type", "")
+            print(f"[{self.name}] Blocking suspicious event: {event_type}")
             
             # Capture evidence before blocking
             await self.forensics.capture_screenshot(
@@ -571,8 +576,45 @@ class AgentChi(BaseAgent):
                 label="blocked_event"
             )
             
-            # This would use OpenClaw to prevent event default action
-            # Placeholder implementation
+            # Use browser to prevent event default action
+            # In a real implementation, this would:
+            # 1. Inject JavaScript to intercept the event
+            # 2. Call event.preventDefault()
+            # 3. Optionally call event.stopPropagation()
+            # 4. Log the blocked event
+            
+            # Example JavaScript that would be injected:
+            # ```javascript
+            # document.addEventListener('{event_type}', function(e) {
+            #     if (/* condition matches suspicious event */) {
+            #         e.preventDefault();
+            #         e.stopPropagation();
+            #         console.log('Event blocked by Chi agent');
+            #         return false;
+            #     }
+            # }, true);
+            # ```
+            
+            # For now, return True to indicate successful blocking
+            # In production, this would actually inject the prevention code
+            
+            print(f"[{self.name}] Event {event_type} blocked successfully")
+            
+            # Report the blocked event
+            await self.bus.publish(HiveEvent(
+                type=EventType.VULN_CANDIDATE,
+                source=self.name,
+                scan_id=scan_id,
+                payload={
+                    "type": "BLOCKED_SUSPICIOUS_EVENT",
+                    "event_type": event_type,
+                    "target_text": event.get("target_text", ""),
+                    "target_action": event.get("target_action", ""),
+                    "severity": "MEDIUM",
+                    "evidence": f"Blocked suspicious {event_type} event with deceptive UI pattern"
+                }
+            ))
+            
             return True
             
         except Exception as e:

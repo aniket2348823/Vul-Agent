@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse
 import os
 import asyncio
@@ -7,6 +7,7 @@ from backend.core.state import stats_db_manager
 from backend.core.reporting import ReportGenerator
 from backend.core.config import settings
 from backend.core.database import db_manager # [NEW] Distributed Intelligence Backbone
+from backend.core.rate_limiter import rate_limit
 
 router = APIRouter()
 REPORTS_DIR = settings.REPORTS_DIR
@@ -30,7 +31,8 @@ async def list_reports():
     return [{"name": f, "path": f"/api/reports/pdf/{f.replace('Scan_Report_', '').replace('.pdf', '')}"} for f in files]
 
 @router.get("/pdf/{scan_id}")
-async def generate_pdf_report(scan_id: str):
+@rate_limit("/api/reports/pdf")
+async def generate_pdf_report(request: Request, scan_id: str):
     """
     Serves or Generates a PDF security report.
     V6 OMEGA Stabilization: strictly awaits generation and validates paths.
@@ -106,7 +108,8 @@ async def generate_pdf_report(scan_id: str):
         raise HTTPException(status_code=500, detail=f"Atomic Serve Failure: {str(e)}")
 
 @router.get("/consolidated")
-async def generate_consolidated_report():
+@rate_limit("/api/reports/consolidated")
+async def generate_consolidated_report(request: Request):
     """
     Generates a high-fidelity intelligence report aggregating ALL scans.
     Performs cross-scan deduplication and strategic multi-vector analysis.
@@ -149,7 +152,9 @@ async def generate_consolidated_report():
                     pass
                 else:
                     total_duration_secs += int(dur_str.split()[0].replace('s', ''))
-            except: pass
+            except (ValueError, IndexError, AttributeError) as e:
+                # Skip malformed duration strings
+                pass
             
             # Deduplicate Vulnerabilities across scans
             for e in s_events:

@@ -86,7 +86,10 @@ class ProcessRunner:
         no_output_timeout_ms: int = 30000,
         max_runtime_ms: int = 120000,
     ) -> ProcessResult:
+        from backend.core.task_manager import TaskManager
+        
         start_time = time.monotonic()
+        task_manager = TaskManager("ProcessRunner")
         
         try:
             proc = await spawn_coro()
@@ -109,8 +112,14 @@ class ProcessRunner:
                 last_output_at = time.monotonic()
                 chunks_list.append(line.decode('utf-8', errors='replace'))
 
-        stdout_task = asyncio.create_task(_read_stream(proc.stdout, stdout_chunks))
-        stderr_task = asyncio.create_task(_read_stream(proc.stderr, stderr_chunks))
+        stdout_task = task_manager.create_task(
+            _read_stream(proc.stdout, stdout_chunks),
+            name="stdout_reader"
+        )
+        stderr_task = task_manager.create_task(
+            _read_stream(proc.stderr, stderr_chunks),
+            name="stderr_reader"
+        )
 
         async def _write_stdin():
             if stdin is None or proc.stdin is None:
@@ -137,8 +146,11 @@ class ProcessRunner:
                         pass
                     return
 
-        stdin_task = asyncio.create_task(_write_stdin())
-        watchdog_task = asyncio.create_task(_no_output_watchdog())
+        stdin_task = task_manager.create_task(_write_stdin(), name="stdin_writer")
+        watchdog_task = task_manager.create_task(
+            _no_output_watchdog(),
+            name="watchdog"
+        )
         
         try:
             # Wait with max runtime timeout
@@ -161,6 +173,8 @@ class ProcessRunner:
             stdin_task.cancel()
         finally:
             watchdog_task.cancel()
+            # Cleanup all tasks
+            await task_manager.cancel_all()
 
         duration_ms = int((time.monotonic() - start_time) * 1000)
         stdout_text = "".join(stdout_chunks)
