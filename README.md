@@ -109,6 +109,26 @@ See [.env.example](.env.example) for all configuration options.
 python -m pytest tests/ -v --tb=short
 ```
 
+## Documentation
+
+### Core Documentation
+- **[Architecture](docs/ARCHITECTURE.md)** - System architecture and design principles
+- **[Project Overview](PROJECT.md)** - Project description and goals
+- **[Agent Manifest](VUL_AGENT_MANIFEST.md)** - Agent capabilities and specifications
+
+### Specifications
+- **[OpenClaw Integration](.kiro/specs/openclaw-integration/)** - Browser automation integration
+- **[File Consolidation](.kiro/specs/file-consolidation/)** - Project organization improvements
+
+### Planning
+- **[Roadmap](.planning/ROADMAP.md)** - Product roadmap and future plans
+- **[Current State](.planning/STATE.md)** - Current project status
+- **[Archived Plans](.planning/archive/)** - Historical planning documents
+
+### Utilities
+- **[Scripts](scripts/)** - Development and maintenance scripts
+- **[Tests](testsprite_tests/)** - Comprehensive test suite
+
 ## License
 
 Proprietary — All rights reserved.
