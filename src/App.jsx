@@ -6,7 +6,6 @@ import Settings from './components/Settings';
 import Library from './components/Library';
 import Login from './components/Login';
 import SmoothScroll from './components/SmoothScroll';
-import ReconDashboard from './components/ReconDashboard';
 import GlobalBackground from './components/GlobalBackground';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AnimatePresence } from 'framer-motion';
@@ -116,7 +115,6 @@ export default function App() {
                     {currentPage === 'newscan' && <NewScan key="newscan" navigate={navigate} />}
                     {currentPage === 'settings' && <Settings key="settings" navigate={navigate} />}
                     {currentPage === 'library' && <Library key="library" navigate={navigate} />}
-                    {currentPage === 'recon' && <ReconDashboard key="recon" navigate={navigate} />}
                 </AnimatePresence>
             </SmoothScroll>
         </ErrorBoundary>

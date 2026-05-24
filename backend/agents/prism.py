@@ -1,25 +1,36 @@
 # FILE: backend/agents/prism.py
 # IDENTITY: AGENT PRISM (THE SENTINEL)
-# MISSION: Passive DOM Analysis & Prompt Injection Defense.
+# MISSION: Passive DOM Analysis & Prompt Injection Defense with Deep Browser Analysis.
 
 import re
 import asyncio
 import json
 import redis
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, Vulnerability, TaskPriority
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.config import ConfigManager
 from backend.core.content_boundary import content_boundary
 
+# Browser Integration (Phase 4)
+from backend.core.browser_orchestrator import BrowserOrchestrator
+from backend.core.hybrid_session_manager import HybridSessionManager
+from backend.core.forensic_collector import ForensicCollector
+
 
 class AgentPrism(BaseAgent):
     """
     AGENT PRISM (THE SENTINEL): The Optical Truth Engine.
     Visual Logic: A prism splits light to reveal what is hidden.
-    Core Function: Passive DOM Analysis & Prompt Injection Defense.
+    Core Function: Passive DOM Analysis & Prompt Injection Defense with Deep Browser Capabilities.
+    
+    Browser Capabilities:
+    - Shadow DOM analysis
+    - Hidden element detection
+    - Iframe content inspection
+    - Rendered page analysis for prompt injection
     """
 
     def __init__(self, bus):
@@ -30,6 +41,11 @@ class AgentPrism(BaseAgent):
         try:
             self.ai = get_cortex_engine()
         except Exception:self.ai = None
+        
+        # Browser Integration
+        self.browser = BrowserOrchestrator()
+        self.session_manager = HybridSessionManager()
+        self.forensics = ForensicCollector()
         
         # Knowledge Base: Prompt Injection Signatures (regex fallback)
         self.injection_patterns = [
@@ -292,3 +308,154 @@ class AgentPrism(BaseAgent):
         print(f"[{self.name}] 🛑 SENTINEL SHIELD ACTIVATED: {reason}")
 
 
+
+    # ============ DEEP DOM ANALYSIS (Phase 4) ============
+    
+    async def _analyze_dom_deep(self, url: str, scan_id: str) -> dict:
+        """Analyze shadow DOM and hidden elements."""
+        try:
+            print(f"[{self.name}] Deep DOM analysis: {url}")
+            
+            # Navigate with OpenClaw for deep analysis
+            result = await self.browser.navigate(url, stealth=False, wait_for="networkidle")
+            
+            if not result.get("success"):
+                return {}
+            
+            # Find hidden elements
+            hidden_elements = await self._find_hidden_elements(url)
+            
+            # Analyze iframes
+            iframes = await self._analyze_iframes(url)
+            
+            # Check for prompt injection in rendered content
+            prompt_injection = await self._detect_prompt_injection_dom(url)
+            
+            return {
+                "hidden_elements": hidden_elements,
+                "iframes": iframes,
+                "prompt_injection": prompt_injection,
+                "risk_score": self._calculate_deep_risk(hidden_elements, iframes, prompt_injection)
+            }
+            
+        except Exception as e:
+            print(f"[{self.name}] Deep DOM analysis failed: {e}")
+            return {}
+    
+    async def _find_hidden_elements(self, url: str) -> list:
+        """Find elements with opacity=0, display=none, or off-screen positioning."""
+        try:
+            # Use OpenClaw to execute JavaScript and find hidden elements
+            if not self.browser.openclaw or not self.browser.openclaw.current_page:
+                result = await self.browser.navigate(url, stealth=False)
+                if not result.get("success"):
+                    return []
+            
+            hidden_elements = await self.browser.openclaw.current_page.evaluate("""() => {
+                const hidden = [];
+                const allElements = document.querySelectorAll('*');
+                
+                allElements.forEach((el, index) => {
+                    const style = window.getComputedStyle(el);
+                    const rect = el.getBoundingClientRect();
+                    
+                    // Check for hidden via CSS
+                    const isHidden = (
+                        style.opacity === '0' ||
+                        style.display === 'none' ||
+                        style.visibility === 'hidden' ||
+                        parseFloat(style.fontSize) === 0 ||
+                        parseInt(style.zIndex) < -1000 ||
+                        // Off-screen positioning
+                        rect.left < -1000 ||
+                        rect.top < -1000 ||
+                        rect.right > window.innerWidth + 1000 ||
+                        rect.bottom > window.innerHeight + 1000
+                    );
+                    
+                    if (isHidden && el.textContent && el.textContent.trim().length > 5) {
+                        hidden.push({
+                            tag: el.tagName,
+                            text: el.textContent.substring(0, 100),
+                            opacity: style.opacity,
+                            display: style.display,
+                            visibility: style.visibility,
+                            fontSize: style.fontSize,
+                            zIndex: style.zIndex,
+                            position: {
+                                left: rect.left,
+                                top: rect.top,
+                                width: rect.width,
+                                height: rect.height
+                            }
+                        });
+                    }
+                });
+                
+                return hidden;
+            }""")
+            
+            print(f"[{self.name}] Found {len(hidden_elements)} hidden elements")
+            return hidden_elements
+            
+        except Exception as e:
+            print(f"[{self.name}] Hidden element detection failed: {e}")
+            return []
+    
+    async def _analyze_iframes(self, url: str) -> list:
+        """Inspect iframe content for suspicious behavior."""
+        try:
+            # This would use OpenClaw to enumerate and analyze iframes
+            # Placeholder implementation
+            iframes = []
+            
+            # Would check for:
+            # - Cross-origin iframes
+            # - Hidden iframes
+            # - Iframes with suspicious src
+            
+            return iframes
+        except Exception as e:
+            print(f"[{self.name}] Iframe analysis failed: {e}")
+            return []
+    
+    async def _detect_prompt_injection_dom(self, url: str) -> dict:
+        """Detect prompt injection in rendered page content."""
+        try:
+            # Get rendered page text
+            result = await self.browser.navigate(url, stealth=False)
+            page_text = result.get("text", "")
+            
+            # Check for injection patterns
+            detected_patterns = []
+            for pattern in self.injection_patterns:
+                if re.search(pattern, page_text, re.IGNORECASE):
+                    detected_patterns.append(pattern)
+            
+            if detected_patterns:
+                return {
+                    "detected": True,
+                    "patterns": detected_patterns,
+                    "risk_score": 90
+                }
+            
+            return {"detected": False, "risk_score": 0}
+            
+        except Exception as e:
+            print(f"[{self.name}] Prompt injection detection failed: {e}")
+            return {"detected": False, "error": str(e)}
+    
+    def _calculate_deep_risk(self, hidden_elements: list, iframes: list, prompt_injection: dict) -> int:
+        """Calculate overall risk score from deep analysis."""
+        risk = 0
+        
+        if len(hidden_elements) > 0:
+            risk += min(len(hidden_elements) * 10, 40)
+        
+        if len(iframes) > 0:
+            risk += min(len(iframes) * 15, 30)
+        
+        if prompt_injection.get("detected"):
+            risk += prompt_injection.get("risk_score", 0)
+        
+        return min(risk, 100)

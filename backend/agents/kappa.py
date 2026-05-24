@@ -12,14 +12,21 @@ from backend.core.memory import memory_store, cosine_similarity
 from backend.core.sandbox import TempWorkspace
 from backend.core.queue import command_lane
 
+# Browser Integration (Phase 4)
+from backend.core.browser_orchestrator import BrowserOrchestrator
+from backend.core.hybrid_session_manager import HybridSessionManager
+from backend.core.forensic_collector import ForensicCollector
+
 class KappaAgent(BaseAgent):
     """
     AGENT KAPPA: THE LIBRARIAN
-    Role: Knowledge & Memory.
+    Role: Knowledge & Memory with Browser Session Persistence.
     Capabilities:
     - Persistent Vector Memory for exploit history.
     - AI-Driven Semantic Similarity Search (via Gemini text-embedding-004).
     - Anomaly suppression via truth kernel.
+    - Browser session archival and replay
+    - Session correlation with exploits
     """
     def __init__(self, bus):
         super().__init__("agent_kappa", bus)
@@ -35,6 +42,11 @@ class KappaAgent(BaseAgent):
             
         self._embeddings_disabled = False
         self._ensure_memory()
+        
+        # Browser Integration
+        self.browser = BrowserOrchestrator()
+        self.session_manager = HybridSessionManager()
+        self.forensics = ForensicCollector()
 
     def _ensure_memory(self):
         os.makedirs(os.path.dirname(self.memory_file), exist_ok=True)
@@ -163,3 +175,131 @@ class KappaAgent(BaseAgent):
 
         scored_records.sort(key=lambda x: x[0], reverse=True)
         return [r for sim, r in scored_records[:top_k] if sim > 0.3]
+
+    # ============ BROWSER SESSION PERSISTENCE (Phase 4) ============
+    
+    async def _store_browser_session(self, scan_id: str, vuln_id: str, session_data: dict):
+        """Archive browser session for later replay."""
+        try:
+            print(f"[{self.name}] Archiving browser session for {vuln_id}")
+            
+            # Save session with correlation to vulnerability
+            success = await self.session_manager.save_session(
+                session_id=f"{scan_id}_{vuln_id}",
+                engine="openclaw",  # Prefer OpenClaw for replay
+                session_data=session_data,
+                metadata={
+                    "scan_id": scan_id,
+                    "vuln_id": vuln_id,
+                    "timestamp": _time.time(),
+                    "type": "exploit_session"
+                }
+            )
+            
+            if success:
+                print(f"[{self.name}] Session archived successfully")
+            
+            return success
+            
+        except Exception as e:
+            print(f"[{self.name}] Session archival failed: {e}")
+            return False
+    
+    async def _load_browser_session(self, scan_id: str, vuln_id: str) -> dict:
+        """Load archived browser session."""
+        try:
+            session_data = await self.session_manager.restore_session(
+                session_id=f"{scan_id}_{vuln_id}",
+                engine="openclaw"
+            )
+            
+            if session_data:
+                print(f"[{self.name}] Session restored for {vuln_id}")
+            
+            return session_data or {}
+            
+        except Exception as e:
+            print(f"[{self.name}] Session restoration failed: {e}")
+            return {}
+    
+    async def _export_session(self, scan_id: str, vuln_id: str) -> str:
+        """Export session to portable format."""
+        try:
+            session_data = await self._load_browser_session(scan_id, vuln_id)
+            
+            if not session_data:
+                return ""
+            
+            # Export to JSON
+            export_data = {
+                "scan_id": scan_id,
+                "vuln_id": vuln_id,
+                "session": session_data,
+                "exported_at": _time.time()
+            }
+            
+            export_path = f"scan_states/sessions/export_{scan_id}_{vuln_id}.json"
+            with open(export_path, 'w') as f:
+                json.dump(export_data, f, indent=2)
+            
+            print(f"[{self.name}] Session exported to {export_path}")
+            
+            return export_path
+            
+        except Exception as e:
+            print(f"[{self.name}] Session export failed: {e}")
+            return ""
+    
+    async def _import_session(self, export_path: str) -> bool:
+        """Import session from exported file."""
+        try:
+            with open(export_path, 'r') as f:
+                export_data = json.load(f)
+            
+            scan_id = export_data.get("scan_id")
+            vuln_id = export_data.get("vuln_id")
+            session_data = export_data.get("session")
+            
+            if not all([scan_id, vuln_id, session_data]):
+                return False
+            
+            # Import session
+            success = await self._store_browser_session(scan_id, vuln_id, session_data)
+            
+            if success:
+                print(f"[{self.name}] Session imported from {export_path}")
+            
+            return success
+            
+        except Exception as e:
+            print(f"[{self.name}] Session import failed: {e}")
+            return False
+    
+    async def recall_session(self, scan_id: str, vuln_id: str) -> dict:
+        """Recall and replay a browser session."""
+        try:
+            print(f"[{self.name}] Replaying session for {vuln_id}")
+            
+            # Load session
+            session_data = await self._load_browser_session(scan_id, vuln_id)
+            
+            if not session_data:
+                return {"success": False, "error": "Session not found"}
+            
+            # Replay session (navigate to URL with restored session)
+            url = session_data.get("url", "")
+            if url:
+                result = await self.browser.navigate(url, stealth=False)
+                
+                return {
+                    "success": True,
+                    "url": url,
+                    "session_restored": True,
+                    "result": result
+                }
+            
+            return {"success": False, "error": "No URL in session"}
+            
+        except Exception as e:
+            print(f"[{self.name}] Session replay failed: {e}")
+            return {"success": False, "error": str(e)}

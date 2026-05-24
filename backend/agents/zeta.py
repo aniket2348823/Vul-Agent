@@ -11,6 +11,11 @@ from backend.core.queue import command_lane
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.content_boundary import content_boundary
 
+# Browser Integration (Phase 4)
+from backend.core.browser_orchestrator import BrowserOrchestrator
+from backend.core.hybrid_session_manager import HybridSessionManager
+from backend.core.forensic_collector import ForensicCollector
+
 class ZetaAgent(BaseAgent):
     """
     AGENT ZETA: THE CORTEX
@@ -21,6 +26,7 @@ class ZetaAgent(BaseAgent):
     - Dynamic IP Rotation.
     - SOTA: Sentiment Analysis (Server Stress).
     - SOTA: Adaptive Gaussian Jitter.
+    - Browser resource monitoring and cleanup
     """
     def __init__(self, bus):
         super().__init__("agent_zeta", bus)
@@ -35,6 +41,15 @@ class ZetaAgent(BaseAgent):
         self.priority_queue = {0: [], 1: [], 2: []}
         # Hybrid AI Engine for stress analysis
         self.cortex = get_cortex_engine()
+        
+        # Browser Integration
+        self.browser = BrowserOrchestrator()
+        self.session_manager = HybridSessionManager()
+        self.forensics = ForensicCollector()
+        
+        # Browser resource tracking
+        self.browser_memory_threshold = 500 * 1024 * 1024  # 500MB
+        self.max_browser_contexts = 5
 
     async def setup(self):
         self.bus.subscribe(EventType.JOB_COMPLETED, self.handle_job_completion)
@@ -199,3 +214,69 @@ class ZetaAgent(BaseAgent):
              return False
 
         return True
+
+    # ============ BROWSER RESOURCE MONITORING (Phase 4) ============
+    
+    async def _monitor_browser_memory(self) -> dict:
+        """Monitor browser memory usage and detect leaks."""
+        try:
+            # Get current process memory
+            process = psutil.Process()
+            memory_info = process.memory_info()
+            
+            # Check if browser memory exceeds threshold
+            if memory_info.rss > self.browser_memory_threshold:
+                print(f"[{self.name}] Browser memory threshold exceeded: {memory_info.rss / 1024 / 1024:.1f}MB")
+                
+                # Trigger cleanup
+                await self._close_idle_contexts()
+                
+                return {
+                    "memory_mb": memory_info.rss / 1024 / 1024,
+                    "threshold_exceeded": True,
+                    "action": "cleanup_triggered"
+                }
+            
+            return {
+                "memory_mb": memory_info.rss / 1024 / 1024,
+                "threshold_exceeded": False
+            }
+            
+        except Exception as e:
+            print(f"[{self.name}] Browser memory monitoring failed: {e}")
+            return {}
+    
+    async def _get_active_contexts(self) -> list:
+        """Get list of active browser contexts."""
+        try:
+            # This would query OpenClaw for active contexts
+            # Placeholder implementation
+            active_contexts = []
+            
+            return active_contexts
+        except Exception as e:
+            print(f"[{self.name}] Context enumeration failed: {e}")
+            return []
+    
+    async def _close_idle_contexts(self) -> int:
+        """Close idle browser contexts to free memory."""
+        try:
+            print(f"[{self.name}] Closing idle browser contexts...")
+            
+            active_contexts = await self._get_active_contexts()
+            
+            closed_count = 0
+            for context in active_contexts:
+                # Check if context is idle (no activity for >5 minutes)
+                if context.get("idle_time", 0) > 300:
+                    # Close context
+                    # This would call OpenClaw API to close context
+                    closed_count += 1
+            
+            print(f"[{self.name}] Closed {closed_count} idle contexts")
+            
+            return closed_count
+            
+        except Exception as e:
+            print(f"[{self.name}] Context cleanup failed: {e}")
+            return 0

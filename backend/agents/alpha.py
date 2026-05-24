@@ -11,11 +11,23 @@ from backend.agents.alpha_v6 import AlphaOrchestrator
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.queue import command_lane
 
+# Browser Integration (Phase 2)
+from backend.core.browser_orchestrator import BrowserOrchestrator
+from backend.core.hybrid_session_manager import HybridSessionManager
+from backend.core.forensic_collector import ForensicCollector
+
 class AlphaAgent(BaseAgent):
     """
     AGENT ALPHA: THE SCOUT
-    Role: Real-time Recon & API Detection.
-    Now performs actual HTTP reconnaissance against targets.
+    Role: Real-time Recon & API Detection with Hybrid Browser Capabilities.
+    Now performs HTTP + Browser reconnaissance against targets.
+    
+    Browser Capabilities:
+    - Deep SPA endpoint discovery (React/Vue/Angular)
+    - JavaScript route extraction
+    - Framework detection
+    - Network interception (XHR/Fetch)
+    - WebSocket discovery
     """
     def __init__(self, bus):
         super().__init__("agent_alpha", bus)
@@ -24,6 +36,11 @@ class AlphaAgent(BaseAgent):
         self.MAX_CRAWL_DEPTH = 5
         self._session = None
         self.alpha_recon = AlphaOrchestrator(bus, agent_name=self.name)
+        
+        # Browser Integration
+        self.browser = BrowserOrchestrator()
+        self.session_manager = HybridSessionManager()
+        self.forensics = ForensicCollector()
 
     async def setup(self):
         # Listen for assigned jobs
@@ -32,19 +49,26 @@ class AlphaAgent(BaseAgent):
         self.bus.subscribe(EventType.TARGET_ACQUIRED, self.handle_target_acquired)
 
     async def handle_target_acquired(self, event: HiveEvent):
-        """React to new targets by performing real HTTP recon."""
+        """React to new targets by performing real HTTP + Browser recon."""
         target_url = event.payload.get("url")
         if not target_url:
             return
         
-        print(f"[{self.name}] TARGET ACQUIRED: {target_url}. Initiating real-time HTTP recon...")
+        print(f"[{self.name}] TARGET ACQUIRED: {target_url}. Initiating hybrid recon...")
         
         # Broadcast recon start
         await self.bus.publish(HiveEvent(
             type=EventType.LIVE_ATTACK,
             source=self.name,
-            payload={"url": target_url, "arsenal": "Recon Engine", "action": "Initiating HTTP Recon", "payload": "N/A"}
+            payload={"url": target_url, "arsenal": "Hybrid Recon Engine", "action": "Initiating HTTP + Browser Recon", "payload": "N/A"}
         ))
+        
+        # Check if this is a SPA that needs browser-based recon
+        is_spa = await self._detect_spa(target_url)
+        
+        if is_spa:
+            print(f"[{self.name}] SPA DETECTED: {target_url}. Engaging browser-based reconnaissance...")
+            await self._browser_recon(target_url, event.scan_id)
         
         if getattr(settings, "ALPHA_ENABLE_V6", True):
             try:
@@ -53,6 +77,210 @@ class AlphaAgent(BaseAgent):
                 return
             except Exception as exc:
                 print(f"[{self.name}] Alpha V6 recon failed: {exc}")
+    
+    async def _detect_spa(self, url: str) -> bool:
+        """Detect if target is a Single Page Application."""
+        try:
+            # Quick heuristic: check for common SPA frameworks
+            result = await self.browser.navigate(url, stealth=False, wait_for="networkidle")
+            
+            if not result.get("success"):
+                return False
+            
+            # Check for framework indicators
+            framework = await self.browser.detect_framework(url)
+            
+            is_spa = framework in ["react", "vue", "angular", "svelte"]
+            
+            if is_spa:
+                print(f"[{self.name}] Framework detected: {framework.upper()}")
+            
+            return is_spa
+            
+        except Exception as e:
+            print(f"[{self.name}] SPA detection failed: {e}")
+            return False
+    
+    async def _browser_recon(self, url: str, scan_id: str):
+        """Perform deep browser-based reconnaissance on SPA."""
+        try:
+            print(f"[{self.name}] Starting browser reconnaissance on {url}")
+            
+            # 1. Extract endpoints using deep mode (JavaScript analysis)
+            endpoints = await self.browser.extract_endpoints(url, deep=True)
+            
+            print(f"[{self.name}] Discovered {len(endpoints)} endpoints via browser analysis")
+            
+            # 2. Intercept network traffic
+            network_events = await self._intercept_network(url)
+            
+            # 3. Find WebSockets
+            websockets = await self._find_websockets(url)
+            
+            # 4. Extract JS routes
+            js_routes = await self._extract_js_routes(url)
+            
+            # 5. Merge all discovered endpoints
+            all_endpoints = self._merge_endpoints(endpoints, network_events, js_routes, websockets)
+            
+            print(f"[{self.name}] Total unique endpoints discovered: {len(all_endpoints)}")
+            
+            # 6. Publish findings
+            for endpoint in all_endpoints:
+                await self.bus.publish(HiveEvent(
+                    type=EventType.RECON_PACKET,
+                    source=self.name,
+                    scan_id=scan_id,
+                    payload={
+                        "url": endpoint.get("url"),
+                        "method": endpoint.get("method", "GET"),
+                        "source": endpoint.get("source", "browser"),
+                        "severity": "INFO",
+                        "risk_score": 10
+                    }
+                ))
+            
+            # 7. Capture forensic evidence
+            await self.forensics.capture_screenshot(
+                scan_id=scan_id,
+                context=None,  # Would need actual page context
+                engine="openclaw",
+                label="spa_recon"
+            )
+            
+        except Exception as e:
+            print(f"[{self.name}] Browser recon failed: {e}")
+    
+    async def _extract_js_routes(self, url: str) -> list:
+        """Extract routes from JavaScript router (React Router, Vue Router, etc.)."""
+        try:
+            # Use OpenClaw to execute JS and extract routes
+            result = await self.browser.navigate(url, stealth=False, wait_for="networkidle")
+            
+            if not result.get("success"):
+                return []
+            
+            # Detect framework first
+            framework = await self.browser.detect_framework(url)
+            
+            routes = []
+            
+            if framework == "React":
+                # Extract React Router routes
+                react_routes = await self.browser.openclaw.current_page.evaluate("""() => {
+                    const routes = [];
+                    // Check for React Router v6
+                    if (window.__REACT_ROUTER__) {
+                        const router = window.__REACT_ROUTER__;
+                        if (router.routes) {
+                            router.routes.forEach(r => {
+                                if (r.path) routes.push({url: r.path, method: "GET", source: "react_router"});
+                            });
+                        }
+                    }
+                    // Check for older versions via DOM
+                    document.querySelectorAll('[data-route]').forEach(el => {
+                        const path = el.getAttribute('data-route');
+                        if (path) routes.push({url: path, method: "GET", source: "react_dom"});
+                    });
+                    return routes;
+                }""")
+                routes.extend(react_routes)
+                
+            elif framework == "Vue":
+                # Extract Vue Router routes
+                vue_routes = await self.browser.openclaw.current_page.evaluate("""() => {
+                    const routes = [];
+                    if (window.$router && window.$router.options) {
+                        const routerRoutes = window.$router.options.routes || [];
+                        routerRoutes.forEach(r => {
+                            if (r.path) routes.push({url: r.path, method: "GET", source: "vue_router"});
+                        });
+                    }
+                    return routes;
+                }""")
+                routes.extend(vue_routes)
+                
+            elif framework == "Angular":
+                # Extract Angular routes
+                angular_routes = await self.browser.openclaw.current_page.evaluate("""() => {
+                    const routes = [];
+                    if (window.ng && window.ng.probe) {
+                        // Angular route extraction
+                        const allRoutes = window.ng.probe.getAllRoutes?.() || [];
+                        allRoutes.forEach(r => {
+                            if (r.path) routes.push({url: r.path, method: "GET", source: "angular_router"});
+                        });
+                    }
+                    return routes;
+                }""")
+                routes.extend(angular_routes)
+            
+            print(f"[{self.name}] Extracted {len(routes)} routes from {framework} router")
+            return routes
+            
+        except Exception as e:
+            print(f"[{self.name}] JS route extraction failed: {e}")
+            return []
+    
+    async def _intercept_network(self, url: str) -> list:
+        """Intercept XHR/Fetch requests to discover API endpoints."""
+        try:
+            # Use OpenClaw's network interception
+            network_events = await self.browser.intercept_network(url)
+            
+            # Transform to standard format
+            endpoints = []
+            for event in network_events:
+                endpoints.append({
+                    "url": event.get("url"),
+                    "method": event.get("method", "GET"),
+                    "source": "network_intercept",
+                    "headers": event.get("headers", {})
+                })
+            
+            print(f"[{self.name}] Intercepted {len(endpoints)} network requests")
+            return endpoints
+            
+        except Exception as e:
+            print(f"[{self.name}] Network interception failed: {e}")
+            return []
+    
+    async def _find_websockets(self, url: str) -> list:
+        """Discover WebSocket connections."""
+        try:
+            # Use OpenClaw to monitor WebSocket connections
+            ws_urls = await self.browser.find_websockets(url)
+            
+            # Transform to standard format
+            websockets = []
+            for ws_url in ws_urls:
+                websockets.append({
+                    "url": ws_url,
+                    "method": "WS",
+                    "source": "websocket_monitor"
+                })
+            
+            print(f"[{self.name}] Discovered {len(websockets)} WebSocket connections")
+            return websockets
+            
+        except Exception as e:
+            print(f"[{self.name}] WebSocket discovery failed: {e}")
+            return []
+    
+    async def _merge_endpoints(self, *endpoint_lists) -> list:
+        """Merge and deduplicate endpoints from multiple sources."""
+        seen = set()
+        merged = []
+        
+        for endpoint_list in endpoint_lists:
+            for endpoint in endpoint_list:
+                url = endpoint.get("url", "")
+                if url and url not in seen:
+                    seen.add(url)
+                    merged.append(endpoint)
+        
+        return merged
 
     async def handle_job(self, event: HiveEvent):
         """

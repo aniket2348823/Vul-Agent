@@ -21,7 +21,7 @@ const Navigation = ({ navigate, activePage }) => {
 
                         {/* Desktop Links */}
                         <div className="hidden md:flex items-center space-x-1">
-                            {['dashboard', 'recon', 'scans', 'library', 'settings'].map((page) => (
+                            {['dashboard', 'scans', 'library', 'settings'].map((page) => (
                                 <div key={page} className="relative flex flex-col items-center">
                                     <button
                                         onClick={() => navigate(page)}
@@ -73,7 +73,7 @@ const Navigation = ({ navigate, activePage }) => {
                             className="md:hidden overflow-hidden border-t border-white/10 mt-2"
                         >
                             <div className="flex flex-col py-3 gap-1">
-                                {['dashboard', 'recon', 'scans', 'library', 'settings'].map((page) => (
+                                {['dashboard', 'scans', 'library', 'settings'].map((page) => (
                                     <button
                                         key={page}
                                         onClick={() => { navigate(page); setMobileOpen(false); }}

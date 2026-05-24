@@ -1,13 +1,13 @@
 # FILE: backend/agents/chi.py
 # IDENTITY: AGENT CHI (THE INSPECTOR)
-# MISSION: Active Event Interception & Dark Pattern Blocking.
+# MISSION: Active Event Interception & Dark Pattern Blocking with Real-Time Browser Monitoring.
 
 import asyncio
 import json
 from backend.core.content_boundary import content_boundary
 import redis
 import re
-from typing import Dict, List, Any, Pattern
+from typing import Dict, List, Any, Pattern, Optional
 from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, Vulnerability, TaskPriority
 from backend.ai.cortex import CortexEngine, get_cortex_engine
@@ -16,12 +16,23 @@ from backend.core.config import ConfigManager
 from backend.core.keyring_intelligence import KeyringIntelligence
 from backend.core.queue import command_lane
 
+# Browser Integration (Phase 4)
+from backend.core.browser_orchestrator import BrowserOrchestrator
+from backend.core.hybrid_session_manager import HybridSessionManager
+from backend.core.forensic_collector import ForensicCollector
+
 
 class AgentChi(BaseAgent):
     """
     AGENT CHI (THE INSPECTOR): The Kinetic Interceptor.
     Visual Logic: The Greek letter Chi (X) represents a "Block" or "Cross-out".
-    Core Function: Active Event Interception & Dark Pattern Blocking.
+    Core Function: Active Event Interception & Dark Pattern Blocking with Real-Time Monitoring.
+    
+    Browser Capabilities:
+    - Real-time event interception
+    - Click/form submission monitoring
+    - Event blocking
+    - Timing analysis
     """
 
     def __init__(self, bus):
@@ -36,7 +47,10 @@ class AgentChi(BaseAgent):
             logger.debug(f"[{self.name}] AI Engine initialization deferred: {e}")
             self.ai = None
 
-
+        # Browser Integration
+        self.browser = BrowserOrchestrator()
+        self.session_manager = HybridSessionManager()
+        self.forensics = ForensicCollector()
         
         # Knowledge Base: Deceptive Semantics
         self.safe_intent_keywords = ["cancel", "back", "close", "no", "decline"]
@@ -393,3 +407,174 @@ class AgentChi(BaseAgent):
         }
         self.redis_client.lpush("xytherion_safety_logs", json.dumps(violation))
 
+
+    # ============ EVENT INTERCEPTION (Phase 4) ============
+    
+    async def _intercept_events(self, url: str, scan_id: str) -> dict:
+        """Intercept and monitor real-time browser events."""
+        try:
+            print(f"[{self.name}] Intercepting events: {url}")
+            
+            # Install event listeners
+            listeners = await self._install_event_listeners(url)
+            
+            # Monitor events for suspicious patterns
+            monitored_events = await self._monitor_events(url, duration=10)
+            
+            # Analyze for dark patterns
+            dark_patterns = []
+            for event in monitored_events:
+                if self._is_dark_pattern(event):
+                    dark_patterns.append(event)
+            
+            return {
+                "listeners_installed": len(listeners),
+                "events_monitored": len(monitored_events),
+                "dark_patterns_detected": len(dark_patterns),
+                "dark_patterns": dark_patterns
+            }
+            
+        except Exception as e:
+            print(f"[{self.name}] Event interception failed: {e}")
+            return {}
+    
+    async def _install_event_listeners(self, url: str) -> list:
+        """Install event listeners for click, form submission, etc."""
+        try:
+            # Use OpenClaw to inject JavaScript event listeners
+            if not self.browser.openclaw or not self.browser.openclaw.current_page:
+                result = await self.browser.navigate(url, stealth=False)
+                if not result.get("success"):
+                    return []
+            
+            listeners = await self.browser.openclaw.current_page.evaluate("""() => {
+                const installedListeners = [];
+                
+                // Install click listeners on all buttons
+                document.querySelectorAll('button, a[href], input[type="submit"]').forEach((el, index) => {
+                    const listener = (e) => {
+                        window.__chi_events = window.__chi_events || [];
+                        window.__chi_events.push({
+                            type: 'click',
+                            target_text: el.innerText || el.value || el.textContent,
+                            target_action: el.href || el.form?.action || '',
+                            timestamp: Date.now(),
+                            element_id: el.id,
+                            element_class: el.className
+                        });
+                    };
+                    el.addEventListener('click', listener);
+                    installedListeners.push({
+                        type: 'click',
+                        selector: el.tagName + (el.id ? '#' + el.id : ''),
+                        text: el.innerText || el.value || ''
+                    });
+                });
+                
+                // Install form submission listeners
+                document.querySelectorAll('form').forEach((form, index) => {
+                    const listener = (e) => {
+                        window.__chi_events = window.__chi_events || [];
+                        const formData = new FormData(form);
+                        const data = {};
+                        formData.forEach((value, key) => { data[key] = value; });
+                        
+                        window.__chi_events.push({
+                            type: 'submit',
+                            target_action: form.action,
+                            method: form.method,
+                            data: data,
+                            timestamp: Date.now()
+                        });
+                    };
+                    form.addEventListener('submit', listener);
+                    installedListeners.push({
+                        type: 'submit',
+                        selector: 'form' + (form.id ? '#' + form.id : ''),
+                        action: form.action
+                    });
+                });
+                
+                // Install input change listeners for sensitive fields
+                document.querySelectorAll('input[type="password"], input[type="email"], input[name*="credit"]').forEach((input, index) => {
+                    const listener = (e) => {
+                        window.__chi_events = window.__chi_events || [];
+                        window.__chi_events.push({
+                            type: 'change',
+                            target_name: input.name,
+                            target_type: input.type,
+                            timestamp: Date.now()
+                        });
+                    };
+                    input.addEventListener('change', listener);
+                    installedListeners.push({
+                        type: 'change',
+                        selector: 'input[name="' + input.name + '"]',
+                        field_type: input.type
+                    });
+                });
+                
+                return installedListeners;
+            }""")
+            
+            print(f"[{self.name}] Installed {len(listeners)} event listeners")
+            return listeners
+            
+        except Exception as e:
+            print(f"[{self.name}] Event listener installation failed: {e}")
+            return []
+    
+    async def _monitor_events(self, url: str, duration: int = 10) -> list:
+        """Monitor events for specified duration."""
+        try:
+            # Use OpenClaw to collect events
+            if not self.browser.openclaw or not self.browser.openclaw.current_page:
+                return []
+            
+            # Wait for events to accumulate
+            await asyncio.sleep(duration)
+            
+            # Retrieve collected events
+            events = await self.browser.openclaw.current_page.evaluate("""() => {
+                return window.__chi_events || [];
+            }""")
+            
+            print(f"[{self.name}] Monitored {len(events)} events over {duration}s")
+            return events
+            
+        except Exception as e:
+            print(f"[{self.name}] Event monitoring failed: {e}")
+            return []
+    
+    def _is_dark_pattern(self, event: dict) -> bool:
+        """Check if event represents a dark pattern."""
+        event_type = event.get("type", "")
+        target_text = event.get("target_text", "").lower()
+        target_action = event.get("target_action", "").lower()
+        
+        # Check for deceptive UI patterns
+        is_safe_label = any(w in target_text for w in self.safe_intent_keywords)
+        is_risky_action = any(w in target_action for w in self.risky_action_keywords)
+        
+        return is_safe_label and is_risky_action
+    
+    async def _block_event(self, event: dict, scan_id: str) -> bool:
+        """Block a suspicious event from executing."""
+        try:
+            print(f"[{self.name}] Blocking event: {event.get('type')}")
+            
+            # Capture evidence before blocking
+            await self.forensics.capture_screenshot(
+                scan_id=scan_id,
+                context=None,
+                engine="openclaw",
+                label="blocked_event"
+            )
+            
+            # This would use OpenClaw to prevent event default action
+            # Placeholder implementation
+            return True
+            
+        except Exception as e:
+            print(f"[{self.name}] Event blocking failed: {e}")
+            return False

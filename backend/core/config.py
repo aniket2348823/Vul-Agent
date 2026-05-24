@@ -85,6 +85,29 @@ class PinchTabConfig:
     user_agent: str = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
 
 @dataclass
+class OpenClawConfig:
+    enabled: bool = os.getenv("OPENCLAW_ENABLED", "true").lower() == "true"
+    headless: bool = os.getenv("OPENCLAW_HEADLESS", "true").lower() == "true"
+    browser_type: str = os.getenv("OPENCLAW_BROWSER", "chromium")
+    timeout: int = int(os.getenv("OPENCLAW_TIMEOUT", "30000"))
+    stealth_mode: bool = os.getenv("OPENCLAW_STEALTH", "true").lower() == "true"
+    user_agent: str = os.getenv("OPENCLAW_USER_AGENT", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+    viewport_width: int = int(os.getenv("OPENCLAW_VIEWPORT_WIDTH", "1920"))
+    viewport_height: int = int(os.getenv("OPENCLAW_VIEWPORT_HEIGHT", "1080"))
+    max_contexts: int = int(os.getenv("OPENCLAW_MAX_CONTEXTS", "5"))
+
+@dataclass
+class HybridBrowserConfig:
+    """Configuration for hybrid OpenClaw + PinchTab browser orchestration."""
+    enabled: bool = os.getenv("HYBRID_BROWSER_ENABLED", "true").lower() == "true"
+    default_engine: str = os.getenv("HYBRID_DEFAULT_ENGINE", "auto")  # auto, openclaw, pinchtab
+    auto_fallback: bool = os.getenv("HYBRID_AUTO_FALLBACK", "true").lower() == "true"
+    session_sharing: bool = os.getenv("HYBRID_SESSION_SHARING", "true").lower() == "true"
+    forensics_enabled: bool = os.getenv("HYBRID_FORENSICS_ENABLED", "true").lower() == "true"
+    forensics_dir: str = os.getenv("HYBRID_FORENSICS_DIR", "scan_states/forensics")
+    session_dir: str = os.getenv("HYBRID_SESSION_DIR", "scan_states/sessions")
+
+@dataclass
 class MasterConfig:
     max_workers: int = 50
     distribution_interval: int = 10
@@ -105,6 +128,8 @@ class ConfigManager:
         self.supabase = SupabaseConfig()
         self.worker = WorkerConfig()
         self.pinchtab = PinchTabConfig()
+        self.openclaw = OpenClawConfig()
+        self.hybrid_browser = HybridBrowserConfig()
         self.master = MasterConfig()
 
     def get_all(self) -> Dict[str, Any]:
@@ -114,6 +139,8 @@ class ConfigManager:
             "supabase": {"url": self.supabase.url, "key": "MASKED", "openrouter_key": "MASKED"},
             "worker": self.worker.__dict__,
             "pinchtab": self.pinchtab.__dict__,
+            "openclaw": self.openclaw.__dict__,
+            "hybrid_browser": self.hybrid_browser.__dict__,
             "master": self.master.__dict__
         }
 

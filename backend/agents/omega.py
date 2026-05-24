@@ -7,10 +7,15 @@ from backend.core.graph_engine import graph_engine
 from backend.core.queue import command_lane
 from backend.core.content_boundary import content_boundary
 
+# Browser Integration (Phase 3)
+from backend.core.browser_orchestrator import BrowserOrchestrator
+from backend.core.hybrid_session_manager import HybridSessionManager
+from backend.core.forensic_collector import ForensicCollector
+
 class OmegaAgent(BaseAgent):
     """
     AGENT OMEGA: THE STRATEGIST
-    Role: Campaign Intelligence & Attack Chain Orchestration.
+    Role: Campaign Intelligence & Attack Chain Orchestration with Browser-Aware Strategies.
     
     Advanced Capabilities:
     1. Nash Equilibrium Strategy (Randomized mixed strategies)
@@ -18,6 +23,8 @@ class OmegaAgent(BaseAgent):
     3. Graph-Driven Attack Prioritization (V6 Phase 2)
     4. Mid-Scan Strategy Adaptation
     5. Mission Planner Integration
+    6. Browser-aware campaign planning for SPAs
+    7. SPA detection and specialized strategies
     """
     def __init__(self, bus):
         super().__init__("agent_omega", bus)
@@ -30,6 +37,11 @@ class OmegaAgent(BaseAgent):
         self._active_campaigns = {}  # scan_id -> campaign state
         self._confirmed_vulns = []   # Accumulator for mid-scan adaptation
         self._job_results = {}       # job_id -> result tracking
+        
+        # Browser Integration
+        self.browser = BrowserOrchestrator()
+        self.session_manager = HybridSessionManager()
+        self.forensics = ForensicCollector()
 
     async def setup(self):
         self.bus.subscribe(EventType.TARGET_ACQUIRED, self.handle_target)
@@ -82,6 +94,20 @@ class OmegaAgent(BaseAgent):
             "modules": [],  # Dynamically populated from graph predictions
             "aggression": 6,
             "priority": TaskPriority.HIGH,
+        },
+        "BROWSER_DEEP_RECON": {
+            "description": "Browser-based deep reconnaissance for SPAs and modern web apps",
+            "modules": ["alpha_browser_recon", "sigma_browser_payloads", "beta_browser_xss"],
+            "aggression": 7,
+            "priority": TaskPriority.HIGH,
+            "browser_required": True,
+        },
+        "SPA_ASSAULT": {
+            "description": "Specialized strategy for Single Page Applications",
+            "modules": ["alpha_spa_recon", "beta_dom_xss", "sigma_framework_exploits"],
+            "aggression": 8,
+            "priority": TaskPriority.HIGH,
+            "browser_required": True,
         }
     }
 
@@ -379,3 +405,68 @@ class OmegaAgent(BaseAgent):
         campaign = self._active_campaigns.get(scan_id)
         if campaign:
             campaign["dispatched_jobs"].append(packet.id)
+
+    # ============ BROWSER CAMPAIGN PLANNING (Phase 3) ============
+    
+    async def _detect_spa(self, url: str) -> bool:
+        """Detect if target is a Single Page Application."""
+        try:
+            # Quick framework detection
+            framework = await self.browser.detect_framework(url)
+            return framework in ["react", "vue", "angular", "svelte"]
+        except Exception as e:
+            print(f"[{self.name}] SPA detection failed: {e}")
+            return False
+    
+    async def _plan_browser_campaign(self, url: str, scan_id: str) -> dict:
+        """Plan browser-based campaign for SPAs and modern web apps."""
+        try:
+            print(f"[{self.name}] Planning browser-based campaign for {url}")
+            
+            # Detect if SPA
+            is_spa = await self._detect_spa(url)
+            
+            if is_spa:
+                strategy = "SPA_ASSAULT"
+                print(f"[{self.name}] SPA detected - using specialized strategy")
+            else:
+                strategy = "BROWSER_DEEP_RECON"
+            
+            campaign_plan = {
+                "strategy": strategy,
+                "is_spa": is_spa,
+                "modules": self.STRATEGY_PROFILES[strategy]["modules"],
+                "browser_required": True,
+                "phases": [
+                    {
+                        "phase": 1,
+                        "name": "Browser Reconnaissance",
+                        "modules": ["alpha_browser_recon"],
+                        "description": "Deep endpoint discovery via browser"
+                    },
+                    {
+                        "phase": 2,
+                        "name": "Browser-Aware Payload Generation",
+                        "modules": ["sigma_browser_payloads"],
+                        "description": "Generate payloads based on DOM structure"
+                    },
+                    {
+                        "phase": 3,
+                        "name": "Browser Exploitation",
+                        "modules": ["beta_browser_xss", "beta_dom_xss"],
+                        "description": "Test exploits in real browser"
+                    },
+                    {
+                        "phase": 4,
+                        "name": "Browser Verification",
+                        "modules": ["gamma_browser_verify"],
+                        "description": "Visual verification with forensic evidence"
+                    }
+                ]
+            }
+            
+            return campaign_plan
+            
+        except Exception as e:
+            print(f"[{self.name}] Browser campaign planning failed: {e}")
+            return {}

@@ -11,20 +11,33 @@ from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskPriority
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.queue import command_lane
 
+# Browser Integration (Phase 3)
+from backend.core.browser_orchestrator import BrowserOrchestrator
+from backend.core.hybrid_session_manager import HybridSessionManager
+from backend.core.forensic_collector import ForensicCollector
+
 class GammaAgent(BaseAgent):
     """
     AGENT GAMMA: THE AUDITOR
-    Role: Logic Verification & Bayesian Signal Classifier.
+    Role: Logic Verification & Bayesian Signal Classifier with Browser Verification.
     Capabilities:
     - Deep heuristic signal processing (Leak, Oracle, Timing, Size, Logic).
     - Bayesian fusion equation for confidence grading.
     - AI Hybrid Fallback functionality.
+    - Browser-based exploit verification
+    - Visual evidence collection
+    - DOM mutation detection
     """
     def __init__(self, bus):
         super().__init__("agent_gamma", bus)
         
         # Arsenal stripped. Gamma is now purely a tactical router.
         self.cortex = get_cortex_engine()
+        
+        # Browser Integration
+        self.browser = BrowserOrchestrator()
+        self.session_manager = HybridSessionManager()
+        self.forensics = ForensicCollector()
         
         # Bayesian Signal Matrix mapping
         self.SIGNALS = {
@@ -227,3 +240,126 @@ class GammaAgent(BaseAgent):
                  scan_id=event.scan_id,
                  payload={"url": url, "arsenal": "Vulnerability Confirmed", "action": f"Confirmed ({confidence:.0%})", "payload": str(payload.get('type', ''))[:50]}
              ))
+
+    # ============ BROWSER VERIFICATION METHODS (Phase 3) ============
+    
+    async def _verify_exploit_browser(self, payload: dict, scan_id: str) -> dict:
+        """Verify exploit visually in browser with screenshot evidence."""
+        try:
+            url = payload.get("url", "")
+            attack_payload = payload.get("attack_payload", payload.get("payload", ""))
+            
+            print(f"[{self.name}] Verifying exploit in browser: {url}")
+            
+            # Navigate to URL with payload
+            result = await self.browser.test_payload(url, attack_payload, param="test")
+            
+            if result.get("triggered"):
+                # Capture before/after screenshots
+                screenshot_path = await self.forensics.capture_screenshot(
+                    scan_id=scan_id,
+                    context=result.get("context"),
+                    engine="openclaw",
+                    label="exploit_verified",
+                    full_page=True
+                )
+                
+                # Capture DOM snapshot
+                dom_path = await self.forensics.capture_dom_snapshot(
+                    scan_id=scan_id,
+                    context=result.get("context"),
+                    engine="openclaw",
+                    label="exploit_dom"
+                )
+                
+                # Capture console logs
+                console_logs = result.get("console_logs", [])
+                if console_logs:
+                    await self.forensics.capture_console_logs(
+                        scan_id=scan_id,
+                        console_messages=console_logs,
+                        label="exploit_console"
+                    )
+                
+                return {
+                    "verified": True,
+                    "screenshot": screenshot_path,
+                    "dom_snapshot": dom_path,
+                    "console_logs": len(console_logs),
+                    "confidence": 0.95
+                }
+            
+            return {"verified": False, "confidence": 0.0}
+            
+        except Exception as e:
+            print(f"[{self.name}] Browser verification failed: {e}")
+            return {"verified": False, "error": str(e)}
+    
+    async def _detect_dom_mutation(self, url: str, payload: str, scan_id: str) -> dict:
+        """Detect DOM changes caused by payload execution."""
+        try:
+            print(f"[{self.name}] Detecting DOM mutations...")
+            
+            # Get baseline DOM
+            baseline_result = await self.browser.navigate(url, stealth=False)
+            baseline_dom = baseline_result.get("dom", "")
+            
+            # Execute payload
+            attack_result = await self.browser.test_payload(url, payload, param="test")
+            attack_dom = attack_result.get("dom", "")
+            
+            # Compare DOMs
+            if baseline_dom and attack_dom:
+                # Calculate similarity
+                similarity = difflib.SequenceMatcher(None, baseline_dom, attack_dom).ratio()
+                mutation_detected = similarity < 0.95  # >5% change
+                
+                if mutation_detected:
+                    print(f"[{self.name}] DOM mutation detected: {(1-similarity)*100:.1f}% change")
+                    
+                    return {
+                        "mutation_detected": True,
+                        "similarity": similarity,
+                        "change_percentage": (1 - similarity) * 100
+                    }
+            
+            return {"mutation_detected": False}
+            
+        except Exception as e:
+            print(f"[{self.name}] DOM mutation detection failed: {e}")
+            return {"mutation_detected": False, "error": str(e)}
+    
+    async def _detect_alert(self, url: str, payload: str, scan_id: str) -> bool:
+        """Detect if payload triggers alert/prompt/confirm dialogs."""
+        try:
+            result = await self.browser.test_payload(url, payload, param="test")
+            return result.get("alert_detected", False)
+        except Exception as e:
+            print(f"[{self.name}] Alert detection failed: {e}")
+            return False
+    
+    async def _analyze_network_traffic(self, url: str, payload: str, scan_id: str) -> dict:
+        """Analyze network traffic to verify exploit behavior."""
+        try:
+            print(f"[{self.name}] Analyzing network traffic...")
+            
+            # This would use OpenClaw's network interception
+            # Placeholder implementation
+            network_events = []
+            
+            # Capture network logs
+            if network_events:
+                await self.forensics.capture_network_logs(
+                    scan_id=scan_id,
+                    network_events=network_events,
+                    label="exploit_network"
+                )
+            
+            return {
+                "requests_count": len(network_events),
+                "suspicious_requests": []
+            }
+            
+        except Exception as e:
+            print(f"[{self.name}] Network traffic analysis failed: {e}")
+            return {}

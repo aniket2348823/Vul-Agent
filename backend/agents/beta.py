@@ -10,14 +10,23 @@ from backend.core.proxy import network_interceptor
 from backend.core.sandbox import TempWorkspace
 from backend.core.queue import command_lane, LanePriority
 
+# Browser Integration (Phase 2)
+from backend.core.browser_orchestrator import BrowserOrchestrator
+from backend.core.hybrid_session_manager import HybridSessionManager
+from backend.core.forensic_collector import ForensicCollector
+
 class BetaAgent(BaseAgent):
     """
     AGENT BETA: THE BREAKER
-    Role: Heavy Offensive Operations.
+    Role: Heavy Offensive Operations with Browser Exploitation.
     Capabilities:
     - Polyglot Payloads.
     - WAF Mutation Engine.
     - Real-time HTTP attack execution.
+    - Browser-based XSS verification
+    - CSRF token testing
+    - DOM-based XSS detection
+    - Clickjacking tests
     """
     def __init__(self, bus):
         super().__init__("agent_beta", bus)
@@ -36,6 +45,11 @@ class BetaAgent(BaseAgent):
         ]
         # Governance: throttle flag from Zeta
         self._throttled = False
+        
+        # Browser Integration
+        self.browser = BrowserOrchestrator()
+        self.session_manager = HybridSessionManager()
+        self.forensics = ForensicCollector()
 
     async def setup(self):
         self.bus.subscribe(EventType.JOB_ASSIGNED, self.handle_job)
@@ -62,6 +76,12 @@ class BetaAgent(BaseAgent):
             _ctx.append_event(event)
         url = payload.get("url")
         tag = payload.get("tag")
+        
+        # Check if this is an XSS candidate that should be tested in browser
+        if tag in ["XSS", "REFLECTED_XSS", "DOM_XSS"] or "xss" in str(payload.get("type", "")).lower():
+            print(f"[{self.name}] XSS Candidate detected. Routing to browser-based testing...")
+            await self._test_xss_browser(url, payload.get("payload", "<script>alert(1)</script>"), event.scan_id)
+            return
         
         if tag == "API":
             print(f"[{self.name}] Intercepted API Candidate: {url}. Recall Phase Initiated.")
@@ -351,3 +371,181 @@ class BetaAgent(BaseAgent):
             source=self.name,
             payload=packet.model_dump()
         ))
+    
+    # ============ BROWSER EXPLOITATION METHODS (Phase 2) ============
+    
+    async def _test_xss_browser(self, url: str, payload: str, scan_id: str):
+        """Test XSS payload in real browser context with forensic evidence capture."""
+        try:
+            print(f"[{self.name}] Testing XSS in browser: {url} with payload: {payload[:50]}...")
+            
+            # Broadcast attack intent
+            await self.bus.publish(HiveEvent(
+                type=EventType.LIVE_ATTACK,
+                source=self.name,
+                scan_id=scan_id,
+                payload={
+                    "url": url,
+                    "arsenal": "Browser XSS Tester",
+                    "action": "Testing XSS in real browser",
+                    "payload": payload[:50]
+                }
+            ))
+            
+            # Test payload in browser (auto-selects OpenClaw for XSS)
+            result = await self.browser.test_payload(url, payload, param="q")
+            
+            if result.get("triggered"):
+                print(f"[{self.name}] [XSS CONFIRMED] Payload triggered in browser!")
+                
+                # Capture forensic evidence
+                screenshot_path = await self.forensics.capture_screenshot(
+                    scan_id=scan_id,
+                    context=result.get("context"),
+                    engine="openclaw",
+                    label="xss_triggered"
+                )
+                
+                dom_path = await self.forensics.capture_dom_snapshot(
+                    scan_id=scan_id,
+                    context=result.get("context"),
+                    engine="openclaw",
+                    label="xss_dom"
+                )
+                
+                # Publish verified vulnerability
+                await self.bus.publish(HiveEvent(
+                    type=EventType.VULN_CONFIRMED,
+                    source=self.name,
+                    scan_id=scan_id,
+                    payload={
+                        "type": "XSS_BROWSER_VERIFIED",
+                        "url": url,
+                        "payload": payload,
+                        "severity": "HIGH",
+                        "evidence": f"XSS triggered in browser. Screenshot: {screenshot_path}, DOM: {dom_path}",
+                        "browser_verified": True
+                    }
+                ))
+                
+        except Exception as e:
+            print(f"[{self.name}] Browser XSS test failed: {e}")
+    
+    async def _test_csrf_browser(self, url: str, scan_id: str):
+        """Test CSRF token extraction and validation in browser."""
+        try:
+            print(f"[{self.name}] Testing CSRF protection: {url}")
+            
+            # Navigate to page and extract tokens
+            result = await self.browser.extract_tokens(url)
+            
+            csrf_tokens = [t for t in result.get("tokens", []) if "csrf" in t.get("name", "").lower()]
+            
+            if csrf_tokens:
+                print(f"[{self.name}] Found {len(csrf_tokens)} CSRF tokens")
+                
+                # Test if tokens are properly validated
+                for token in csrf_tokens:
+                    # Try request without token
+                    test_result = await self._test_csrf_bypass(url, token, scan_id)
+                    
+                    if test_result.get("bypassed"):
+                        await self.bus.publish(HiveEvent(
+                            type=EventType.VULN_CONFIRMED,
+                            source=self.name,
+                            scan_id=scan_id,
+                            payload={
+                                "type": "CSRF_BYPASS",
+                                "url": url,
+                                "severity": "HIGH",
+                                "evidence": f"CSRF token '{token['name']}' can be bypassed",
+                                "browser_verified": True
+                            }
+                        ))
+            
+        except Exception as e:
+            print(f"[{self.name}] CSRF test failed: {e}")
+    
+    async def _test_csrf_bypass(self, url: str, token: dict, scan_id: str) -> dict:
+        """Attempt to bypass CSRF protection."""
+        # Placeholder - would test various CSRF bypass techniques
+        return {"bypassed": False}
+    
+    async def _test_dom_xss(self, url: str, scan_id: str):
+        """Test for DOM-based XSS vulnerabilities."""
+        try:
+            print(f"[{self.name}] Testing DOM-based XSS: {url}")
+            
+            # DOM XSS payloads that trigger via JavaScript
+            dom_payloads = [
+                "#<img src=x onerror=alert(1)>",
+                "#javascript:alert(1)",
+                "#<svg onload=alert(1)>",
+                "?search=<img src=x onerror=alert(1)>"
+            ]
+            
+            for payload in dom_payloads:
+                test_url = url + payload
+                
+                result = await self.browser.navigate(test_url, stealth=False)
+                
+                if result.get("alert_detected"):
+                    print(f"[{self.name}] [DOM XSS CONFIRMED] Payload: {payload}")
+                    
+                    # Capture evidence
+                    await self.forensics.capture_screenshot(
+                        scan_id=scan_id,
+                        context=result.get("context"),
+                        engine="openclaw",
+                        label="dom_xss"
+                    )
+                    
+                    await self.bus.publish(HiveEvent(
+                        type=EventType.VULN_CONFIRMED,
+                        source=self.name,
+                        scan_id=scan_id,
+                        payload={
+                            "type": "DOM_XSS",
+                            "url": test_url,
+                            "payload": payload,
+                            "severity": "HIGH",
+                            "evidence": "DOM-based XSS triggered via client-side JavaScript",
+                            "browser_verified": True
+                        }
+                    ))
+                    break
+            
+        except Exception as e:
+            print(f"[{self.name}] DOM XSS test failed: {e}")
+    
+    async def _test_clickjacking(self, url: str, scan_id: str):
+        """Test for clickjacking vulnerabilities."""
+        try:
+            print(f"[{self.name}] Testing clickjacking protection: {url}")
+            
+            # Check X-Frame-Options and CSP frame-ancestors
+            result = await self.browser.navigate(url, stealth=False)
+            
+            headers = result.get("headers", {})
+            
+            has_xfo = "x-frame-options" in [h.lower() for h in headers.keys()]
+            has_csp_frame = any("frame-ancestors" in str(v).lower() for v in headers.values())
+            
+            if not has_xfo and not has_csp_frame:
+                print(f"[{self.name}] [CLICKJACKING VULNERABLE] No frame protection headers")
+                
+                await self.bus.publish(HiveEvent(
+                    type=EventType.VULN_CONFIRMED,
+                    source=self.name,
+                    scan_id=scan_id,
+                    payload={
+                        "type": "CLICKJACKING",
+                        "url": url,
+                        "severity": "MEDIUM",
+                        "evidence": "Missing X-Frame-Options and CSP frame-ancestors headers",
+                        "browser_verified": True
+                    }
+                ))
+            
+        except Exception as e:
+            print(f"[{self.name}] Clickjacking test failed: {e}")
