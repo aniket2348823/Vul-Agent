@@ -1159,7 +1159,7 @@ Answer strictly "yes" or "no"."""
             verdict["reasoning"] += f" | BayesFusion(wG={w_G:.2f}, wL={w_L:.2f}): P_G={P_G:.2f}, P_L={P_L:.2f} -> Post={posterior_prob:.2f}"
 
             # -------------------------------------------------------------------
-            # LAYER 6 - QWEN3 80B FINAL ARBITRATION (via OpenRouter)
+            # LAYER 6 - GPT-OSS-20B FINAL ARBITRATION (via OpenRouter)
             # -------------------------------------------------------------------
             # STEP 3 - FINAL CONTROL LOGIC (Elite Triggering)
             conf_pct = raw_llm_conf * 100
@@ -1199,20 +1199,20 @@ Answer strictly "yes" or "no"."""
 
                     verdict["is_real"] = is_vuln
                     
-                    # Mathematical Confidence Fusion (Qwen80B + Gamma + GI5)
-                    # W_qwen80b = 0.6, W_gamma = 0.2, W_gi5 = 0.2
+                    # Mathematical Confidence Fusion (GPT-OSS-20B + Gamma + GI5)
+                    # W_gpt_oss = 0.6, W_gamma = 0.2, W_gi5 = 0.2
                     gamma_conf_float = raw_llm_conf
                     gi5_risk_float = gi5_risk / 100.0
-                    qwen_conf_float = final_conf / 100.0
-                    fused_conf = (qwen_conf_float * 0.6) + (gamma_conf_float * 0.2) + (gi5_risk_float * 0.2)
+                    gpt_conf_float = final_conf / 100.0
+                    fused_conf = (gpt_conf_float * 0.6) + (gamma_conf_float * 0.2) + (gi5_risk_float * 0.2)
                     
                     verdict["confidence"] = min(1.0, fused_conf)
                     verdict["type"] = arbiter_data.get("type", verdict["type"])
-                    verdict["reasoning"] += f" | QWEN80B ARBITER: {arbiter_data.get('reason', 'None')} ({arbiter_data.get('evidence', '')}) | Fusion={fused_conf:.2f}"
-                    verdict["engine"] = "HYBRID_QWEN80B_FUSED"
+                    verdict["reasoning"] += f" | GPT-OSS-20B ARBITER: {arbiter_data.get('reason', 'None')} ({arbiter_data.get('evidence', '')}) | Fusion={fused_conf:.2f}"
+                    verdict["engine"] = "HYBRID_GPT_OSS_FUSED"
                 else:
                     verdict["is_real"] = posterior_prob >= 0.75
-                    verdict["reasoning"] += " | Qwen80B parse error, fallback to Bayes."
+                    verdict["reasoning"] += " | GPT-OSS-20B parse error, fallback to Bayes."
             else:
                 # Fast track Decision Rules
                 if posterior_prob >= 0.75:
@@ -2071,7 +2071,7 @@ Respond with ONLY the choice."""
                 "evidence_analysis": "Test environment mock evidence analysis.",
                 "attacker_advantage": "Test environment mock attacker advantage."
             }
-        # Try OpenRouter first (Qwen3 80B)
+        # Try OpenRouter first (GPT-OSS-20B)
         if self._openrouter and self._openrouter.is_available:
             try:
                 or_result = await self._openrouter.reconstruct_forensics(vuln_type, payload, response_snippet, url, scan_ctx=scan_ctx)

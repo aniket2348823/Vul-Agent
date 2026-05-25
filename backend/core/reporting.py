@@ -810,8 +810,8 @@ class ReportGenerator:
                     pdf.multi_cell(0, 5, path_str)
                     pdf.ln(5)
                     
-                    # 3. Request LLM Narrative (Qwen3 80B via OpenRouter)
-                    # We pass the JSON structure of the chain to ollama
+                    # 3. Request LLM Narrative (GPT-OSS-20B via OpenRouter)
+                    # We pass the JSON structure of the chain to the LLM
                     chain_narrative = await cortex.explain_attack_chain(chain) 
                     
                     pdf.add_explainability_panel(chain_narrative)

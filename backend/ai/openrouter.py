@@ -1,9 +1,9 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# ANTIGRAVITY :: OPENROUTER CLIENT — QWEN3 NEXT 80B A3B INTEGRATION
+# ANTIGRAVITY :: OPENROUTER CLIENT — GPT-OSS-20B INTEGRATION
 # ═══════════════════════════════════════════════════════════════════════════════
 # PURPOSE: Production-grade async client for OpenRouter API.
 #          Provides Final Arbitration, Exploit Planning, and Auto-Remediation
-#          reasoning via Qwen3 Next 80B A3B (cloud inference).
+#          reasoning via OpenAI GPT-OSS-20B (free model, cloud inference).
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import aiohttp
@@ -17,7 +17,7 @@ logger = logging.getLogger("OPENROUTER")
 
 # ─── Configuration ────────────────────────────────────────────────────────────
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
-OPENROUTER_MODEL = "qwen/qwen3-next-80b-a3b-instruct"
+OPENROUTER_MODEL = "openai/gpt-oss-20b"
 OPENROUTER_TIMEOUT = 120  # seconds
 MAX_RETRIES = 2
 
@@ -99,7 +99,7 @@ Output ONLY valid JSON. No markdown. No extra text."""
 class OpenRouterClient:
     """
     Production-grade async client for OpenRouter API.
-    Powers all high-level reasoning tasks via Qwen3 Next 80B A3B.
+    Powers all high-level reasoning tasks via OpenAI GPT-OSS-20B (free model).
     """
 
     def __init__(self, api_key: Optional[str] = None):
@@ -149,7 +149,7 @@ class OpenRouterClient:
         scan_ctx=None,
     ) -> str:
         """
-        Send a prompt to Qwen3 80B via OpenRouter.
+        Send a prompt to GPT-OSS-20B via OpenRouter.
         Returns the raw text response or an error string.
         """
         if not self._api_key:

@@ -2,9 +2,9 @@
 # ANTIGRAVITY :: AUTO REMEDIATION ENGINE & PATCH GENERATOR
 # ═══════════════════════════════════════════════════════════════════════════════
 # PURPOSE: Generates framework-specific, developer-ready code patches
-#          in unified diff format. Powered by Qwen3 80B via OpenRouter.
+#          in unified diff format. Powered by GPT-OSS-20B via OpenRouter.
 #
-# FLOW: Finding → Framework Detection → Qwen 80B → Patch → Unified Diff
+# FLOW: Finding → Framework Detection → GPT-OSS-20B → Patch → Unified Diff
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import difflib
@@ -242,7 +242,7 @@ class RemediationEngine:
 
     async def generate_ai_fix(self, finding: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Generate remediation using Qwen3 80B via OpenRouter (high quality, async).
+        Generate remediation using GPT-OSS-20B via OpenRouter (high quality, async).
         Falls back to local templates if OpenRouter is unavailable.
         """
         openrouter = self._get_openrouter()
@@ -282,7 +282,7 @@ class RemediationEngine:
                 "api_hardening": data.get("api_hardening", ""),
                 "edge_cases": data.get("edge_cases", []),
                 "patch_diff": patch_diff,
-                "source": "qwen3_80b",
+                "source": "gpt_oss_20b",
             }
 
         except json.JSONDecodeError:
