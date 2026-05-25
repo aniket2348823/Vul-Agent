@@ -240,21 +240,25 @@ class ZetaAgent(BrowserEnabledAgent):
     async def _get_active_contexts(self) -> list:
         """Get list of active browser contexts from the orchestrator."""
         try:
-            # Query browser orchestrator for active contexts
-            from backend.core.browser_orchestrator import browser_orchestrator
+            # Access browser orchestrator through the browser property
+            if not hasattr(self, 'browser') or not self.browser:
+                return []
             
-            if not browser_orchestrator:
+            # Get the orchestrator from browser agent
+            orchestrator = self.browser_orchestrator
+            
+            if not orchestrator:
                 return []
             
             # Get context statistics
-            stats = browser_orchestrator.get_context_stats()
+            stats = orchestrator.get_context_stats()
             
             # Build list of active contexts with metadata
             active_contexts = []
-            current_time = asyncio.get_event_loop().time()
+            current_time = time.time()
             
-            async with browser_orchestrator._context_lock:
-                for context_id, context_data in browser_orchestrator._active_contexts.items():
+            async with orchestrator._context_lock:
+                for context_id, context_data in orchestrator._active_contexts.items():
                     idle_time = current_time - context_data["last_activity"]
                     
                     active_contexts.append({
@@ -277,9 +281,13 @@ class ZetaAgent(BrowserEnabledAgent):
         try:
             print(f"[{self.name}] Closing idle browser contexts...")
             
-            from backend.core.browser_orchestrator import browser_orchestrator
+            # Access browser orchestrator through the browser property
+            if not hasattr(self, 'browser') or not self.browser:
+                return 0
             
-            if not browser_orchestrator:
+            orchestrator = self.browser_orchestrator
+            
+            if not orchestrator:
                 return 0
             
             # Get active contexts
@@ -290,7 +298,7 @@ class ZetaAgent(BrowserEnabledAgent):
                 # Close contexts idle for more than 5 minutes (300 seconds)
                 if context.get("idle_time", 0) > 300:
                     try:
-                        await browser_orchestrator.close_context(context["context_id"])
+                        await orchestrator.close_context(context["context_id"])
                         closed_count += 1
                         print(f"[{self.name}] Closed idle context: {context['context_id']} (idle: {context['idle_time']:.0f}s)")
                     except Exception as close_err:

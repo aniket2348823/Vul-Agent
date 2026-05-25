@@ -14,7 +14,7 @@ import asyncio
 import os
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import logging
 
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ class ForensicCollector:
                 return
             
             # Derive encryption key from password using PBKDF2
-            kdf = PBKDF2(
+            kdf = PBKDF2HMAC(
                 algorithm=hashes.SHA256(),
                 length=32,
                 salt=b'forensic_salt_v1',  # In production, use a random salt stored securely

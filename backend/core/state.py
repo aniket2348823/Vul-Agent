@@ -35,7 +35,7 @@ class StateManager:
         if os.getenv("VULAGENT_TEST_MODE") == "true":
             self._inject_dummy_scan_for_tests()
         
-    def _inject_dummy_scan_for_tests(self):
+    def _inject_dummy_scan_for_tests(self) -> None:
         """TC006/TC007 Prerequisite: Inject a dummy scan with a vulnerability for replay tests."""
         dummy_scan_id = "test-replay-scan-12345"
         dummy_vuln_id = "test-vuln-67890"
@@ -68,7 +68,7 @@ class StateManager:
             })
             self._save_sync()
 
-    def _load(self):
+    def _load(self) -> None:
         if os.path.exists(STATE_FILE):
             try:
                 with open(STATE_FILE, "r") as f:
@@ -81,7 +81,7 @@ class StateManager:
             except Exception as e:
                 print(f"[StateManager] Load Error: {e}")
 
-    async def _background_writer(self):
+    async def _background_writer(self) -> None:
         """Coalesces multiple dirty flags into a single disk write every 2s."""
         try:
             while True:
@@ -94,7 +94,7 @@ class StateManager:
             if self._dirty:
                 self._save_sync()
 
-    def _mark_dirty(self):
+    def _mark_dirty(self) -> None:
         self._dirty = True
         if os.getenv("VULAGENT_TEST_MODE") == "true":
             self._save_sync()
@@ -107,7 +107,7 @@ class StateManager:
             # No event loop — synchronous fallback
             self._save_sync()
 
-    def flush_immediate(self):
+    def flush_immediate(self) -> None:
         """Immediately force-save state to disk (Critical for report readiness)."""
         # Always save synchronously — asyncio scheduling is unreliable here
         # because this is often called during shutdown or from non-async contexts
@@ -117,11 +117,11 @@ class StateManager:
             except Exception as e:
                 print(f"[StateManager] flush_immediate error: {e}")
 
-    async def _async_save(self):
+    async def _async_save(self) -> None:
         async with self._lock:
             self._save_sync()
 
-    def _save_sync(self):
+    def _save_sync(self) -> None:
         with self._sync_lock:
             try:
                 with open(TMP_STATE_FILE, "w") as f:
@@ -132,10 +132,10 @@ class StateManager:
                 print(f"[StateManager] Save Error: {e}")
 
     # Aliasing remaining references to old _save()
-    def _save(self):
+    def _save(self) -> None:
         self._mark_dirty()
 
-    def get_stats(self):
+    def get_stats(self) -> Dict[str, Any]:
         return self._stats
 
     async def register_scan(self, scan_data: Dict[str, Any]):
@@ -162,7 +162,7 @@ class StateManager:
             )
             self._save()
 
-    async def add_scan_event(self, scan_id: str, event: Dict[str, Any]):
+    async def add_scan_event(self, scan_id: str, event: Dict[str, Any]) -> None:
         """Append a live event to a specific scan record with auto-pruning (Max 500)."""
         async with self._lock:
             for s in self._stats["scans"]:
@@ -178,14 +178,14 @@ class StateManager:
                     self._dirty = True
                     break
 
-    async def increment_request_count(self, count: int = 1):
+    async def increment_request_count(self, count: int = 1) -> None:
         """Atomically increment the global request counter for performance tracking."""
         async with self._lock:
             self._stats["total_requests"] += count
             self._dirty = True
 
 
-    async def record_finding(self, scan_id: str, severity: str = "Medium", signature_data: Dict[str, Any] = None):
+    async def record_finding(self, scan_id: str, severity: str = "Medium", signature_data: Dict[str, Any] = None) -> None:
         """Real-time update for a found vulnerability with async-safe deduplication."""
         async with self._lock:
             if signature_data:
@@ -214,7 +214,7 @@ class StateManager:
             
             self._dirty = True
 
-    async def record_threat(self, threat_type: str, risk_score: int):
+    async def record_threat(self, threat_type: str, risk_score: int) -> None:
         """V6: Record a detected threat for metrics (Async-Safe)."""
         async with self._lock:
             v6 = self._stats.get("v6_metrics", {})
@@ -233,7 +233,7 @@ class StateManager:
             self._save()
 
         
-    def complete_scan(self, scan_id: str, results: List[Any], duration: float):
+    def complete_scan(self, scan_id: str, results: List[Any], duration: float) -> None:
         with self._sync_lock:
             self._stats["active_scans"] = max(0, self._stats["active_scans"] - 1)
         
@@ -281,7 +281,7 @@ class StateManager:
         
         self.flush_immediate()
 
-    def sync_complete_scan(self, scan_id: str, status: str = "Completed", report_ready: bool = True):
+    def sync_complete_scan(self, scan_id: str, status: str = "Completed", report_ready: bool = True) -> None:
         """Atomic completion to avoid race conditions between 'Completed' and 'Report Ready'."""
         self._stats["active_scans"] = max(0, self._stats["active_scans"] - 1)
         for s in self._stats["scans"]:
@@ -291,7 +291,7 @@ class StateManager:
                 break
         self.flush_immediate()
 
-    def mark_report_ready(self, scan_id: str):
+    def mark_report_ready(self, scan_id: str) -> None:
         """V6: Mark the AI report as generated and ready for instant download."""
         for s in self._stats["scans"]:
             if s["id"] == scan_id:
@@ -302,7 +302,7 @@ class StateManager:
                 break
         self.flush_immediate()
                 
-    def wipe_scans(self):
+    def wipe_scans(self) -> None:
         """Wipe all historical scan records from the database."""
         self._stats["scans"] = []
         self._stats["total_scans"] = 0
@@ -313,7 +313,7 @@ class StateManager:
         self._save()
         print("[StateManager] All historical scans wiped successfully.")
 
-    def reset_stale_scans(self):
+    def reset_stale_scans(self) -> int:
         """Called on startup to clean up zombie scans."""
         cleaned = 0
         for s in self._stats["scans"]:
@@ -328,7 +328,7 @@ class StateManager:
     # --- PROBLEM 9 FIX: Sharded per-scan state storage ---
     SCANS_DIR = "scan_states"
 
-    def _ensure_scans_dir(self):
+    def _ensure_scans_dir(self) -> None:
         os.makedirs(self.SCANS_DIR, exist_ok=True)
 
     def _scan_file(self, scan_id: str) -> str:
@@ -336,7 +336,7 @@ class StateManager:
         safe_id = scan_id.replace("/", "_").replace("\\", "_")
         return os.path.join(self.SCANS_DIR, f"scan_{safe_id}.json")
 
-    async def write_scan_state(self, scan_id: str, data: dict):
+    async def write_scan_state(self, scan_id: str, data: dict) -> None:
         """Write individual scan to its own file — no contention with stats.json."""
         path = self._scan_file(scan_id)
         tmp = path + ".tmp"
@@ -348,7 +348,7 @@ class StateManager:
             except Exception as e:
                 print(f"[StateManager] Sharded write error: {e}")
 
-    async def read_scan_state(self, scan_id: str) -> dict:
+    async def read_scan_state(self, scan_id: str) -> Dict[str, Any]:
         path = self._scan_file(scan_id)
         try:
             with open(path, "r") as f:
@@ -358,14 +358,14 @@ class StateManager:
         except Exception:
             return {}
 
-    async def list_scan_states(self) -> list:
+    async def list_scan_states(self) -> List[Dict[str, Any]]:
         """Read all sharded scan state files via thread pool to avoid blocking the event loop."""
         import functools
         return await asyncio.get_event_loop().run_in_executor(
             None, self._list_scan_states_sync
         )
 
-    def _list_scan_states_sync(self) -> list:
+    def _list_scan_states_sync(self) -> List[Dict[str, Any]]:
         """Synchronous implementation of list_scan_states."""
         self._ensure_scans_dir()
         scans = []
@@ -378,7 +378,7 @@ class StateManager:
                     continue
         return sorted(scans, key=lambda x: x.get("started_at", 0), reverse=True)
 
-    async def find_vulnerability(self, vuln_id: str) -> dict:
+    async def find_vulnerability(self, vuln_id: str) -> Dict[str, Any] | None:
         """Search across all sharded scan files for a specific vulnerability."""
         self._ensure_scans_dir()
         for fname in os.listdir(self.SCANS_DIR):

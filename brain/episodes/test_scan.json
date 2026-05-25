@@ -1,0 +1,340 @@
+[
+  {
+    "timestamp": 1779651406.739803,
+    "type": "vulnerability",
+    "payload": {
+      "type": "SQL_INJECTION",
+      "url": "https://example.com/api/users",
+      "payload": "' OR 1=1--",
+      "confidence": 0.95,
+      "audit_reasoning": "Successful SQL injection",
+      "timestamp": "2026-05-25 01:06:46",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779651406.770566,
+    "type": "vulnerability",
+    "payload": {
+      "type": "XSS",
+      "url": "https://example.com/search?q=test",
+      "payload": "<script>alert(1)</script>",
+      "confidence": 0.85,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-25 01:06:46",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779651427.806606,
+    "type": "vulnerability",
+    "payload": {
+      "type": "SQL_INJECTION",
+      "url": "https://example.com/api/users",
+      "payload": "' OR 1=1--",
+      "confidence": 0.95,
+      "audit_reasoning": "Successful SQL injection",
+      "timestamp": "2026-05-25 01:07:07",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779651427.8509538,
+    "type": "vulnerability",
+    "payload": {
+      "type": "XSS",
+      "url": "https://example.com/search?q=test",
+      "payload": "<script>alert(1)</script>",
+      "confidence": 0.85,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-25 01:07:07",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779651482.2584686,
+    "type": "vulnerability",
+    "payload": {
+      "type": "SQL_INJECTION",
+      "url": "https://example.com/api/users",
+      "payload": "' OR 1=1--",
+      "confidence": 0.95,
+      "audit_reasoning": "Successful SQL injection",
+      "timestamp": "2026-05-25 01:08:01",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779651482.2902305,
+    "type": "vulnerability",
+    "payload": {
+      "type": "XSS",
+      "url": "https://example.com/search?q=test",
+      "payload": "<script>alert(1)</script>",
+      "confidence": 0.85,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-25 01:08:02",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779651545.4706917,
+    "type": "vulnerability",
+    "payload": {
+      "type": "SQL_INJECTION",
+      "url": "https://example.com/api/users",
+      "payload": "' OR 1=1--",
+      "confidence": 0.95,
+      "audit_reasoning": "Successful SQL injection",
+      "timestamp": "2026-05-25 01:09:04",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779651545.5101864,
+    "type": "vulnerability",
+    "payload": {
+      "type": "XSS",
+      "url": "https://example.com/search?q=test",
+      "payload": "<script>alert(1)</script>",
+      "confidence": 0.85,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-25 01:09:05",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779651981.6130853,
+    "type": "vulnerability",
+    "payload": {
+      "type": "SQL_INJECTION",
+      "url": "https://example.com/api/users",
+      "payload": "' OR 1=1--",
+      "confidence": 0.95,
+      "audit_reasoning": "Successful SQL injection",
+      "timestamp": "2026-05-25 01:16:21",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779651981.6602666,
+    "type": "vulnerability",
+    "payload": {
+      "type": "XSS",
+      "url": "https://example.com/search?q=test",
+      "payload": "<script>alert(1)</script>",
+      "confidence": 0.85,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-25 01:16:21",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779692241.070605,
+    "type": "vulnerability",
+    "payload": {
+      "type": "SQL_INJECTION",
+      "url": "https://example.com/api/users",
+      "payload": "' OR 1=1--",
+      "confidence": 0.95,
+      "audit_reasoning": "Successful SQL injection",
+      "timestamp": "2026-05-25 12:27:20",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779692241.2054918,
+    "type": "vulnerability",
+    "payload": {
+      "type": "XSS",
+      "url": "https://example.com/search?q=test",
+      "payload": "<script>alert(1)</script>",
+      "confidence": 0.85,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-25 12:27:21",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779692266.862578,
+    "type": "vulnerability",
+    "payload": {
+      "type": "SQL_INJECTION",
+      "url": "https://example.com/api/users",
+      "payload": "' OR 1=1--",
+      "confidence": 0.95,
+      "audit_reasoning": "Successful SQL injection",
+      "timestamp": "2026-05-25 12:27:46",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779692266.9766104,
+    "type": "vulnerability",
+    "payload": {
+      "type": "XSS",
+      "url": "https://example.com/search?q=test",
+      "payload": "<script>alert(1)</script>",
+      "confidence": 0.85,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-25 12:27:46",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779692618.229625,
+    "type": "vulnerability",
+    "payload": {
+      "type": "SQL_INJECTION",
+      "url": "https://example.com/api/users",
+      "payload": "' OR 1=1--",
+      "confidence": 0.95,
+      "audit_reasoning": "Successful SQL injection",
+      "timestamp": "2026-05-25 12:33:37",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779692618.3152947,
+    "type": "vulnerability",
+    "payload": {
+      "type": "XSS",
+      "url": "https://example.com/search?q=test",
+      "payload": "<script>alert(1)</script>",
+      "confidence": 0.85,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-25 12:33:38",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779692831.0230234,
+    "type": "vulnerability",
+    "payload": {
+      "type": "SQL_INJECTION",
+      "url": "https://example.com/api/users",
+      "payload": "' OR 1=1--",
+      "confidence": 0.95,
+      "audit_reasoning": "Successful SQL injection",
+      "timestamp": "2026-05-25 12:37:10",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779692831.1279805,
+    "type": "vulnerability",
+    "payload": {
+      "type": "XSS",
+      "url": "https://example.com/search?q=test",
+      "payload": "<script>alert(1)</script>",
+      "confidence": 0.85,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-25 12:37:11",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779693111.057111,
+    "type": "vulnerability",
+    "payload": {
+      "type": "SQL_INJECTION",
+      "url": "https://example.com/api/users",
+      "payload": "' OR 1=1--",
+      "confidence": 0.95,
+      "audit_reasoning": "Successful SQL injection",
+      "timestamp": "2026-05-25 12:41:50",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779693111.1371725,
+    "type": "vulnerability",
+    "payload": {
+      "type": "XSS",
+      "url": "https://example.com/search?q=test",
+      "payload": "<script>alert(1)</script>",
+      "confidence": 0.85,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-25 12:41:51",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779693739.89446,
+    "type": "vulnerability",
+    "payload": {
+      "type": "SQL_INJECTION",
+      "url": "https://example.com/api/users",
+      "payload": "' OR 1=1--",
+      "confidence": 0.95,
+      "audit_reasoning": "Successful SQL injection",
+      "timestamp": "2026-05-25 12:52:19",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779693739.9799714,
+    "type": "vulnerability",
+    "payload": {
+      "type": "XSS",
+      "url": "https://example.com/search?q=test",
+      "payload": "<script>alert(1)</script>",
+      "confidence": 0.85,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-25 12:52:19",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779698475.3446145,
+    "type": "vulnerability",
+    "payload": {
+      "type": "SQL_INJECTION",
+      "url": "https://example.com/api/users",
+      "payload": "' OR 1=1--",
+      "confidence": 0.95,
+      "audit_reasoning": "Successful SQL injection",
+      "timestamp": "2026-05-25 14:11:14",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779698475.4256692,
+    "type": "vulnerability",
+    "payload": {
+      "type": "XSS",
+      "url": "https://example.com/search?q=test",
+      "payload": "<script>alert(1)</script>",
+      "confidence": 0.85,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-25 14:11:15",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779698808.908021,
+    "type": "vulnerability",
+    "payload": {
+      "type": "SQL_INJECTION",
+      "url": "https://example.com/api/users",
+      "payload": "' OR 1=1--",
+      "confidence": 0.95,
+      "audit_reasoning": "Successful SQL injection",
+      "timestamp": "2026-05-25 14:16:48",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779698809.0334597,
+    "type": "vulnerability",
+    "payload": {
+      "type": "XSS",
+      "url": "https://example.com/search?q=test",
+      "payload": "<script>alert(1)</script>",
+      "confidence": 0.85,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-25 14:16:48",
+      "vector": []
+    }
+  }
+]

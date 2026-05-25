@@ -228,14 +228,14 @@ class CommandLane:
                 self.lane.total_failed += 1
             self.lane.semaphore.release()
 
-    def slot(self, priority: LanePriority = LanePriority.NORMAL):
+    def slot(self, priority: LanePriority = LanePriority.NORMAL) -> '_SlotContextManager':
         """
         Context manager to acquire an execution slot.
         """
         return self._SlotContextManager(self, priority)
 
     @property
-    def telemetry(self) -> dict:
+    def telemetry(self) -> Dict[str, Any]:
         return {
             "max_concurrent": self.max_concurrent,
             "active_count": self.active_count,

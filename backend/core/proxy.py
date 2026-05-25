@@ -156,7 +156,7 @@ class ProxyLifecycleManager:
         logger.info(f"Proxy lifecycle: Activated process-wide routing via {self._redact_proxy_url(candidate_url)}")
         return True
 
-    def stop_proxy(self):
+    def stop_proxy(self) -> None:
         if self._active_handles <= 0:
             return
 
@@ -169,12 +169,12 @@ class ProxyLifecycleManager:
         self._bypassed_urls.clear()
         logger.info("Proxy lifecycle: Deactivated, restored original environment.")
 
-    def kill(self, signal: int = 0):
+    def kill(self, signal: int = 0) -> None:
         """Synchronous env restore for hard process exit"""
         self._restore_env()
         self._active_handles = 0
 
-    def _restore_env(self):
+    def _restore_env(self) -> None:
         if not self._base_env_snapshot:
             return
             
@@ -185,7 +185,7 @@ class ProxyLifecycleManager:
             else:
                 os.environ[k] = v
 
-    def _update_no_proxy(self):
+    def _update_no_proxy(self) -> None:
         if not self._bypassed_urls:
             if self._base_env_snapshot and self._base_env_snapshot.no_proxy:
                 os.environ["no_proxy"] = self._base_env_snapshot.no_proxy
@@ -331,7 +331,7 @@ class NetworkInterceptor:
         # Restore original casing for custom headers (optional, standard HTTP is case-insensitive)
         return spoofed
 
-    async def inject_timing_jitter(self, min_ms: int = 50, max_ms: int = 500):
+    async def inject_timing_jitter(self, min_ms: int = 50, max_ms: int = 500) -> None:
         """Injects random async sleep to evade WAF rate detection."""
         jitter = random.uniform(min_ms, max_ms) / 1000.0
         await asyncio.sleep(jitter)

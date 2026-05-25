@@ -45,7 +45,7 @@ class SecurityReportPDF(FPDF):
         for k, v in replacements.items():
             text = text.replace(k, v)
         return text.encode('latin-1', errors='replace').decode('latin-1')
-    def header(self):
+    def header(self) -> None:
         """Premium Page Header with Cyber-Forensic Branding."""
         self.set_font('Courier', '', 10)
         self.set_text_color(*self.DARK_BLUE)
@@ -58,7 +58,7 @@ class SecurityReportPDF(FPDF):
         self.line(10, 16, 200, 16)
         self.ln(5)
         
-    def footer(self):
+    def footer(self) -> None:
         """Page footer: Centered, small gray text."""
         self.set_y(-15)
         self.set_font('Arial', 'I', 8)
@@ -68,7 +68,7 @@ class SecurityReportPDF(FPDF):
         footer_text = f"Page {self.page_no()}/{{nb}} | Generated: {timestamp}"
         self.cell(0, 10, footer_text, align='C')
         
-    def add_section_title(self, title: str, color: tuple = None):
+    def add_section_title(self, title: str, color: tuple = None) -> None:
         """Sections matching Specimen. Size 22pt, Bold, with underline."""
         if color is None:
             color = self.PURE_RED
@@ -83,7 +83,7 @@ class SecurityReportPDF(FPDF):
         self.line(self.get_x(), self.get_y(), 200, self.get_y())
         self.ln(10)
 
-    def add_filter_header(self, category_name: str):
+    def add_filter_header(self, category_name: str) -> None:
         """Adds 'FILTER: CATEGORY' header in Blue/Purple as seen in images."""
         self.set_font('Arial', 'B', 16)
         self.set_text_color(*self.DARK_BLUE)
@@ -97,14 +97,14 @@ class SecurityReportPDF(FPDF):
         self.line(10, self.get_y(), 10 + text_width, self.get_y())
         self.ln(8)
         
-    def add_subsection_title(self, title: str):
+    def add_subsection_title(self, title: str) -> None:
         """Smaller section headers."""
         self.set_font('Arial', 'B', 14)
         self.set_text_color(*self.DARK_BLUE)
         self.cell(0, 10, title, new_x="LMARGIN", new_y="NEXT")
         self.ln(2)
         
-    def add_bullet_point(self, text: str, indent: int = 10):
+    def add_bullet_point(self, text: str, indent: int = 10) -> None:
         """Renders a single bullet point with proper wrapping."""
         self.set_font('Arial', '', 11)
         self.set_text_color(*self.TEXT_BLACK)
@@ -112,12 +112,12 @@ class SecurityReportPDF(FPDF):
         self.multi_cell(0, 6, bullet_text)
         self.ln(1)
         
-    def add_bullet_list(self, items: List[str], indent: int = 10):
+    def add_bullet_list(self, items: List[str], indent: int = 10) -> None:
         """Renders multiple bullet points."""
         for item in items:
             self.add_bullet_point(item, indent)
             
-    def add_key_value(self, key: str, value: str, key_width: int = 50):
+    def add_key_value(self, key: str, value: str, key_width: int = 50) -> None:
         """Renders a key-value pair as a formatted line."""
         self.set_x(10)
         self.set_font('Arial', '', 11)
@@ -125,14 +125,14 @@ class SecurityReportPDF(FPDF):
         formatted = f"{key}: {self._sanitize_text(value)}"
         self.multi_cell(0, 7, formatted, new_x="LMARGIN", new_y="NEXT")
         
-    def add_finding_header(self, number: int, title: str):
+    def add_finding_header(self, number: int, title: str) -> None:
         """Specimen Style: Finding #N: Title."""
         self.set_font('Arial', 'B', 14)
         self.set_text_color(*self.DARK_BLUE)
         self.cell(0, 10, f"Finding #{number}: {title}", ln=True)
         self.ln(2)
 
-    def add_severity_badge(self, severity: str):
+    def add_severity_badge(self, severity: str) -> None:
         """Renders the solid badge seen in the specimen images (Orange/Red)."""
         severity_colors = {
             'CRITICAL': self.PURE_RED,
@@ -151,7 +151,7 @@ class SecurityReportPDF(FPDF):
         self.cell(45, 10, severity.upper(), align='C', fill=True, ln=True)
         self.ln(2)
         
-    def add_code_block(self, code: str):
+    def add_code_block(self, code: str) -> None:
         """Renders a code block with monospace font."""
         self.set_font('Courier', '', 9)
         self.set_text_color(50, 50, 50)
@@ -183,7 +183,7 @@ class SecurityReportPDF(FPDF):
             self.cell(180, 5, safe_line, fill=True, ln=True)
         self.ln(5)
 
-    def add_timeline_log(self, events: List[str]):
+    def add_timeline_log(self, events: List[str]) -> None:
         """Renders a technical log block for the timeline. Grey background, monospace."""
         self.set_font('Courier', '', 9)
         self.set_text_color(50, 50, 50)
@@ -195,7 +195,7 @@ class SecurityReportPDF(FPDF):
             self.cell(186, 6, safe_event, fill=True, ln=True)
         self.ln(5)
 
-    def add_snapshot_box(self, content: Union[str, List[str]], title: str = None):
+    def add_snapshot_box(self, content: Union[str, List[str]], title: str = None) -> None:
         """Purple-bordered snapshot box matching image specimens. Strict wrapping."""
         self.set_font('Courier', '', 9)
         self.set_text_color(50, 50, 50)
@@ -250,7 +250,7 @@ class SecurityReportPDF(FPDF):
         # Reset Y to bottom of box
         self.set_y(curr_y + box_height + 5)
 
-    def add_risk_meter(self, risk_score):
+    def add_risk_meter(self, risk_score: int) -> None:
         """Specimen Style: THREAT SCORE: [Value] + Progress Bar."""
         self.ln(5)
         
@@ -278,7 +278,7 @@ class SecurityReportPDF(FPDF):
         
         self.ln(20)
 
-    def add_explainability_panel(self, narrative_text: str):
+    def add_explainability_panel(self, narrative_text: str) -> None:
         """Renders the 'Explanation' section with AGENTIC NARRATIVES."""
         self.set_font('Arial', 'B', 12)
         self.set_text_color(*self.DARK_BLUE)
@@ -289,7 +289,7 @@ class SecurityReportPDF(FPDF):
         self.multi_cell(0, 6, self._sanitize_text(narrative_text))
         self.ln(5)
 
-    def add_table(self, title: str, headers: List[str], data: List[List[str]], col_widths: List[int]):
+    def add_table(self, title: str, headers: List[str], data: List[List[str]], col_widths: List[int]) -> None:
         """Forensic table with ACCENT_PURPLE borders as seen in image specimens."""
         # Page-break safety: check if table header + at least 2 rows fit
         estimated_height = 8 + (len(data) + 1) * 8 + 10
@@ -326,7 +326,7 @@ class SecurityReportPDF(FPDF):
             self.ln()
         self.ln(5)
 
-    def add_spacer(self, height: int = 10):
+    def add_spacer(self, height: int = 10) -> None:
         """Adds vertical space."""
         self.ln(height)
 
@@ -378,7 +378,7 @@ class ReportGenerator:
         if cvss >= 4.0: return 'MEDIUM'
         return 'LOW'
 
-    async def generate_report(self, scan_id: str, events: List[Dict[str, Any]], target_url: str, telemetry: Dict[str, Any] = None, manager: Any = None):
+    async def generate_report(self, scan_id: str, events: List[Dict[str, Any]], target_url: str, telemetry: Dict[str, Any] = None, manager: Any = None) -> str | None:
         """
         Generate the professional PDF report matching specimen PS_1-PS_4 images.
         """
