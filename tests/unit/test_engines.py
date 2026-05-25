@@ -9,6 +9,7 @@ Tests cover:
 - Error handling
 """
 
+import sys
 import pytest
 import asyncio
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
@@ -38,8 +39,22 @@ class TestOpenClawEngine:
     
     @pytest.mark.asyncio
     async def test_initialize_success(self, engine):
-        """Test successful initialization"""
-        pytest.skip("OpenClaw is an external dependency - skipping integration test")
+        """Test successful initialization with mocked OpenClaw"""
+        # Mock the OpenClaw import and client
+        mock_client = AsyncMock()
+        mock_client.initialize = AsyncMock()
+        
+        # Create a mock module with ClawClient
+        mock_openclaw = MagicMock()
+        mock_openclaw.ClawClient = Mock(return_value=mock_client)
+        
+        # Patch the import
+        with patch.dict('sys.modules', {'openclaw': mock_openclaw}):
+            result = await engine.initialize()
+        
+        assert result is True
+        assert engine.client == mock_client
+        mock_client.initialize.assert_called_once()
     
     @pytest.mark.asyncio
     async def test_initialize_import_error(self, engine):
@@ -52,8 +67,21 @@ class TestOpenClawEngine:
     
     @pytest.mark.asyncio
     async def test_initialize_exception(self, engine):
-        """Test initialization with exception"""
-        pytest.skip("OpenClaw is an external dependency - skipping integration test")
+        """Test initialization with exception during client setup"""
+        # Mock the OpenClaw import but make initialization fail
+        mock_client = AsyncMock()
+        mock_client.initialize = AsyncMock(side_effect=Exception("Connection failed"))
+        
+        # Create a mock module with ClawClient
+        mock_openclaw = MagicMock()
+        mock_openclaw.ClawClient = Mock(return_value=mock_client)
+        
+        # Patch the import
+        with patch.dict('sys.modules', {'openclaw': mock_openclaw}):
+            result = await engine.initialize()
+        
+        assert result is False
+        assert engine.client == mock_client
     
     @pytest.mark.asyncio
     async def test_navigate_success(self, engine):
