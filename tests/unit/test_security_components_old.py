@@ -6,7 +6,6 @@ Tests RateLimiter, URLValidator, and CSRFProtection
 import pytest
 import time
 from unittest.mock import Mock, patch
-from fastapi import HTTPException
 from backend.core.rate_limiter import RateLimiter
 from backend.core.url_validator import URLValidator
 from backend.core.csrf_protection import CSRFProtection
@@ -27,8 +26,9 @@ class TestRateLimiter:
         endpoint = "/api/test"
         
         # First request should be allowed
-        allowed = await rate_limiter.check_rate_limit(client_id, endpoint)
+        allowed, retry_after = await rate_limiter.check_rate_limit(client_id, endpoint)
         assert allowed is True
+        assert retry_after is None
     
     @pytest.mark.asyncio
     async def test_block_request_over_limit(self, rate_limiter):
@@ -41,10 +41,12 @@ class TestRateLimiter:
             await rate_limiter.check_rate_limit(client_id, endpoint)
         
         # Next request should be blocked
-        with pytest.raises(HTTPException) as exc_info:
-            await rate_limiter.check_rate_limit(client_id, endpoint)
-        assert exc_info.value.status_code == 429
+        allowed, retry_after = await rate_limiter.check_rate_limit(client_id, endpoint)
+        assert allowed is False
+        assert retry_after is not None
+        assert retry_after > 0
     
+    @pytest.mark.asyncio
     @pytest.mark.asyncio
     async def test_different_clients_independent(self, rate_limiter):
         """Test different clients have independent limits."""
@@ -57,7 +59,7 @@ class TestRateLimiter:
             await rate_limiter.check_rate_limit(client1, endpoint)
         
         # Client2 should still be allowed
-        allowed = await rate_limiter.check_rate_limit(client2, endpoint)
+        allowed, _ = await rate_limiter.check_rate_limit(client2, endpoint)
         assert allowed is True
     
     @pytest.mark.asyncio
@@ -72,7 +74,7 @@ class TestRateLimiter:
             await rate_limiter.check_rate_limit(client, endpoint1)
         
         # endpoint2 should still be allowed
-        allowed = await rate_limiter.check_rate_limit(client, endpoint2)
+        allowed, _ = await rate_limiter.check_rate_limit(client, endpoint2)
         assert allowed is True
     
     @pytest.mark.asyncio
@@ -83,13 +85,12 @@ class TestRateLimiter:
         
         # Dashboard endpoint has 120 req/min limit
         for _ in range(120):
-            allowed = await rate_limiter.check_rate_limit(client, endpoint)
+            allowed, _ = await rate_limiter.check_rate_limit(client, endpoint)
             assert allowed is True
         
         # 121st request should be blocked
-        with pytest.raises(HTTPException) as exc_info:
-            await rate_limiter.check_rate_limit(client, endpoint)
-        assert exc_info.value.status_code == 429
+        allowed, _ = await rate_limiter.check_rate_limit(client, endpoint)
+        assert allowed is False
     
     @pytest.mark.asyncio
     async def test_token_refill(self, rate_limiter):
@@ -101,15 +102,13 @@ class TestRateLimiter:
         for _ in range(30):
             await rate_limiter.check_rate_limit(client, endpoint)
         
-        # Manually update the timestamp to simulate time passing
-        if endpoint in rate_limiter._buckets[client]:
-            tokens, _ = rate_limiter._buckets[client][endpoint]
-            # Set timestamp to 60 seconds ago
-            rate_limiter._buckets[client][endpoint] = (tokens, time.time() - 60)
-        
-        # Should have refilled
-        allowed = await rate_limiter.check_rate_limit(client, endpoint)
-        assert allowed is True
+        # Wait for refill (mock time)
+        with patch('time.time') as mock_time:
+            mock_time.return_value = time.time() + 60  # 1 minute later
+            
+            # Should have refilled
+            allowed, _ = await rate_limiter.check_rate_limit(client, endpoint)
+            assert allowed is True
     
     @pytest.mark.asyncio
     async def test_cleanup_old_buckets(self, rate_limiter):
@@ -121,10 +120,8 @@ class TestRateLimiter:
         assert len(rate_limiter._buckets) == 10
         
         # Mock old timestamps
-        for ip in rate_limiter._buckets:
-            for endpoint in rate_limiter._buckets[ip]:
-                tokens, _ = rate_limiter._buckets[ip][endpoint]
-                rate_limiter._buckets[ip][endpoint] = (tokens, time.time() - 7200)  # 2 hours ago
+        for key in rate_limiter._buckets:
+            rate_limiter._buckets[key]["last_update"] = time.time() - 7200  # 2 hours ago
         
         # Cleanup
         await rate_limiter.cleanup_old_buckets()
@@ -243,7 +240,7 @@ class TestURLValidator:
         """Test handling of invalid URL format."""
         valid, reason = validator.validate("not-a-url")
         assert valid is False
-        assert ("invalid" in reason.lower() or "scheme" in reason.lower() or "allowed scope" in reason.lower())
+        assert ("malformed" in reason.lower() or "allowed scope" in reason.lower())
 
 
 class TestCSRFProtection:
@@ -395,7 +392,7 @@ class TestSecurityIntegration:
         token = await csrf.generate_token(session_id)
         
         # Check rate limit
-        allowed = await rate_limiter.check_rate_limit(client_id, "/api/test")
+        allowed, _ = await rate_limiter.check_rate_limit(client_id, "/api/test")
         
         # Both should work independently
         assert allowed is True
@@ -414,7 +411,7 @@ class TestSecurityIntegration:
         valid, _ = validator.validate(url)
         
         # Check rate limit
-        allowed = await rate_limiter.check_rate_limit(client_id, "/api/test")
+        allowed, _ = await rate_limiter.check_rate_limit(client_id, "/api/test")
         
         # Both should pass
         assert valid is True
