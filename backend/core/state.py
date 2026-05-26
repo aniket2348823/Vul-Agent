@@ -303,13 +303,72 @@ class StateManager:
         self.flush_immediate()
                 
     def wipe_scans(self) -> None:
-        """Wipe all historical scan records from the database."""
+        """Wipe all historical scan records from the database and sharded files."""
+        import shutil
+        
+        # Clear in-memory stats
         self._stats["scans"] = []
         self._stats["total_scans"] = 0
         self._stats["active_scans"] = 0
         self._stats["vulnerabilities"] = 0
         self._stats["critical"] = 0
         self._stats["history"] = [0] * 30
+        self._stats["v6_metrics"] = {
+            "injections_blocked": 0,
+            "deceptive_ui_blocked": 0,
+            "risk_score": 0
+        }
+        
+        # Clear sharded scan state files in scan_states/
+        self._ensure_scans_dir()
+        try:
+            for fname in os.listdir(self.SCANS_DIR):
+                if fname.startswith("scan_") and fname.endswith(".json"):
+                    file_path = os.path.join(self.SCANS_DIR, fname)
+                    try:
+                        os.remove(file_path)
+                        print(f"[StateManager] Deleted sharded scan file: {fname}")
+                    except Exception as e:
+                        print(f"[StateManager] Error deleting {fname}: {e}")
+        except Exception as e:
+            print(f"[StateManager] Error accessing scan_states directory: {e}")
+        
+        # Clear brain episodes
+        episodes_dir = "brain/episodes"
+        if os.path.exists(episodes_dir):
+            try:
+                for fname in os.listdir(episodes_dir):
+                    if fname.endswith(".json"):
+                        file_path = os.path.join(episodes_dir, fname)
+                        try:
+                            os.remove(file_path)
+                            print(f"[StateManager] Deleted brain episode: {fname}")
+                        except Exception as e:
+                            print(f"[StateManager] Error deleting {fname}: {e}")
+            except Exception as e:
+                print(f"[StateManager] Error accessing brain/episodes directory: {e}")
+        
+        # Clear scan_states subdirectories (forensics, sandboxes, sessions)
+        subdirs_to_clean = ["forensics", "sandboxes", "sessions"]
+        for subdir in subdirs_to_clean:
+            subdir_path = os.path.join(self.SCANS_DIR, subdir)
+            if os.path.exists(subdir_path):
+                try:
+                    # Remove all contents but keep the directory
+                    for item in os.listdir(subdir_path):
+                        item_path = os.path.join(subdir_path, item)
+                        try:
+                            if os.path.isfile(item_path):
+                                os.remove(item_path)
+                            elif os.path.isdir(item_path):
+                                shutil.rmtree(item_path)
+                            print(f"[StateManager] Deleted {subdir}/{item}")
+                        except Exception as e:
+                            print(f"[StateManager] Error deleting {subdir}/{item}: {e}")
+                except Exception as e:
+                    print(f"[StateManager] Error accessing {subdir_path}: {e}")
+        
+        # Save to disk
         self._save()
         print("[StateManager] All historical scans wiped successfully.")
 

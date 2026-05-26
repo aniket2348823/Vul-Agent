@@ -109,15 +109,34 @@ const Scans = ({ navigate }) => {
     const [downloading, setDownloading] = useState(null); // Track which scan is downloading
 
     const handleWipeHistory = async () => {
-        if (!confirm("Are you sure you want to PERMANENTLY wipe all scan history? This cannot be undone.")) return;
+        if (!confirm("⚠️ WARNING: This will PERMANENTLY delete ALL scan history, reports, and forensic data.\n\nThis includes:\n• All scan records\n• Generated reports\n• Brain episodes\n• Forensic data\n• Session data\n\nThis action CANNOT be undone!\n\nAre you absolutely sure?")) return;
+        
         try {
-            const response = await fetch(apiUrl('/api/dashboard/reset'), { method: 'POST' });
+            const response = await fetch(apiUrl('/api/dashboard/reset'), { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
             if (response.ok) {
-                fetchScans();
-                alert("Scan history wiped successfully.");
+                const data = await response.json();
+                // Clear local state immediately
+                setScans([]);
+                setProgressMap({});
+                messageBuffer.current = [];
+                
+                // Fetch fresh data
+                await fetchScans();
+                
+                alert("✅ Scan history wiped successfully.\n\nAll scan records, reports, and forensic data have been permanently deleted.");
+            } else {
+                const error = await response.json();
+                alert(`❌ Error: ${error.message || 'Failed to wipe history'}`);
             }
         } catch (error) {
             console.error('Error wiping history:', error);
+            alert(`❌ Error wiping history: ${error.message || 'Network error'}`);
         }
     };
 
