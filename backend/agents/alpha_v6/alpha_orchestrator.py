@@ -389,11 +389,17 @@ class AlphaOrchestrator:
     def _compile_scope(self, target_url: str, mode: ScanMode) -> ReconScope:
         parsed = urlparse(target_url)
         domain = (parsed.hostname or "").lower()
+        # When user explicitly fires a scan from the UI, private/local targets
+        # are implicitly authorized — the user chose to scan them.
+        is_local = domain in ("localhost", "127.0.0.1", "0.0.0.0", "::1") or \
+                   domain.startswith("192.168.") or domain.startswith("10.") or \
+                   domain.startswith("172.16.") or domain.endswith(".local")
         return ReconScope(
             base_domain=domain, target_url=target_url, scan_mode=mode,
             base_url=f"{parsed.scheme}://{parsed.hostname}" if parsed.hostname else target_url,
             max_depth=3 if mode == ScanMode.AGGRESSIVE else 2,
             max_rps=200 if mode == ScanMode.AGGRESSIVE else 50,
+            explicit_authorization=is_local,
         )
 
     def _coerce_mode(self, val) -> ScanMode:

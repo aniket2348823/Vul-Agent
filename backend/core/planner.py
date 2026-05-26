@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Dict, Any
 from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ModuleConfig, AgentID, TaskPriority, TaskTarget
+from backend.core.config import settings
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 
 logger = logging.getLogger("MissionPlanner")
@@ -59,8 +60,13 @@ class MissionPlanner(BaseAgent):
             priority=TaskPriority.NORMAL,
             target=TaskTarget(url=target_url),
             config=ModuleConfig(
-                module_id="api_mapping",
-                agent_id=AgentID.ALPHA
+                module_id="alpha_v6_recon",
+                agent_id=AgentID.ALPHA,
+                params={
+                    "scan_mode": event.payload.get("scan_mode")
+                    or event.payload.get("mode")
+                    or getattr(settings, "ALPHA_DEFAULT_MODE", "STANDARD")
+                },
             )
         )
         

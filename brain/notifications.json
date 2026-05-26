@@ -1,1 +1,5002 @@
-[]
+[
+  {
+    "timestamp": 1779810039.2402124,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92c6931-1ef1-4691-a32e-318b559bf70c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810039.3274417,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92c6931-1ef1-4691-a32e-318b559bf70c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810039.4189844,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92c6931-1ef1-4691-a32e-318b559bf70c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810039.477456,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92c6931-1ef1-4691-a32e-318b559bf70c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810039.5305617,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92c6931-1ef1-4691-a32e-318b559bf70c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810039.9561572,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92c6931-1ef1-4691-a32e-318b559bf70c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810039.982416,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f6643e84-b454-483b-8a3d-c6691538dc22",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.10289,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "93e3774b-ee74-4976-b3d1-2fc516201a2d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.1279657,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f6643e84-b454-483b-8a3d-c6691538dc22",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.2751732,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "93e3774b-ee74-4976-b3d1-2fc516201a2d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.3088539,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f6643e84-b454-483b-8a3d-c6691538dc22",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.3875666,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "93e3774b-ee74-4976-b3d1-2fc516201a2d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.4122381,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f6643e84-b454-483b-8a3d-c6691538dc22",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.4964488,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "93e3774b-ee74-4976-b3d1-2fc516201a2d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.5264919,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f6643e84-b454-483b-8a3d-c6691538dc22",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.601623,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "93e3774b-ee74-4976-b3d1-2fc516201a2d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.633743,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f6643e84-b454-483b-8a3d-c6691538dc22",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.6938174,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "93e3774b-ee74-4976-b3d1-2fc516201a2d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.7242675,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f6643e84-b454-483b-8a3d-c6691538dc22",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.8001013,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "93e3774b-ee74-4976-b3d1-2fc516201a2d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.8310637,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f6643e84-b454-483b-8a3d-c6691538dc22",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.9004395,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "93e3774b-ee74-4976-b3d1-2fc516201a2d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810040.9321947,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f6643e84-b454-483b-8a3d-c6691538dc22",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810041.0036001,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "93e3774b-ee74-4976-b3d1-2fc516201a2d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810041.0209844,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f6643e84-b454-483b-8a3d-c6691538dc22",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810041.0903745,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "93e3774b-ee74-4976-b3d1-2fc516201a2d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810041.1111238,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f6643e84-b454-483b-8a3d-c6691538dc22",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810041.1691234,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9ecdea21-8227-4c4d-ae37-36384ebce8cf",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810042.6626112,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "117668df-0bb7-45ba-a0ef-00debc48862f",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810042.6971622,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9ecdea21-8227-4c4d-ae37-36384ebce8cf",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810042.7238605,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9ecdea21-8227-4c4d-ae37-36384ebce8cf",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810042.748016,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9ecdea21-8227-4c4d-ae37-36384ebce8cf",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810042.7743082,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9ecdea21-8227-4c4d-ae37-36384ebce8cf",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810042.795225,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9ecdea21-8227-4c4d-ae37-36384ebce8cf",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810042.817362,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9ecdea21-8227-4c4d-ae37-36384ebce8cf",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810042.8411152,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9ecdea21-8227-4c4d-ae37-36384ebce8cf",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810042.8648016,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9ecdea21-8227-4c4d-ae37-36384ebce8cf",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810042.892217,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9ecdea21-8227-4c4d-ae37-36384ebce8cf",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810042.922001,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9ecdea21-8227-4c4d-ae37-36384ebce8cf",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810042.962316,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3a91362f-f978-4c1f-b112-f8ef166f3ff7",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810042.9938548,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b4830367-9c35-43ac-ae37-a948d0233e51",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810043.111037,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "117668df-0bb7-45ba-a0ef-00debc48862f",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810043.1930265,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "117668df-0bb7-45ba-a0ef-00debc48862f",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810043.2783391,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "117668df-0bb7-45ba-a0ef-00debc48862f",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810043.3523493,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "117668df-0bb7-45ba-a0ef-00debc48862f",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810043.436051,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "117668df-0bb7-45ba-a0ef-00debc48862f",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810043.54903,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "117668df-0bb7-45ba-a0ef-00debc48862f",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810043.627228,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "117668df-0bb7-45ba-a0ef-00debc48862f",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810043.701772,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "117668df-0bb7-45ba-a0ef-00debc48862f",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810043.7771342,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "117668df-0bb7-45ba-a0ef-00debc48862f",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810043.8332362,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "117668df-0bb7-45ba-a0ef-00debc48862f",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810043.9134133,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3a91362f-f978-4c1f-b112-f8ef166f3ff7",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810043.9329357,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b4830367-9c35-43ac-ae37-a948d0233e51",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810044.0137858,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3a91362f-f978-4c1f-b112-f8ef166f3ff7",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810044.0405295,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b4830367-9c35-43ac-ae37-a948d0233e51",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810044.1157029,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3a91362f-f978-4c1f-b112-f8ef166f3ff7",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810044.1438642,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b4830367-9c35-43ac-ae37-a948d0233e51",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810044.2293677,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3a91362f-f978-4c1f-b112-f8ef166f3ff7",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810044.2561636,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b4830367-9c35-43ac-ae37-a948d0233e51",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810044.3287652,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3a91362f-f978-4c1f-b112-f8ef166f3ff7",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810044.354403,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b4830367-9c35-43ac-ae37-a948d0233e51",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810044.4586146,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3a91362f-f978-4c1f-b112-f8ef166f3ff7",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810044.4883845,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b4830367-9c35-43ac-ae37-a948d0233e51",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810044.576608,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3a91362f-f978-4c1f-b112-f8ef166f3ff7",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810044.5962973,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b4830367-9c35-43ac-ae37-a948d0233e51",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810044.668231,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3a91362f-f978-4c1f-b112-f8ef166f3ff7",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810044.6976955,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b4830367-9c35-43ac-ae37-a948d0233e51",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810044.7997837,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3a91362f-f978-4c1f-b112-f8ef166f3ff7",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810044.8286977,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b4830367-9c35-43ac-ae37-a948d0233e51",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810044.91448,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3a91362f-f978-4c1f-b112-f8ef166f3ff7",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810044.9369185,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b4830367-9c35-43ac-ae37-a948d0233e51",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810045.067374,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "66f768ab-aed2-4119-84c9-ff9d55e87883",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810046.3717597,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "02beb0ca-e544-4d9e-a905-7d2ec2a80a99",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810046.504824,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "66f768ab-aed2-4119-84c9-ff9d55e87883",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810046.5383983,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "66f768ab-aed2-4119-84c9-ff9d55e87883",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810046.5702424,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "66f768ab-aed2-4119-84c9-ff9d55e87883",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810046.6066368,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "66f768ab-aed2-4119-84c9-ff9d55e87883",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810046.636071,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "66f768ab-aed2-4119-84c9-ff9d55e87883",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810046.6623592,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "66f768ab-aed2-4119-84c9-ff9d55e87883",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810046.6868126,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "66f768ab-aed2-4119-84c9-ff9d55e87883",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810046.7178857,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "66f768ab-aed2-4119-84c9-ff9d55e87883",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810046.7509067,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "66f768ab-aed2-4119-84c9-ff9d55e87883",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810046.7780015,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "66f768ab-aed2-4119-84c9-ff9d55e87883",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810046.8149834,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "02beb0ca-e544-4d9e-a905-7d2ec2a80a99",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810046.9126916,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "02beb0ca-e544-4d9e-a905-7d2ec2a80a99",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810046.9828644,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "685628b8-6ee7-4c69-9c57-e33ba458837d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.0126536,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "02beb0ca-e544-4d9e-a905-7d2ec2a80a99",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.1076674,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "02beb0ca-e544-4d9e-a905-7d2ec2a80a99",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.1687715,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "02beb0ca-e544-4d9e-a905-7d2ec2a80a99",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.2402894,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "02beb0ca-e544-4d9e-a905-7d2ec2a80a99",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.296339,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "02beb0ca-e544-4d9e-a905-7d2ec2a80a99",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.3682618,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "02beb0ca-e544-4d9e-a905-7d2ec2a80a99",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.423441,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b8b5da5a-fe7c-4bd1-b512-537b33d979d3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.4906723,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "02beb0ca-e544-4d9e-a905-7d2ec2a80a99",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.5766008,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "02beb0ca-e544-4d9e-a905-7d2ec2a80a99",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.718872,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "685628b8-6ee7-4c69-9c57-e33ba458837d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.7768934,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b8b5da5a-fe7c-4bd1-b512-537b33d979d3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.79758,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "685628b8-6ee7-4c69-9c57-e33ba458837d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.8602726,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b8b5da5a-fe7c-4bd1-b512-537b33d979d3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.8880448,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "685628b8-6ee7-4c69-9c57-e33ba458837d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.9471107,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b8b5da5a-fe7c-4bd1-b512-537b33d979d3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810047.9656737,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "685628b8-6ee7-4c69-9c57-e33ba458837d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.0479796,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b8b5da5a-fe7c-4bd1-b512-537b33d979d3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.0668626,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "685628b8-6ee7-4c69-9c57-e33ba458837d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.1198456,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b8b5da5a-fe7c-4bd1-b512-537b33d979d3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.1389623,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "685628b8-6ee7-4c69-9c57-e33ba458837d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.2125483,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b8b5da5a-fe7c-4bd1-b512-537b33d979d3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.243298,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "685628b8-6ee7-4c69-9c57-e33ba458837d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.3193321,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b8b5da5a-fe7c-4bd1-b512-537b33d979d3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.341362,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "685628b8-6ee7-4c69-9c57-e33ba458837d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.408591,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b8b5da5a-fe7c-4bd1-b512-537b33d979d3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.428261,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "685628b8-6ee7-4c69-9c57-e33ba458837d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.4961302,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b8b5da5a-fe7c-4bd1-b512-537b33d979d3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.524932,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "685628b8-6ee7-4c69-9c57-e33ba458837d",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.5827267,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b8b5da5a-fe7c-4bd1-b512-537b33d979d3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810048.6981192,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "5bd87e6d-804b-4bad-88d3-37e83bcfdf86",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810052.0516403,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2b3d9dc1-0dcf-48c6-944a-6b3ad38d4c02",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810052.4963737,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "5bd87e6d-804b-4bad-88d3-37e83bcfdf86",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810052.5252063,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "5bd87e6d-804b-4bad-88d3-37e83bcfdf86",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810052.5643787,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "5bd87e6d-804b-4bad-88d3-37e83bcfdf86",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810052.6001518,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "5bd87e6d-804b-4bad-88d3-37e83bcfdf86",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810052.6362503,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "5bd87e6d-804b-4bad-88d3-37e83bcfdf86",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810052.6710308,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "5bd87e6d-804b-4bad-88d3-37e83bcfdf86",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810052.7029552,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "5bd87e6d-804b-4bad-88d3-37e83bcfdf86",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810052.7352986,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "5bd87e6d-804b-4bad-88d3-37e83bcfdf86",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810052.7609255,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "5bd87e6d-804b-4bad-88d3-37e83bcfdf86",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810052.7840118,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "5bd87e6d-804b-4bad-88d3-37e83bcfdf86",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810052.9433556,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2b3d9dc1-0dcf-48c6-944a-6b3ad38d4c02",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810052.9802022,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "37211dee-77a7-4974-8417-ed24dcadb352",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810053.0697749,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2b3d9dc1-0dcf-48c6-944a-6b3ad38d4c02",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810053.1474907,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2b3d9dc1-0dcf-48c6-944a-6b3ad38d4c02",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810053.2192712,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2b3d9dc1-0dcf-48c6-944a-6b3ad38d4c02",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810053.2836864,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2b3d9dc1-0dcf-48c6-944a-6b3ad38d4c02",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810053.3490632,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2b3d9dc1-0dcf-48c6-944a-6b3ad38d4c02",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810053.4312594,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2b3d9dc1-0dcf-48c6-944a-6b3ad38d4c02",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810053.4582949,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "1947028d-aef1-4905-a2a7-599d9ec6df41",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810053.5308576,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2b3d9dc1-0dcf-48c6-944a-6b3ad38d4c02",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810053.603327,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2b3d9dc1-0dcf-48c6-944a-6b3ad38d4c02",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810053.6717002,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2b3d9dc1-0dcf-48c6-944a-6b3ad38d4c02",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810054.8194118,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "37211dee-77a7-4974-8417-ed24dcadb352",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810054.8489068,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "1947028d-aef1-4905-a2a7-599d9ec6df41",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810054.9500022,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "37211dee-77a7-4974-8417-ed24dcadb352",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810054.9745326,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "1947028d-aef1-4905-a2a7-599d9ec6df41",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810055.0518897,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "37211dee-77a7-4974-8417-ed24dcadb352",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810055.083799,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "1947028d-aef1-4905-a2a7-599d9ec6df41",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810055.1766171,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "37211dee-77a7-4974-8417-ed24dcadb352",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810055.2084532,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "1947028d-aef1-4905-a2a7-599d9ec6df41",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810055.2983267,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "37211dee-77a7-4974-8417-ed24dcadb352",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810055.329153,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "1947028d-aef1-4905-a2a7-599d9ec6df41",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810055.4124367,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "37211dee-77a7-4974-8417-ed24dcadb352",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810055.4506023,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "1947028d-aef1-4905-a2a7-599d9ec6df41",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810055.550352,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "37211dee-77a7-4974-8417-ed24dcadb352",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810055.5793555,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "1947028d-aef1-4905-a2a7-599d9ec6df41",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810055.666826,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "37211dee-77a7-4974-8417-ed24dcadb352",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810055.6967373,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "1947028d-aef1-4905-a2a7-599d9ec6df41",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810055.7700624,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "37211dee-77a7-4974-8417-ed24dcadb352",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810055.8061373,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "1947028d-aef1-4905-a2a7-599d9ec6df41",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810055.8738616,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "37211dee-77a7-4974-8417-ed24dcadb352",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810055.8999498,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "1947028d-aef1-4905-a2a7-599d9ec6df41",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810055.9336202,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "bb95e1c6-abec-434f-8ae1-6a32ae213e25",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810055.977518,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "07d04e15-a8cc-4af0-bf43-689a753bf268",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.0031323,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "bb95e1c6-abec-434f-8ae1-6a32ae213e25",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.0251873,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "bb95e1c6-abec-434f-8ae1-6a32ae213e25",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.0435162,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "bb95e1c6-abec-434f-8ae1-6a32ae213e25",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.0633426,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "bb95e1c6-abec-434f-8ae1-6a32ae213e25",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.083837,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "bb95e1c6-abec-434f-8ae1-6a32ae213e25",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.1034942,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "bb95e1c6-abec-434f-8ae1-6a32ae213e25",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.1230965,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "bb95e1c6-abec-434f-8ae1-6a32ae213e25",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.1439247,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "bb95e1c6-abec-434f-8ae1-6a32ae213e25",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.1709807,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "bb95e1c6-abec-434f-8ae1-6a32ae213e25",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.196758,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "bb95e1c6-abec-434f-8ae1-6a32ae213e25",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.2235997,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e37f9fa6-9ef5-4fc0-9117-5b2927141c68",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.2531686,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "07d04e15-a8cc-4af0-bf43-689a753bf268",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.2773592,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3325baba-0414-4251-9f0a-3f061e8c0586",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.3061807,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "07d04e15-a8cc-4af0-bf43-689a753bf268",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.3331277,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "07d04e15-a8cc-4af0-bf43-689a753bf268",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.3643641,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "07d04e15-a8cc-4af0-bf43-689a753bf268",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.3944633,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "07d04e15-a8cc-4af0-bf43-689a753bf268",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.4230397,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "07d04e15-a8cc-4af0-bf43-689a753bf268",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.457959,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "07d04e15-a8cc-4af0-bf43-689a753bf268",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.4923904,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "07d04e15-a8cc-4af0-bf43-689a753bf268",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.5283937,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "07d04e15-a8cc-4af0-bf43-689a753bf268",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.5571907,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "07d04e15-a8cc-4af0-bf43-689a753bf268",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.5965014,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e37f9fa6-9ef5-4fc0-9117-5b2927141c68",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.6255925,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3325baba-0414-4251-9f0a-3f061e8c0586",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.660793,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e37f9fa6-9ef5-4fc0-9117-5b2927141c68",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.6916592,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3325baba-0414-4251-9f0a-3f061e8c0586",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.715012,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e37f9fa6-9ef5-4fc0-9117-5b2927141c68",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.7520356,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3325baba-0414-4251-9f0a-3f061e8c0586",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.7822907,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e37f9fa6-9ef5-4fc0-9117-5b2927141c68",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.811409,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3325baba-0414-4251-9f0a-3f061e8c0586",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.8446476,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e37f9fa6-9ef5-4fc0-9117-5b2927141c68",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.8774445,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3325baba-0414-4251-9f0a-3f061e8c0586",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.9059427,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e37f9fa6-9ef5-4fc0-9117-5b2927141c68",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.937692,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3325baba-0414-4251-9f0a-3f061e8c0586",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810056.9686427,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e37f9fa6-9ef5-4fc0-9117-5b2927141c68",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810056.9896498,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3325baba-0414-4251-9f0a-3f061e8c0586",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810057.010724,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e37f9fa6-9ef5-4fc0-9117-5b2927141c68",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810057.0383296,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3325baba-0414-4251-9f0a-3f061e8c0586",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810057.0641732,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e37f9fa6-9ef5-4fc0-9117-5b2927141c68",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810057.0934615,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3325baba-0414-4251-9f0a-3f061e8c0586",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810057.119297,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e37f9fa6-9ef5-4fc0-9117-5b2927141c68",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810057.15251,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3325baba-0414-4251-9f0a-3f061e8c0586",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810057.1930215,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "19b68a3e-f7b2-4f1a-b1cf-6160af419c55",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810058.2338765,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b34f6e14-679d-49f4-8342-5767f25c7150",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810058.2691307,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "19b68a3e-f7b2-4f1a-b1cf-6160af419c55",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810058.2934382,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "19b68a3e-f7b2-4f1a-b1cf-6160af419c55",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810058.328722,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "19b68a3e-f7b2-4f1a-b1cf-6160af419c55",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810058.357446,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "19b68a3e-f7b2-4f1a-b1cf-6160af419c55",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810058.3889642,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "19b68a3e-f7b2-4f1a-b1cf-6160af419c55",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810058.4180105,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "19b68a3e-f7b2-4f1a-b1cf-6160af419c55",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810058.4509857,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "19b68a3e-f7b2-4f1a-b1cf-6160af419c55",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810058.4877706,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "19b68a3e-f7b2-4f1a-b1cf-6160af419c55",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810058.51814,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "19b68a3e-f7b2-4f1a-b1cf-6160af419c55",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810058.549853,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "19b68a3e-f7b2-4f1a-b1cf-6160af419c55",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810058.5983486,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b34f6e14-679d-49f4-8342-5767f25c7150",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810058.6293156,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b34f6e14-679d-49f4-8342-5767f25c7150",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810058.6532836,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b34f6e14-679d-49f4-8342-5767f25c7150",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810058.6841486,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2a61dd95-1b4d-4aaf-910c-27f6eb4e826c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810058.7127912,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b34f6e14-679d-49f4-8342-5767f25c7150",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810058.7364106,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b34f6e14-679d-49f4-8342-5767f25c7150",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810058.7594056,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b34f6e14-679d-49f4-8342-5767f25c7150",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810058.783492,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b34f6e14-679d-49f4-8342-5767f25c7150",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810058.8135993,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "63bd8631-d892-4fd8-be54-7d4962ce8ff9",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810058.849535,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b34f6e14-679d-49f4-8342-5767f25c7150",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810058.875279,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b34f6e14-679d-49f4-8342-5767f25c7150",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810058.8999424,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b34f6e14-679d-49f4-8342-5767f25c7150",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810058.966659,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2a61dd95-1b4d-4aaf-910c-27f6eb4e826c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810058.9884138,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "63bd8631-d892-4fd8-be54-7d4962ce8ff9",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.0146904,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2a61dd95-1b4d-4aaf-910c-27f6eb4e826c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.035415,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "63bd8631-d892-4fd8-be54-7d4962ce8ff9",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.062849,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2a61dd95-1b4d-4aaf-910c-27f6eb4e826c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.0945537,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "63bd8631-d892-4fd8-be54-7d4962ce8ff9",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.1253955,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2a61dd95-1b4d-4aaf-910c-27f6eb4e826c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.157235,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "63bd8631-d892-4fd8-be54-7d4962ce8ff9",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.1945128,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2a61dd95-1b4d-4aaf-910c-27f6eb4e826c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.227406,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "63bd8631-d892-4fd8-be54-7d4962ce8ff9",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.255523,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2a61dd95-1b4d-4aaf-910c-27f6eb4e826c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.289588,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "63bd8631-d892-4fd8-be54-7d4962ce8ff9",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.3202763,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2a61dd95-1b4d-4aaf-910c-27f6eb4e826c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.3513882,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "63bd8631-d892-4fd8-be54-7d4962ce8ff9",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.3858345,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2a61dd95-1b4d-4aaf-910c-27f6eb4e826c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.4170575,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "63bd8631-d892-4fd8-be54-7d4962ce8ff9",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.4494913,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2a61dd95-1b4d-4aaf-910c-27f6eb4e826c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.4827628,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "63bd8631-d892-4fd8-be54-7d4962ce8ff9",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.512453,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2a61dd95-1b4d-4aaf-910c-27f6eb4e826c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.5461097,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "63bd8631-d892-4fd8-be54-7d4962ce8ff9",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.5776906,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92b74c9-9c6c-447a-b8a6-aa9eed9d9547",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.6161575,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "22705583-41dd-4c7c-ae65-af17a22575a6",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.653497,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92b74c9-9c6c-447a-b8a6-aa9eed9d9547",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.682199,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92b74c9-9c6c-447a-b8a6-aa9eed9d9547",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.715658,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92b74c9-9c6c-447a-b8a6-aa9eed9d9547",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.7489617,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92b74c9-9c6c-447a-b8a6-aa9eed9d9547",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.7846875,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92b74c9-9c6c-447a-b8a6-aa9eed9d9547",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.817182,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92b74c9-9c6c-447a-b8a6-aa9eed9d9547",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.8541174,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92b74c9-9c6c-447a-b8a6-aa9eed9d9547",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.8871367,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92b74c9-9c6c-447a-b8a6-aa9eed9d9547",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.9207067,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92b74c9-9c6c-447a-b8a6-aa9eed9d9547",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.9487858,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "d92b74c9-9c6c-447a-b8a6-aa9eed9d9547",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810059.9842505,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f71cc49a-a288-4894-94cf-f395d312c032",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810060.0133572,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "11bade41-72be-419f-8258-5a0b0e35cb37",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810060.0515497,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "22705583-41dd-4c7c-ae65-af17a22575a6",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810060.0829504,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "22705583-41dd-4c7c-ae65-af17a22575a6",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810060.1087518,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "22705583-41dd-4c7c-ae65-af17a22575a6",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810060.131635,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "22705583-41dd-4c7c-ae65-af17a22575a6",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810060.1587095,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "22705583-41dd-4c7c-ae65-af17a22575a6",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810060.188044,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "22705583-41dd-4c7c-ae65-af17a22575a6",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810060.224975,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "22705583-41dd-4c7c-ae65-af17a22575a6",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810060.254451,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "22705583-41dd-4c7c-ae65-af17a22575a6",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810060.2849936,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "22705583-41dd-4c7c-ae65-af17a22575a6",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810060.3221867,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "22705583-41dd-4c7c-ae65-af17a22575a6",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810061.4505246,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "11bade41-72be-419f-8258-5a0b0e35cb37",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810061.48515,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f71cc49a-a288-4894-94cf-f395d312c032",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810061.5127413,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "11bade41-72be-419f-8258-5a0b0e35cb37",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810061.5320969,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f71cc49a-a288-4894-94cf-f395d312c032",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810061.5599988,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "11bade41-72be-419f-8258-5a0b0e35cb37",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810061.5905886,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f71cc49a-a288-4894-94cf-f395d312c032",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810061.6262712,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "11bade41-72be-419f-8258-5a0b0e35cb37",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810061.6510313,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f71cc49a-a288-4894-94cf-f395d312c032",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810061.6749325,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "11bade41-72be-419f-8258-5a0b0e35cb37",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810061.7009077,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f71cc49a-a288-4894-94cf-f395d312c032",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810061.7313106,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "11bade41-72be-419f-8258-5a0b0e35cb37",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810061.7567961,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f71cc49a-a288-4894-94cf-f395d312c032",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810061.7848434,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "11bade41-72be-419f-8258-5a0b0e35cb37",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810061.8185897,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f71cc49a-a288-4894-94cf-f395d312c032",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810061.8559182,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "11bade41-72be-419f-8258-5a0b0e35cb37",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810061.8931592,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f71cc49a-a288-4894-94cf-f395d312c032",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810061.9243002,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "11bade41-72be-419f-8258-5a0b0e35cb37",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810061.9545426,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f71cc49a-a288-4894-94cf-f395d312c032",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810061.986206,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "11bade41-72be-419f-8258-5a0b0e35cb37",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810062.0195332,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "f71cc49a-a288-4894-94cf-f395d312c032",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810062.0755289,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "833b4ec0-2beb-45a3-b60a-d4a502a32936",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810063.196984,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "728332e6-c446-467e-9f80-5c083eb1c4c3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810063.241728,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "833b4ec0-2beb-45a3-b60a-d4a502a32936",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810063.2743466,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "833b4ec0-2beb-45a3-b60a-d4a502a32936",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810063.3013391,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "833b4ec0-2beb-45a3-b60a-d4a502a32936",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810063.3235996,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "833b4ec0-2beb-45a3-b60a-d4a502a32936",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810063.3495138,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "833b4ec0-2beb-45a3-b60a-d4a502a32936",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810063.3717902,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "833b4ec0-2beb-45a3-b60a-d4a502a32936",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810063.400126,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "833b4ec0-2beb-45a3-b60a-d4a502a32936",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810063.4262872,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "833b4ec0-2beb-45a3-b60a-d4a502a32936",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810063.4651356,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "833b4ec0-2beb-45a3-b60a-d4a502a32936",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810063.5524192,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "833b4ec0-2beb-45a3-b60a-d4a502a32936",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810063.6203,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "728332e6-c446-467e-9f80-5c083eb1c4c3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810063.6865933,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3d84ab00-1a65-4719-bbec-b314d0fe2b50",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810063.7411108,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "8329c965-2961-484a-8767-7f1685c46e1c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810063.8049278,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "728332e6-c446-467e-9f80-5c083eb1c4c3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810063.8497536,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "728332e6-c446-467e-9f80-5c083eb1c4c3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810063.888975,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "728332e6-c446-467e-9f80-5c083eb1c4c3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810063.9152741,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "728332e6-c446-467e-9f80-5c083eb1c4c3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810063.9398217,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "728332e6-c446-467e-9f80-5c083eb1c4c3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810063.967652,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "728332e6-c446-467e-9f80-5c083eb1c4c3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810063.993242,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "728332e6-c446-467e-9f80-5c083eb1c4c3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810064.0180895,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "728332e6-c446-467e-9f80-5c083eb1c4c3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810064.038215,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "728332e6-c446-467e-9f80-5c083eb1c4c3",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label"
+    }
+  },
+  {
+    "timestamp": 1779810065.131219,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3d84ab00-1a65-4719-bbec-b314d0fe2b50",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810065.1613102,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "8329c965-2961-484a-8767-7f1685c46e1c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810065.1888955,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3d84ab00-1a65-4719-bbec-b314d0fe2b50",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810065.22726,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "8329c965-2961-484a-8767-7f1685c46e1c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810065.2571187,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3d84ab00-1a65-4719-bbec-b314d0fe2b50",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810065.2848604,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "8329c965-2961-484a-8767-7f1685c46e1c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810065.3086376,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3d84ab00-1a65-4719-bbec-b314d0fe2b50",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810065.3436449,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "8329c965-2961-484a-8767-7f1685c46e1c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810065.3694813,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3d84ab00-1a65-4719-bbec-b314d0fe2b50",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810065.3994555,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "8329c965-2961-484a-8767-7f1685c46e1c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810065.4236243,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3d84ab00-1a65-4719-bbec-b314d0fe2b50",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810065.4551523,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "8329c965-2961-484a-8767-7f1685c46e1c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810065.4875524,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3d84ab00-1a65-4719-bbec-b314d0fe2b50",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810065.523284,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "8329c965-2961-484a-8767-7f1685c46e1c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810065.911239,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3d84ab00-1a65-4719-bbec-b314d0fe2b50",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810065.9425642,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "8329c965-2961-484a-8767-7f1685c46e1c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810065.9648879,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3d84ab00-1a65-4719-bbec-b314d0fe2b50",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810065.9906113,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "8329c965-2961-484a-8767-7f1685c46e1c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810066.0235102,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3d84ab00-1a65-4719-bbec-b314d0fe2b50",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button"
+    }
+  },
+  {
+    "timestamp": 1779810066.0588887,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "8329c965-2961-484a-8767-7f1685c46e1c",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810071.5555928,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c5430164-6171-48c5-9389-b86c377d2b2d",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810072.057458,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c5430164-6171-48c5-9389-b86c377d2b2d",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810072.0804892,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c5430164-6171-48c5-9389-b86c377d2b2d",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810072.101248,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c5430164-6171-48c5-9389-b86c377d2b2d",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810072.1276336,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c5430164-6171-48c5-9389-b86c377d2b2d",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810072.1526592,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c5430164-6171-48c5-9389-b86c377d2b2d",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810072.183574,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c5430164-6171-48c5-9389-b86c377d2b2d",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810072.217063,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c5430164-6171-48c5-9389-b86c377d2b2d",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810072.2437456,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c5430164-6171-48c5-9389-b86c377d2b2d",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810072.3122294,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c5430164-6171-48c5-9389-b86c377d2b2d",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810072.3440485,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c5430164-6171-48c5-9389-b86c377d2b2d",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810091.1075282,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "31b3a3fe-e8c0-4e0a-91c1-a414f4b13fcb",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810091.2549524,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "31b3a3fe-e8c0-4e0a-91c1-a414f4b13fcb",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810091.2797902,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "31b3a3fe-e8c0-4e0a-91c1-a414f4b13fcb",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810091.30469,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "31b3a3fe-e8c0-4e0a-91c1-a414f4b13fcb",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810091.3392944,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "31b3a3fe-e8c0-4e0a-91c1-a414f4b13fcb",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810091.3730373,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "31b3a3fe-e8c0-4e0a-91c1-a414f4b13fcb",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810091.404555,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "31b3a3fe-e8c0-4e0a-91c1-a414f4b13fcb",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810091.4430099,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "31b3a3fe-e8c0-4e0a-91c1-a414f4b13fcb",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810091.4761746,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "31b3a3fe-e8c0-4e0a-91c1-a414f4b13fcb",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810091.5077171,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "31b3a3fe-e8c0-4e0a-91c1-a414f4b13fcb",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810091.5480735,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "31b3a3fe-e8c0-4e0a-91c1-a414f4b13fcb",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810128.8711798,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810131.6126213,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810131.6877015,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810131.778987,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810131.9025693,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810132.0093951,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810132.112345,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810132.1986895,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810132.3147242,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810132.4153972,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810132.5056908,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810195.3357592,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "365b266c-d848-4562-9d3d-483756607151",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810195.4316401,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "365b266c-d848-4562-9d3d-483756607151",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810195.4529662,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "365b266c-d848-4562-9d3d-483756607151",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810195.472859,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "365b266c-d848-4562-9d3d-483756607151",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810195.4970636,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "365b266c-d848-4562-9d3d-483756607151",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810195.5189714,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "365b266c-d848-4562-9d3d-483756607151",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810195.5598338,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "365b266c-d848-4562-9d3d-483756607151",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810195.6014223,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "365b266c-d848-4562-9d3d-483756607151",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810195.6383407,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "365b266c-d848-4562-9d3d-483756607151",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810195.6669369,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "365b266c-d848-4562-9d3d-483756607151",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810195.7063482,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "365b266c-d848-4562-9d3d-483756607151",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810204.3726442,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "eefc15cb-e402-4e3b-acad-3d1ccbea5f14",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810205.5642684,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "eefc15cb-e402-4e3b-acad-3d1ccbea5f14",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810205.5919743,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "eefc15cb-e402-4e3b-acad-3d1ccbea5f14",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810205.6281338,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "eefc15cb-e402-4e3b-acad-3d1ccbea5f14",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810205.6607714,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "eefc15cb-e402-4e3b-acad-3d1ccbea5f14",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810205.6893034,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "eefc15cb-e402-4e3b-acad-3d1ccbea5f14",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810205.7122939,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "eefc15cb-e402-4e3b-acad-3d1ccbea5f14",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810205.7451832,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "eefc15cb-e402-4e3b-acad-3d1ccbea5f14",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810205.7735882,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "eefc15cb-e402-4e3b-acad-3d1ccbea5f14",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810205.8011289,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "eefc15cb-e402-4e3b-acad-3d1ccbea5f14",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810205.8319342,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "eefc15cb-e402-4e3b-acad-3d1ccbea5f14",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810205.8769457,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810207.5747628,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810207.5857089,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810207.6100829,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810207.6334255,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810207.6594574,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810207.6814387,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810207.7076864,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810207.7284818,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810207.7525835,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810207.7778022,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810261.8288004,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e0449004-5abc-4fd3-af0b-213d05a15d2f",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810262.4034297,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e0449004-5abc-4fd3-af0b-213d05a15d2f",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810262.4384122,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e0449004-5abc-4fd3-af0b-213d05a15d2f",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810262.4681356,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e0449004-5abc-4fd3-af0b-213d05a15d2f",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810262.5022776,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e0449004-5abc-4fd3-af0b-213d05a15d2f",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810262.5345619,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e0449004-5abc-4fd3-af0b-213d05a15d2f",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810262.5683424,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e0449004-5abc-4fd3-af0b-213d05a15d2f",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810262.6084344,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e0449004-5abc-4fd3-af0b-213d05a15d2f",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810262.642118,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e0449004-5abc-4fd3-af0b-213d05a15d2f",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810262.6772346,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e0449004-5abc-4fd3-af0b-213d05a15d2f",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810262.7122898,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "e0449004-5abc-4fd3-af0b-213d05a15d2f",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810303.4564762,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "053ff6f0-971c-4b01-a1b4-39117a438b62",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810304.0270653,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "053ff6f0-971c-4b01-a1b4-39117a438b62",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810304.0663257,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "053ff6f0-971c-4b01-a1b4-39117a438b62",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810304.086626,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "053ff6f0-971c-4b01-a1b4-39117a438b62",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810304.1097167,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "053ff6f0-971c-4b01-a1b4-39117a438b62",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810304.1310704,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "053ff6f0-971c-4b01-a1b4-39117a438b62",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810304.163317,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "053ff6f0-971c-4b01-a1b4-39117a438b62",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810304.1867082,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "053ff6f0-971c-4b01-a1b4-39117a438b62",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810304.2092288,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "053ff6f0-971c-4b01-a1b4-39117a438b62",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810304.2310116,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "053ff6f0-971c-4b01-a1b4-39117a438b62",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810304.2564394,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "053ff6f0-971c-4b01-a1b4-39117a438b62",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810351.6210685,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810351.8405101,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810351.8680425,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810351.9022038,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810351.9373267,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810351.9771967,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810352.0070293,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810352.0341277,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810352.0599866,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810352.0865223,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810352.1111767,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810391.8072314,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810394.036827,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810394.3055925,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810394.4672573,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810394.648841,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810394.769451,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810394.9164088,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810395.0871265,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810395.2411687,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810395.4383895,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810395.580529,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810433.3385055,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "16b110c2-fe1b-4911-8038-43cd517486d5",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.3979921,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "16b110c2-fe1b-4911-8038-43cd517486d5",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.4294283,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "16b110c2-fe1b-4911-8038-43cd517486d5",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.457922,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "16b110c2-fe1b-4911-8038-43cd517486d5",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.4833481,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "16b110c2-fe1b-4911-8038-43cd517486d5",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.5092082,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "16b110c2-fe1b-4911-8038-43cd517486d5",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.5413115,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "16b110c2-fe1b-4911-8038-43cd517486d5",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.5963652,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "16b110c2-fe1b-4911-8038-43cd517486d5",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.644215,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "16b110c2-fe1b-4911-8038-43cd517486d5",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.675352,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "16b110c2-fe1b-4911-8038-43cd517486d5",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.707191,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "16b110c2-fe1b-4911-8038-43cd517486d5",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.7772148,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "312af02f-226d-4e77-812b-a848f338b539",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.8139668,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "312af02f-226d-4e77-812b-a848f338b539",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.8406332,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "312af02f-226d-4e77-812b-a848f338b539",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.8652523,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "312af02f-226d-4e77-812b-a848f338b539",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.8919528,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "312af02f-226d-4e77-812b-a848f338b539",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.9183655,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "312af02f-226d-4e77-812b-a848f338b539",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.9519162,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "312af02f-226d-4e77-812b-a848f338b539",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810433.98261,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "312af02f-226d-4e77-812b-a848f338b539",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810434.0188334,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "312af02f-226d-4e77-812b-a848f338b539",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810434.0510871,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "312af02f-226d-4e77-812b-a848f338b539",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810434.07748,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "312af02f-226d-4e77-812b-a848f338b539",
+      "status": "BLOCKED",
+      "reason": "AI Semantic Guardrail: The button label \""
+    }
+  },
+  {
+    "timestamp": 1779810435.9627242,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810436.0178378,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810436.0488548,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810436.0826726,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810436.10666,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810436.1432357,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810436.1786246,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810436.2041519,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810436.2341912,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810436.2699182,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810436.2870767,
+    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "3eaae5fd-c535-4636-9d1c-73f8f5ea91ec",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810540.8035088,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9c5bf585-28e2-4dfc-86df-21ec49138dd2",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810546.9282317,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9c5bf585-28e2-4dfc-86df-21ec49138dd2",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810547.3761594,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9c5bf585-28e2-4dfc-86df-21ec49138dd2",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810547.8276067,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9c5bf585-28e2-4dfc-86df-21ec49138dd2",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810548.3293102,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9c5bf585-28e2-4dfc-86df-21ec49138dd2",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810548.8407125,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9c5bf585-28e2-4dfc-86df-21ec49138dd2",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810549.6059701,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9c5bf585-28e2-4dfc-86df-21ec49138dd2",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810550.2841182,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9c5bf585-28e2-4dfc-86df-21ec49138dd2",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810550.9513235,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9c5bf585-28e2-4dfc-86df-21ec49138dd2",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810551.6654918,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9c5bf585-28e2-4dfc-86df-21ec49138dd2",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810552.8181999,
+    "scan_id": "df52dbef-3ca2-4c91-acb6-8f5f62fab582",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9c5bf585-28e2-4dfc-86df-21ec49138dd2",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810567.4014468,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810576.6733925,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810577.2037463,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810577.7582598,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810578.3845673,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810578.9720707,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810579.8821573,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810580.9717066,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810582.5547173,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810584.4436786,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  },
+  {
+    "timestamp": 1779810585.4591415,
+    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c13065c2-63c8-47f6-96e7-82d43d4a1011",
+      "status": "SUCCESS",
+      "module_id": "alpha_v6_recon"
+    }
+  }
+]

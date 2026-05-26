@@ -269,7 +269,15 @@ class OmegaAgent(BrowserEnabledAgent):
     async def initiate_campaign(self, target_url: str, scan_id: str = "GLOBAL"):
         """Core campaign orchestration logic with graph-driven intelligence."""
         
-        # 1. STRATEGY GENERATION (AI-Powered + Graph Intelligence)
+        # 1. GET LEARNING ENGINE RECOMMENDATIONS
+        from backend.core.learning_engine import learning_engine
+        recommendations = await learning_engine.get_recommendations(target_url, {"scan_id": scan_id})
+        
+        if recommendations.get("confidence", 0) > 0.5:
+            print(f"[{self.name}] [LEARNING] Using learned patterns (confidence: {recommendations['confidence']:.2f})")
+            print(f"[{self.name}] [LEARNING] Priority vulns: {[v['type'] for v in recommendations['priority_vulns'][:3]]}")
+        
+        # 2. STRATEGY GENERATION (AI-Powered + Graph Intelligence + Learning)
         ai_strategy = None
         if self.ai and self.ai.enabled:
             try:
@@ -287,7 +295,7 @@ class OmegaAgent(BrowserEnabledAgent):
         
         print(f"[{self.name}] ▶ Campaign Strategy: {strategy_name} | {profile['description']}")
 
-        # 2. HYPOTHESIS GENERATION
+        # 3. HYPOTHESIS GENERATION (Enhanced with learned patterns)
         hypotheses = [
             "Changing user_id may expose another user's data (IDOR)",
             "Negative price may bypass payment validation (Logic Flaw)",
@@ -296,7 +304,14 @@ class OmegaAgent(BrowserEnabledAgent):
             "Race condition on coupon application (Financial Exploit)",
             "Path traversal in file upload (Config Exposure)",
         ]
-        selected_hypothesis = random.choice(hypotheses)
+        
+        # Add learned hypotheses
+        for vuln_rec in recommendations.get("priority_vulns", [])[:2]:
+            vuln_type = vuln_rec["type"]
+            success_rate = vuln_rec.get("success_rate", 0)
+            hypotheses.append(f"{vuln_type} vulnerability likely (learned: {success_rate:.0%} success rate)")
+        
+        selected_hypothesis = hypotheses[0] if recommendations.get("confidence", 0) > 0.5 else random.choice(hypotheses)
 
         # Broadcast campaign start
         await self.bus.publish(HiveEvent(
@@ -328,14 +343,31 @@ class OmegaAgent(BrowserEnabledAgent):
                 payload={"message": f"Omega campaign initiated: strategy={strategy_name}, target={target_url}"}
             ))
 
-        # 3. RESOLVE MODULES
+        # 4. RESOLVE MODULES (Enhanced with learned priorities)
         if strategy_name == "GRAPH_DRIVEN":
             modules = self._build_graph_driven_modules(target_url)
             print(f"[{self.name}] [GRAPH AI] Predicted modules: {modules}")
         else:
-            modules = profile["modules"]
+            modules = profile["modules"].copy()
+        
+        # Prioritize modules based on learned patterns
+        if recommendations.get("priority_vulns"):
+            learned_modules = []
+            for vuln_rec in recommendations["priority_vulns"][:3]:
+                vuln_type = vuln_rec["type"]
+                module = self._resolve_module_from_type(vuln_type.upper())
+                if module and module not in learned_modules:
+                    learned_modules.append(module)
+            
+            # Prepend learned modules to ensure they run first
+            for module in reversed(learned_modules):
+                if module in modules:
+                    modules.remove(module)
+                modules.insert(0, module)
+            
+            print(f"[{self.name}] [LEARNING] Prioritized modules: {learned_modules}")
 
-        # 4. DISPATCH JOBS
+        # 5. DISPATCH JOBS
         target = TaskTarget(url=target_url)
         
         for module_id in modules:
@@ -356,7 +388,7 @@ class OmegaAgent(BrowserEnabledAgent):
             )
             await self.dispatch_job(packet, scan_id)
 
-        # 5. Always add a Sigma Generative payload for novel vector discovery
+        # 6. Always add a Sigma Generative payload for novel vector discovery
         if "sigma_generative_blast" not in modules:
             sigma_packet = JobPacket(
                 priority=TaskPriority.NORMAL,
@@ -371,7 +403,7 @@ class OmegaAgent(BrowserEnabledAgent):
             )
             await self.dispatch_job(sigma_packet, scan_id)
 
-        # 6. Learn from this campaign dispatch (feed the graph)
+        # 7. Learn from this campaign dispatch (feed the graph)
         await graph_engine.learn_from_chain([
             {"payload": {"type": "TARGET_ACQUIRED", "url": target_url}},
             {"payload": {"type": strategy_name, "url": target_url}}

@@ -132,7 +132,9 @@ async def health_check():
     comps["alpha"] = "enabled" if getattr(settings, "ALPHA_ENABLE_V6", False) else "disabled"
     overall = "healthy" if "unhealthy" not in comps.values() else "degraded"
     return {"status": overall, "version": "v6.1-omega",
-            "latency_ms": round((_t.time() - start) * 1000, 1), "components": comps}
+            "latency_ms": round((_t.time() - start) * 1000, 1), "components": comps,
+            "spy_connected": manager.is_spy_online(),
+            "extensions_active": len(manager.spy_connections)}
 
 app.include_router(recon.router, prefix="/api/recon", tags=["Recon"])
 app.include_router(attack.router, prefix="/api/attack", tags=["Attack"])

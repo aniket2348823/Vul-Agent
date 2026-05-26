@@ -549,6 +549,57 @@ No markdown. No headers. Just the analysis."""
             logger.warning(f"CORTEX JSON Extraction Failed: {e}")
             return None
 
+    def _extract_payload_list(self, text: str) -> List[str]:
+        """Extract a payload list from JSON, markdown JSON, or newline output."""
+        if not text or self._is_error(text):
+            return []
+
+        data = self._extract_json(text)
+        if data is None:
+            try:
+                candidate = text.strip()
+                if "```json" in candidate:
+                    candidate = candidate.split("```json", 1)[1].split("```", 1)[0].strip()
+                elif "```" in candidate:
+                    candidate = candidate.split("```", 1)[1].split("```", 1)[0].strip()
+                start = candidate.find("[")
+                end = candidate.rfind("]")
+                if start != -1 and end != -1:
+                    data = json.loads(candidate[start:end + 1])
+            except Exception:
+                data = None
+        payloads = []
+        if isinstance(data, dict):
+            payloads = data.get("payloads") or data.get("payload") or []
+        elif isinstance(data, list):
+            payloads = data
+
+        if isinstance(payloads, str):
+            payloads = [payloads]
+
+        if not payloads:
+            cleaned = text.strip()
+            if "```" in cleaned:
+                parts = cleaned.split("```")
+                cleaned = max(parts, key=len).strip()
+            payloads = [
+                line.strip().lstrip("-*0123456789. ").strip("\"'")
+                for line in cleaned.splitlines()
+                if line.strip() and not line.strip().startswith(("{", "}", "[", "]"))
+            ]
+
+        normalized = []
+        seen = set()
+        for item in payloads:
+            if isinstance(item, dict):
+                item = item.get("payload") or item.get("value") or item.get("attack") or ""
+            value = str(item).strip()
+            if not value or value.startswith("[") or value in seen:
+                continue
+            seen.add(value)
+            normalized.append(value[:4096])
+        return normalized
+
     async def generate_vulnerability_summary(self, vuln_type: str, payload: str, url: str, scan_ctx=None) -> Dict[str, Any]:
         """
         HYBRID: Generate professional vulnerability details for the PDF report.
@@ -849,28 +900,21 @@ RULES
             logger.warning("NVIDIA payload generation unavailable; falling back to local Ollama payload model.")
             result = await self._call_ollama(prompt, temperature=0.1, max_tokens=300, scan_ctx=scan_ctx, model_override="qwen2.5-coder:0.5b")
         
-        # Parse JSON
-        if not self._is_error(result):
-            try:
-                # Clean markdown wrapped json
-                if "```json" in result:
-                    result = result.split("```json")[1].split("```")[0].strip()
-                elif "```" in result:
-                    result = result.split("```")[1].split("```")[0].strip()
-                    
-                data = json.loads(result)
-                ai_payloads = data.get("payloads", [])
-                all_payloads.extend(ai_payloads)
-            except Exception as e:
-                logger.warning(f"FAST PAYLOAD JSONPARSE ERROR: {e} | Raw: {result}")
+        ai_payloads = self._extract_payload_list(result)
+        if ai_payloads:
+            all_payloads.extend(ai_payloads)
+        elif result and not self._is_error(result):
+            logger.warning("FAST PAYLOAD PARSE EMPTY: no usable payloads found in model output")
 
         # FUSION: Deduplicate while preserving order
         seen = set()
         unique = []
         for p in all_payloads:
-            if p not in seen:
-                seen.add(p)
-                unique.append(p)
+            value = str(p).strip()
+            if not value or value.startswith("[") or value in seen:
+                continue
+            seen.add(value)
+            unique.append(value)
 
         logger.info(f"HYBRID PAYLOAD GEN: {gi5_count} GI5 + {len(unique) - gi5_count} NVIDIA/Ollama = {len(unique)} total")
         return unique[:15]  # Cap at 15

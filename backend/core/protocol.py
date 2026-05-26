@@ -24,6 +24,7 @@ class AgentID(str, Enum):
     GAMMA = "agent_gamma"
     SIGMA = "agent_sigma"
     KAPPA = "agent_kappa"
+    DELTA = "agent_delta"
     PRISM = "agent_prism"
     CHI = "agent_chi"
 

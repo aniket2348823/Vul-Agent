@@ -101,6 +101,10 @@ class KappaAgent(BrowserEnabledAgent):
             payload={"message": f"Vector Memory {archive_data['type']} stored with {len(embedding)}-dim embedding."}
         ))
 
+        # CONTINUOUS LEARNING: Feed vulnerability to learning engine
+        from backend.core.learning_engine import learning_engine
+        await learning_engine.learn_from_vulnerability(archive_data, event.scan_id)
+
         # PROBLEM 6 FIX: Feed intelligence back to Omega for adaptive replanning
         confidence = payload.get("confidence", 0.0)
         vuln_type = payload.get("type", "")

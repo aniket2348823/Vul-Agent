@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import hashlib
+import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Iterable
+from typing import Any, Iterable, Optional, Dict, List
 
 
 class NodeKind(str, Enum):
@@ -28,6 +29,10 @@ class NodeKind(str, Enum):
     OBJECTIVE = "objective"
     ATTACK_PATH = "attack_path"
     TECHNIQUE = "technique"
+    # Browser-specific node types
+    BROWSER_ENDPOINT = "browser_endpoint"
+    JAVASCRIPT_ROUTE = "javascript_route"
+    WEBSOCKET_CONNECTION = "websocket_connection"
 
 
 class EdgeKind(str, Enum):
@@ -46,6 +51,9 @@ class EdgeKind(str, Enum):
     ESCALATES_TO = "escalates_to"
     REACHES = "reaches"
     SUPPORTS = "supports"
+    # Browser-specific edge types
+    HTTP_EQUIVALENT = "http_equivalent"
+    DISCOVERED_BY_BROWSER = "discovered_by_browser"
 
 
 class Severity(str, Enum):
@@ -194,3 +202,212 @@ def _severity_weight(severity: str) -> float:
 
 
 knowledge_graph = KnowledgeGraph()
+
+
+# ============================================================================
+# BROWSER KNOWLEDGE GRAPH EXTENSION
+# ============================================================================
+
+class BrowserKnowledgeGraphExtension:
+    """Extension for browser discovery and HTTP-browser linking"""
+    
+    def __init__(self, knowledge_graph: KnowledgeGraph):
+        self.graph = knowledge_graph
+    
+    def add_browser_discovery(
+        self,
+        discovery_data: Dict[str, Any],
+        scan_id: str = "GLOBAL"
+    ) -> KGNode:
+        """
+        Add browser discovery to knowledge graph with source tagging.
+        Returns the created discovery node.
+        """
+        discovery_type = discovery_data.get("type", "browser_endpoint")
+        url = discovery_data.get("url", "")
+        
+        # Create appropriate node type
+        if discovery_type == "javascript_route":
+            node = KGNode(
+                NodeKind.JAVASCRIPT_ROUTE,
+                url,
+                {
+                    "scan_id": scan_id,
+                    "source": "browser_recon",
+                    "framework": discovery_data.get("framework"),
+                    "route_pattern": discovery_data.get("route_pattern"),
+                    **discovery_data
+                }
+            )
+        elif discovery_type == "websocket":
+            node = KGNode(
+                NodeKind.WEBSOCKET_CONNECTION,
+                url,
+                {
+                    "scan_id": scan_id,
+                    "source": "browser_recon",
+                    "protocol": discovery_data.get("protocol", "ws"),
+                    **discovery_data
+                }
+            )
+        else:
+            node = KGNode(
+                NodeKind.BROWSER_ENDPOINT,
+                url,
+                {
+                    "scan_id": scan_id,
+                    "source": "browser_recon",
+                    **discovery_data
+                }
+            )
+        
+        # Add to graph
+        self.graph.upsert_node(node)
+        
+        # Link to HTTP equivalent if exists
+        http_equivalent = self._find_http_equivalent(url)
+        if http_equivalent:
+            self.link_http_browser_endpoints(http_equivalent, node)
+        
+        return node
+    
+    def _find_http_equivalent(self, browser_url: str) -> Optional[KGNode]:
+        """Find HTTP endpoint that matches browser URL."""
+        # Normalize URL
+        normalized = browser_url.split("?")[0].split("#")[0]
+        
+        # Search for matching HTTP endpoint
+        for node in self.graph.nodes.values():
+            if node.kind == NodeKind.ENDPOINT:
+                node_url = node.label.split("?")[0].split("#")[0]
+                if node_url == normalized:
+                    return node
+        
+        return None
+    
+    def link_http_browser_endpoints(
+        self,
+        http_node: KGNode,
+        browser_node: KGNode
+    ) -> KGEdge:
+        """
+        Create HTTP_EQUIVALENT relationship between HTTP and browser endpoints.
+        Merges metadata and deduplicates discoveries.
+        """
+        # Merge metadata
+        merged_props = {
+            **http_node.props,
+            "browser_discovered": True,
+            "browser_url": browser_node.label,
+            "discovery_sources": ["http", "browser"]
+        }
+        
+        # Update HTTP node with merged metadata
+        http_node.props.update(merged_props)
+        
+        # Create bidirectional link
+        edge = self.graph.link(
+            http_node,
+            browser_node,
+            EdgeKind.HTTP_EQUIVALENT,
+            weight=1.0,
+            props={"linked_at": time.time()}
+        )
+        
+        return edge
+    
+    def get_endpoint_context(
+        self,
+        endpoint_url: str
+    ) -> Dict[str, Any]:
+        """
+        Get unified context for an endpoint (HTTP + browser data).
+        Returns both HTTP and browser discovery data.
+        """
+        context = {
+            "url": endpoint_url,
+            "http_data": None,
+            "browser_data": None,
+            "linked_endpoints": [],
+            "discovery_sources": []
+        }
+        
+        # Find endpoint node
+        endpoint_node = None
+        for node in self.graph.nodes.values():
+            if node.label == endpoint_url or node.label.startswith(endpoint_url):
+                endpoint_node = node
+                break
+        
+        if not endpoint_node:
+            return context
+        
+        # Get HTTP data
+        if endpoint_node.kind == NodeKind.ENDPOINT:
+            context["http_data"] = endpoint_node.props
+            context["discovery_sources"].append("http")
+        
+        # Get browser data
+        if endpoint_node.kind in [NodeKind.BROWSER_ENDPOINT, NodeKind.JAVASCRIPT_ROUTE]:
+            context["browser_data"] = endpoint_node.props
+            context["discovery_sources"].append("browser")
+        
+        # Get linked endpoints
+        linked = self.graph.neighbors(
+            endpoint_node.id,
+            direction="both",
+            edge_kind=EdgeKind.HTTP_EQUIVALENT
+        )
+        
+        for linked_node in linked:
+            context["linked_endpoints"].append({
+                "url": linked_node.label,
+                "kind": linked_node.kind.value,
+                "props": linked_node.props
+            })
+            
+            # Add discovery source
+            source = linked_node.props.get("source")
+            if source and source not in context["discovery_sources"]:
+                context["discovery_sources"].append(source)
+        
+        return context
+    
+    def get_browser_discoveries(
+        self,
+        scan_id: Optional[str] = None
+    ) -> List[KGNode]:
+        """Get all browser discoveries, optionally filtered by scan_id."""
+        discoveries = []
+        
+        for node in self.graph.nodes.values():
+            if node.kind in [NodeKind.BROWSER_ENDPOINT, NodeKind.JAVASCRIPT_ROUTE, NodeKind.WEBSOCKET_CONNECTION]:
+                if scan_id is None or node.props.get("scan_id") == scan_id:
+                    discoveries.append(node)
+        
+        return discoveries
+    
+    def get_discovery_stats(self) -> Dict[str, Any]:
+        """Get statistics about browser discoveries."""
+        browser_endpoints = len(self.graph.by_kind(NodeKind.BROWSER_ENDPOINT))
+        js_routes = len(self.graph.by_kind(NodeKind.JAVASCRIPT_ROUTE))
+        websockets = len(self.graph.by_kind(NodeKind.WEBSOCKET_CONNECTION))
+        
+        # Count linked endpoints
+        linked_count = 0
+        for edge in self.graph.edges.values():
+            if edge.kind == EdgeKind.HTTP_EQUIVALENT:
+                linked_count += 1
+        
+        return {
+            "browser_endpoints": browser_endpoints,
+            "javascript_routes": js_routes,
+            "websocket_connections": websockets,
+            "total_browser_discoveries": browser_endpoints + js_routes + websockets,
+            "http_browser_links": linked_count,
+            "timestamp": time.time()
+        }
+
+
+# Create global browser knowledge graph extension
+browser_knowledge_graph = BrowserKnowledgeGraphExtension(knowledge_graph)

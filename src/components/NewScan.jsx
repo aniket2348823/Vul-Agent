@@ -56,7 +56,7 @@ const NewScan = ({ navigate }) => {
         }
 
         const handleMessage = (event) => {
-            if (event.data?.type === 'VUL_AGENT_EXTENSION_CONNECTED') {
+            if (event.data?.type === 'ANTIGRAVITY_EXTENSION_CONNECTED') {
                 console.log("[FRONTEND] Extension Handshake Success (postMessage)");
                 setIsConnected(true);
                 localConnectedRef.current = true;
@@ -72,9 +72,28 @@ const NewScan = ({ navigate }) => {
         window.addEventListener('message', handleMessage);
         document.addEventListener('ANTIGRAVITY_EXTENSION_HEARTBEAT', handleCustomEvent);
 
+        // Backend health-poll fallback: the Chrome extension sends traffic to
+        // the backend via HTTP (not postMessage), and the HUD content script
+        // skips injection on localhost.  Poll /api/health to detect the spy.
+        const pollId = setInterval(async () => {
+            if (localConnectedRef.current) return; // already connected
+            try {
+                const res = await fetch(apiUrl('/api/health'), { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.spy_connected || data.extensions_active > 0) {
+                        console.log("[FRONTEND] Extension detected via backend health poll");
+                        setIsConnected(true);
+                        localConnectedRef.current = true;
+                    }
+                }
+            } catch { /* backend offline, ignore */ }
+        }, 3000);
+
         return () => {
             window.removeEventListener('message', handleMessage);
-            document.removeEventListener('VUL_AGENT_EXTENSION_HEARTBEAT', handleCustomEvent);
+            document.removeEventListener('ANTIGRAVITY_EXTENSION_HEARTBEAT', handleCustomEvent);
+            clearInterval(pollId);
         };
     }, [isExtensionEnabled]);
 

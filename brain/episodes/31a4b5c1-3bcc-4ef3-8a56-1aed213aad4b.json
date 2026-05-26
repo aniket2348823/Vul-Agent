@@ -1,0 +1,54 @@
+[
+  {
+    "timestamp": 1779784724.9286542,
+    "type": "vulnerability",
+    "payload": {
+      "type": "TECH_JWT",
+      "url": "http://localhost:8080/index.php",
+      "payload": "None",
+      "confidence": 0.0,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-26 14:08:44",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779784724.9861465,
+    "type": "vulnerability",
+    "payload": {
+      "type": "TECH_JWT",
+      "url": "http://localhost:8080/index.php",
+      "payload": "None",
+      "confidence": 0.0,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-26 14:08:44",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779784726.63106,
+    "type": "vulnerability",
+    "payload": {
+      "type": "TECH_JWT",
+      "url": "http://localhost:8080/index.php",
+      "payload": "None",
+      "confidence": 0.0,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-26 14:08:46",
+      "vector": []
+    }
+  },
+  {
+    "timestamp": 1779784726.6774986,
+    "type": "vulnerability",
+    "payload": {
+      "type": "TECH_JWT",
+      "url": "http://localhost:8080/index.php",
+      "payload": "None",
+      "confidence": 0.0,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-26 14:08:46",
+      "vector": []
+    }
+  }
+]

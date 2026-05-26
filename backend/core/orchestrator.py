@@ -605,23 +605,30 @@ class HiveOrchestrator:
                 }
             })
 
-        # --- PROBLEM 8 FIX: Agent Watchdog for Self-Healing ---
-        async def agent_watchdog(active_agents):
-            while True:
-                await asyncio.sleep(15)
-                for a in active_agents:
-                    if hasattr(a, '_is_active') and not getattr(a, '_is_active', True):
-                        logger.warning(f"[WATCHDOG] Agent {a.name} is inactive/crashed! Restarting...")
-                        try:
-                            await a.start()
-                            a._is_active = True
-                            await manager.broadcast({"type": "GI5_LOG", "payload": f"WATCHDOG: Restarted dead agent {a.name}"})
-                        except Exception as e:
-                            logger.error(f"[WATCHDOG] Failed to restart {a.name}: {e}")
-
-        watchdog_task = asyncio.create_task(agent_watchdog(agents))
-        HiveOrchestrator._orphaned_tasks.add(watchdog_task)
-        watchdog_task.add_done_callback(HiveOrchestrator._orphaned_tasks.discard)
+        # --- ENHANCED SELF-HEALING SYSTEM ---
+        from backend.core.self_healing_engine import healing_engine
+        
+        # Register restart callbacks for all agents
+        for agent in agents:
+            async def restart_callback(a=agent):
+                try:
+                    await a.start()
+                    a._is_active = True
+                    await manager.broadcast({
+                        "type": "GI5_LOG",
+                        "payload": f"SELF-HEALING: Restarted agent {a.name}"
+                    })
+                except Exception as e:
+                    logger.error(f"[SelfHealing] Failed to restart {a.name}: {e}")
+            
+            healing_engine.register_restart_callback(agent.name, restart_callback)
+        
+        # Start self-healing monitoring loop
+        healing_task = asyncio.create_task(healing_engine.monitor_and_heal())
+        HiveOrchestrator._orphaned_tasks.add(healing_task)
+        healing_task.add_done_callback(HiveOrchestrator._orphaned_tasks.discard)
+        
+        logger.info("[Orchestrator] Self-healing engine activated")
         
         # ═══════════════════════════════════════════════════════════════════════
         # V6 LIFECYCLE: Complete Planning Phase, Start Reconnaissance
@@ -751,7 +758,6 @@ class HiveOrchestrator:
                 "severity": "INFO", "risk_score": 0
             }
         })
-                })
         
         # [V6 REAL-TIME FIX] Dispatch selected modules concurrently!
         module_mapper = {
@@ -1096,6 +1102,22 @@ class HiveOrchestrator:
                         })
                         logger.info(f"[{scan_id}] Phase transition: REPORTING → COMPLETED")
                         logger.info(f"[{scan_id}] ✅ Scan lifecycle complete!")
+                        # ═══════════════════════════════════════════════════════════════════════
+                        
+                        # ═══════════════════════════════════════════════════════════════════════
+                        # CONTINUOUS LEARNING: Analyze completed scan
+                        # ═══════════════════════════════════════════════════════════════════════
+                        try:
+                            from backend.core.learning_engine import learning_engine
+                            await learning_engine.analyze_scan_complete(scan_id)
+                            metrics = learning_engine.get_metrics()
+                            logger.info(
+                                f"[{scan_id}] Learning complete: "
+                                f"{metrics['total_patterns']} patterns "
+                                f"({metrics['high_confidence_patterns']} high-confidence)"
+                            )
+                        except Exception as le:
+                            logger.warning(f"[{scan_id}] Learning analysis failed: {le}")
                         # ═══════════════════════════════════════════════════════════════════════
                         
                         # [TEST HARNESS COMPLIANCE: TC010] 

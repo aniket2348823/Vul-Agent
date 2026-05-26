@@ -1,0 +1,15 @@
+[
+  {
+    "timestamp": 1779784950.235438,
+    "type": "vulnerability",
+    "payload": {
+      "type": "TECH_JWT",
+      "url": "http://localhost:8080/index.php",
+      "payload": "None",
+      "confidence": 0.0,
+      "audit_reasoning": "",
+      "timestamp": "2026-05-26 14:12:30",
+      "vector": []
+    }
+  }
+]

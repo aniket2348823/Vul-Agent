@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import json
+import time
 from typing import Callable, Dict, List, Any, Awaitable
 from pydantic import BaseModel, Field
 from enum import Enum
@@ -379,6 +380,11 @@ class BaseAgent:
         self.db = db_manager # Distributed Intelligence Backbone
         self.active = False
         self.status = "IDLE"
+        
+        # Health monitoring
+        self._last_task_time = time.time()
+        self._task_count = 0
+        self._task_success_count = 0
 
     async def start(self):
         """Wakes the agent up."""
@@ -406,6 +412,11 @@ class BaseAgent:
         task = asyncio.create_task(self.lifecycle())
         self._agent_tasks.add(task)
         task.add_done_callback(self._agent_tasks.discard)
+        
+        # Start health reporting loop
+        health_task = asyncio.create_task(self._health_reporting_loop())
+        self._agent_tasks.add(health_task)
+        health_task.add_done_callback(self._agent_tasks.discard)
 
     async def stop(self):
         """Puts the agent to sleep."""
@@ -424,6 +435,50 @@ class BaseAgent:
             await asyncio.gather(*self._agent_tasks, return_exceptions=True)
             
         logging.info(f"💤 {self.name} is OFFLINE.")
+    
+    async def _health_reporting_loop(self):
+        """Report health metrics periodically."""
+        import psutil
+        import time as time_module
+        
+        while self.active:
+            try:
+                await asyncio.sleep(10)  # Report every 10 seconds
+                
+                # Calculate metrics
+                response_time = (time_module.time() - self._last_task_time) * 1000
+                success_rate = self._task_success_count / self._task_count if self._task_count > 0 else 1.0
+                
+                # Get resource usage
+                process = psutil.Process()
+                memory_mb = process.memory_info().rss / 1024 / 1024
+                cpu_percent = process.cpu_percent(interval=0.1)
+                
+                # Report to health monitor
+                from backend.core.agent_health_monitor import health_monitor
+                health_monitor.report_metrics(self.name, {
+                    "response_time_ms": response_time,
+                    "success": True,  # Overall status
+                    "memory_mb": memory_mb,
+                    "cpu_percent": cpu_percent,
+                    "task_queue_depth": len(getattr(self, "_agent_tasks", []))
+                })
+                
+                # Send heartbeat
+                health_monitor.report_heartbeat(self.name)
+                
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logging.error(f"[{self.name}] Health reporting error: {e}")
+    
+    def report_task_result(self, success: bool):
+        """Report task execution result for health tracking."""
+        import time as time_module
+        self._task_count += 1
+        if success:
+            self._task_success_count += 1
+        self._last_task_time = time_module.time()
 
     # --- ABSTRACT METHODS (Subclasses MUST implement these) ---
 

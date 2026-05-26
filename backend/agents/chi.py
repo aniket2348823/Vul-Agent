@@ -409,7 +409,7 @@ class AgentChi(BrowserEnabledAgent):
             "task_id": payload.get("task_id", "???"),
             "timestamp": asyncio.get_event_loop().time()
         }
-        self.redis_client.lpush("xytherion_safety_logs", json.dumps(violation))
+        await self.redis_client.lpush("xytherion_safety_logs", json.dumps(violation))
 
 
     # ============ EVENT INTERCEPTION (Phase 4) ============

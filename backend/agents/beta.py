@@ -1,5 +1,6 @@
 import asyncio
 import random
+import hashlib
 from backend.core.hive import EventType, HiveEvent
 from backend.core.browser_agent import BrowserEnabledAgent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskPriority, ModuleConfig, TaskTarget
@@ -41,6 +42,7 @@ class BetaAgent(BrowserEnabledAgent):
         ]
         # Governance: throttle flag from Zeta
         self._throttled = False
+        self._seen_payload_batches = set()
         
         # Browser Integration inherited from BrowserEnabledAgent
         # self.browser, self.session_manager, self.forensics available via properties
@@ -110,6 +112,11 @@ class BetaAgent(BrowserEnabledAgent):
             return
 
         print(f"[{self.name}] Received Breaker Job {packet.id}. Executing direct assault on {packet.target.url}")
+
+        if packet.config.module_id == "sigma_payload_handoff":
+            payloads = packet.config.params.get("payloads", []) if packet.config.params else []
+            await self._execute_payload_batch(packet.target.url, payloads, event.scan_id)
+            return
         
         # FIXED: Beta now executes attacks directly when receiving its own jobs
         # Execute polyglot payloads directly against the target
@@ -130,16 +137,53 @@ class BetaAgent(BrowserEnabledAgent):
         if not target_url: return
         
         payloads = data["generated_payloads"]
+        await self._execute_payload_batch(target_url, payloads, event.scan_id)
+
+    def _normalize_payloads(self, payloads) -> list[str]:
+        """Keep only concrete payload strings Beta can safely execute."""
+        if isinstance(payloads, (str, bytes)):
+            payloads = [payloads.decode() if isinstance(payloads, bytes) else payloads]
+        if not isinstance(payloads, list):
+            return []
+
+        normalized = []
+        seen = set()
+        for item in payloads:
+            if isinstance(item, dict):
+                item = item.get("payload") or item.get("value") or item.get("attack") or ""
+            value = str(item).strip()
+            if not value or value.startswith("[") or len(value) > 4096:
+                continue
+            if value in seen:
+                continue
+            seen.add(value)
+            normalized.append(value)
+        return normalized
+
+    async def _execute_payload_batch(self, target_url: str, payloads, scan_id: str = None):
+        payloads = self._normalize_payloads(payloads)
+        if not target_url or not payloads:
+            return
+
+        digest = hashlib.sha256(
+            json.dumps({"target": target_url, "payloads": payloads}, sort_keys=True).encode("utf-8")
+        ).hexdigest()
+        batch_key = f"{scan_id or 'GLOBAL'}:{digest}"
+        if batch_key in self._seen_payload_batches:
+            return
+        self._seen_payload_batches.add(batch_key)
+
         print(f"[{self.name}] Intercepted {len(payloads)} payloads from Sigma. Commencing RL Adaptive Execution.")
         try:
             import aiohttp
             timeout = aiohttp.ClientTimeout(total=10)
             async with aiohttp.ClientSession(timeout=timeout) as session:
-                async def execute_payload_rl(p, scan_id=None):
+                async def execute_payload_rl(p, index: int, scan_id=None):
                     try:
                         await self.bus.publish(HiveEvent(
                             type=EventType.LIVE_ATTACK,
                             source=self.name,
+                            scan_id=scan_id or "GLOBAL",
                             payload={"url": target_url, "arsenal": "Adaptive Fuzzer", "action": "Executing Payload", "payload": p[:50]}
                         ))
                         
@@ -148,12 +192,14 @@ class BetaAgent(BrowserEnabledAgent):
                         if reward > 0:
                             print(f"[{self.name}] [+ REWARD] Successful payload interaction. Retaining strategy.")
                         else:
-                            print(f"[{self.name}] [- PENALTY] Payload failed. Executing AI mutation layer.")
+                            if index < 3:
+                                print(f"[{self.name}] [- PENALTY] Payload failed. Executing AI mutation layer.")
                             mutated = await self.waf_mutate(p)
                             if mutated != p:
                                 await self.bus.publish(HiveEvent(
                                     type=EventType.LIVE_ATTACK,
                                     source=self.name,
+                                    scan_id=scan_id or "GLOBAL",
                                     payload={"url": target_url, "arsenal": "RL Mutation", "action": "Retrying Mutated Payload", "payload": mutated[:50]}
                                 ))
                                 await self._execute_and_eval(session, target_url, mutated, scan_id=scan_id)
@@ -162,7 +208,7 @@ class BetaAgent(BrowserEnabledAgent):
                 
                 # Execute all AI generated payloads explicitly in parallel
                 print(f"[{self.name}] Dispatching {len(payloads)} AI generative payloads concurrently...")
-                await asyncio.gather(*[execute_payload_rl(p, event.scan_id) for p in payloads])
+                await asyncio.gather(*[execute_payload_rl(p, i, scan_id) for i, p in enumerate(payloads)])
         except Exception as session_err:
             print(f"[{self.name}] [SESSION ERROR] Failed to create HTTP session: {session_err}")
 
@@ -387,7 +433,7 @@ class BetaAgent(BrowserEnabledAgent):
             ))
             
             # Test payload in browser (auto-selects OpenClaw for XSS)
-            result = await self.browser.test_payload(url, payload, param="q")
+            result = await self.browser.test_payload(url, payload)
             
             if result.get("triggered"):
                 print(f"[{self.name}] [XSS CONFIRMED] Payload triggered in browser!")

@@ -1,0 +1,4897 @@
+[
+  {
+    "timestamp": 1779810090.841301,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 102,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810090.897732,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 102,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810090.9295933,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 102,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810090.9616728,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 102,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810090.9864466,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 102,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810091.0169399,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 102,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810091.0494442,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 102,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810091.0827968,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 102,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810091.1473114,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 102,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810091.183937,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 102,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810091.2199862,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 102,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810128.1468756,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 139,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810128.9011018,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 139,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810129.1550314,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 139,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810129.272802,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 139,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810129.3814359,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 139,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810129.5012076,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 139,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810129.6226106,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 139,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810129.712469,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 139,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810129.8305233,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 139,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810129.9528165,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 139,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810130.0534568,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 139,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810261.5942385,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 244,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810261.6584115,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 244,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810261.7124324,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 244,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810261.756373,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 244,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810261.8698344,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 244,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810261.905989,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 244,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810261.950098,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 244,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810261.9888425,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 244,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810262.035532,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 244,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810262.076162,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 244,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810262.1274781,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 244,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810303.4093835,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 285,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810303.4878662,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 285,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810303.5086532,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 285,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810303.5416307,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 285,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810303.580774,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 285,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810303.615877,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 285,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810303.650038,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 285,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810303.682743,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 285,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810303.7182486,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 285,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810303.75041,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 285,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810303.7708514,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 285,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810553.6145556,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 461,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810563.2229412,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 461,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810563.7712502,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 461,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810564.2990148,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 461,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810564.709312,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 461,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810565.1466699,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 461,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810565.5570042,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 461,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810565.9922745,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 461,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810566.439311,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 461,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810566.8972726,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 461,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  },
+  {
+    "timestamp": 1779810567.326943,
+    "event_type": "RECON_COMPLETE",
+    "source": "agent_alpha",
+    "payload": {
+      "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
+      "target": "http://192.168.1.1:8080/t",
+      "mode": "STANDARD",
+      "duration_seconds": 461,
+      "summary": {
+        "total_endpoints": 0,
+        "total_subdomains": 0,
+        "total_ips": 0,
+        "total_open_ports": 0,
+        "total_js_files": 0,
+        "total_parameters": 0,
+        "total_secrets": 0,
+        "total_vulns": 0,
+        "attack_surface_stats": {},
+        "subdomains_discovered": 0,
+        "live_hosts": 0,
+        "open_ports": 0,
+        "api_endpoints": 0,
+        "parameters_discovered": 0,
+        "secrets_found": 0,
+        "historical_urls": 0,
+        "cloud_assets": 0,
+        "graphql_endpoints": 0,
+        "admin_panels": 0,
+        "screenshots_taken": 0
+      },
+      "attack_surface": [],
+      "tools_run": [],
+      "tools_skipped": [
+        {
+          "name": "subfinder",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "amass",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "gau",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "waybackurls",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "cloudlist",
+          "phase": "passive_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "httpx",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "katana",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "hakrawler",
+          "phase": "http_browser_intelligence",
+          "reason": "external_tools_disabled"
+        },
+        {
+          "name": "pinchtab",
+          "phase": "http_browser_intelligence",
+          "reason": "pinchtab_unavailable:Cannot connect to host 127.0.0.1:9867 ssl:default [The remote computer refused the network connection]"
+        }
+      ],
+      "raw_data_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\raw",
+      "screenshots_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\screenshots",
+      "artifact_manifest_path": "data\\scans\\5f043e70-4723-4c09-a907-aa7b96b456d6\\artifact_manifest.json",
+      "neo4j_export_path": "",
+      "maltego_export_path": "",
+      "pinchtab_profile_id": "",
+      "pinchtab_instance_id": ""
+    }
+  }
+]

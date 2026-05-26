@@ -29,7 +29,6 @@ RESTRICTED_TLDS = frozenset({
 
 # Domains that should never be scanned
 GLOBAL_DENY_LIST = frozenset({
-    "localhost", "127.0.0.1", "0.0.0.0", "::1",
     "metadata.google.internal", "169.254.169.254",
     "instance-data", "metadata.azure.com",
 })

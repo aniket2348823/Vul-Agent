@@ -253,9 +253,9 @@ class AgentPrism(BrowserEnabledAgent):
         """Intercepts all swarm results to monitor target stability."""
         if not self.redis_client: return
         pubsub = self.redis_client.pubsub()
-        pubsub.subscribe("xytherion_results")
+        await pubsub.subscribe("xytherion_results")
         
-        for message in pubsub.listen():
+        async for message in pubsub.listen():
             if not self.active: break
             if message['type'] == 'message':
                 try:

@@ -45,7 +45,14 @@ class PlaywrightFallback:
             self._pw = await async_playwright().start()
             self._browser = await self._pw.chromium.launch(
                 headless=True,
-                args=["--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage"])
+                args=[
+                    "--disable-gpu",
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-extensions",
+                    "--disable-background-networking",
+                ],
+            )
             logger.info("[PLAYWRIGHT] Browser launched")
         except ImportError:
             logger.warning("[PLAYWRIGHT] playwright not installed, skipping browser fallback")
@@ -84,7 +91,10 @@ class PlaywrightFallback:
         page.on("pageerror", lambda exc: errors.append(str(exc)[:500]))
 
         try:
-            resp = await page.goto(url, wait_until="networkidle", timeout=timeout_ms)
+            try:
+                resp = await page.goto(url, wait_until="networkidle", timeout=timeout_ms)
+            except Exception:
+                resp = await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
             status_code = resp.status if resp else 0
 
             # Wait for dynamic content

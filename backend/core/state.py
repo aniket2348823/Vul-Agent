@@ -322,14 +322,15 @@ class StateManager:
         # Clear sharded scan state files in scan_states/
         self._ensure_scans_dir()
         try:
-            for fname in os.listdir(self.SCANS_DIR):
-                if fname.startswith("scan_") and fname.endswith(".json"):
-                    file_path = os.path.join(self.SCANS_DIR, fname)
-                    try:
-                        os.remove(file_path)
-                        print(f"[StateManager] Deleted sharded scan file: {fname}")
-                    except Exception as e:
-                        print(f"[StateManager] Error deleting {fname}: {e}")
+            if os.path.exists(self.SCANS_DIR):
+                for fname in os.listdir(self.SCANS_DIR):
+                    if fname.startswith("scan_") and fname.endswith(".json"):
+                        file_path = os.path.join(self.SCANS_DIR, fname)
+                        try:
+                            os.remove(file_path)
+                            print(f"[StateManager] Deleted sharded scan file: {fname}")
+                        except Exception as e:
+                            print(f"[StateManager] Error deleting {fname}: {e}")
         except Exception as e:
             print(f"[StateManager] Error accessing scan_states directory: {e}")
         
@@ -458,8 +459,84 @@ class StateManager:
                     return payload
         return None
 
+    async def initialize_scan(self, scan_id: str, target_url: str) -> None:
+        """Initialize a new scan with the given scan_id and target_url."""
+        scan_data = {
+            "id": scan_id,
+            "scan_id": scan_id,
+            "target_url": target_url,
+            "status": "initialized",
+            "timestamp": str(asyncio.get_event_loop().time()),
+            "results": [],
+            "events": []
+        }
+        await self.register_scan(scan_data)
+        await self.write_scan_state(scan_id, scan_data)
+
+    def get_scan_state(self, scan_id: str) -> Dict[str, Any] | None:
+        """Get the current state of a scan by scan_id."""
+        for scan in self._stats.get("scans", []):
+            if scan.get("id") == scan_id or scan.get("scan_id") == scan_id:
+                return scan
+        return None
+
+    def update_scan_status(self, scan_id: str, status: str) -> None:
+        """Update the status of a scan."""
+        for scan in self._stats["scans"]:
+            if scan.get("id") == scan_id or scan.get("scan_id") == scan_id:
+                scan["status"] = status
+                self._mark_dirty()
+                break
+
+    def add_finding(self, scan_id: str, finding: Dict[str, Any]) -> None:
+        """Add a finding to a scan."""
+        for scan in self._stats["scans"]:
+            if scan.get("id") == scan_id or scan.get("scan_id") == scan_id:
+                if "findings" not in scan:
+                    scan["findings"] = []
+                scan["findings"].append(finding)
+                self._mark_dirty()
+                break
+
+    def get_findings(self, scan_id: str) -> List[Dict[str, Any]]:
+        """Get all findings for a scan."""
+        for scan in self._stats.get("scans", []):
+            if scan.get("id") == scan_id or scan.get("scan_id") == scan_id:
+                return scan.get("findings", [])
+        return []
+
+    def add_error(self, scan_id: str, error_msg: str) -> None:
+        """Add an error message to a scan."""
+        for scan in self._stats["scans"]:
+            if scan.get("id") == scan_id or scan.get("scan_id") == scan_id:
+                if "errors" not in scan:
+                    scan["errors"] = []
+                scan["errors"].append({
+                    "message": error_msg,
+                    "timestamp": str(asyncio.get_event_loop().time())
+                })
+                self._mark_dirty()
+                break
+
+    def update_scan_metadata(self, scan_id: str, metadata: Dict[str, Any]) -> None:
+        """Update metadata for a scan."""
+        for scan in self._stats["scans"]:
+            if scan.get("id") == scan_id or scan.get("scan_id") == scan_id:
+                if "metadata" not in scan:
+                    scan["metadata"] = {}
+                scan["metadata"].update(metadata)
+                self._mark_dirty()
+                break
+
+    def update_scan_progress(self, scan_id: str, progress: Dict[str, Any]) -> None:
+        """Update progress information for a scan."""
+        for scan in self._stats["scans"]:
+            if scan.get("id") == scan_id or scan.get("scan_id") == scan_id:
+                scan["progress"] = progress
+                self._mark_dirty()
+                break
+
 # Singleton Instance
 stats_db_manager = StateManager()
 # NOTE: stats_db global alias removed — it exposed mutable _stats without locking.
 # All access should go through stats_db_manager.get_stats() which returns a copy.
-

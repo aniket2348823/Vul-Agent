@@ -245,23 +245,31 @@ class BrowserOrchestrator:
         
         logger.info(f"[BrowserOrchestrator] Navigating to {url} via {selected_engine.value} (context: {context_id})")
         
-        if selected_engine == BrowserEngine.PINCHTAB and self.pinchtab:
-            return await self.pinchtab.navigate(url)
-        elif selected_engine == BrowserEngine.OPENCLAW and self.openclaw:
-            return await self.openclaw.navigate(url, stealth=stealth, wait_for=wait_for)
-        else:
-            # Fallback - try to initialize any available engine
-            if not self.openclaw:
-                await self._lazy_init_openclaw()
-            if not self.pinchtab:
-                await self._lazy_init_pinchtab()
-            
-            if self.openclaw:
-                return await self.openclaw.navigate(url, stealth=stealth, wait_for=wait_for)
-            elif self.pinchtab:
-                return await self.pinchtab.navigate(url)
-            else:
-                raise RuntimeError("No browser engines available")
+        candidates = (
+            [BrowserEngine.PINCHTAB, BrowserEngine.OPENCLAW]
+            if selected_engine == BrowserEngine.PINCHTAB
+            else [BrowserEngine.OPENCLAW, BrowserEngine.PINCHTAB]
+        )
+
+        last_error = None
+        for candidate in candidates:
+            try:
+                if candidate == BrowserEngine.PINCHTAB:
+                    await self._lazy_init_pinchtab()
+                    if self.pinchtab:
+                        result = await self.pinchtab.navigate(url)
+                        if result.get("success"):
+                            return result
+                        last_error = result.get("error") or "PinchTab navigation failed"
+                else:
+                    await self._lazy_init_openclaw()
+                    if self.openclaw:
+                        return await self.openclaw.navigate(url, stealth=stealth, wait_for=wait_for)
+            except Exception as exc:
+                last_error = str(exc)
+                logger.warning("[BrowserOrchestrator] %s navigation failed: %s", candidate.value, exc)
+
+        raise RuntimeError(f"No browser engines available: {last_error or 'initialization failed'}")
                 
     async def extract_endpoints(self, url: str, deep: bool = False, scan_id: Optional[str] = None):
         """
@@ -277,14 +285,20 @@ class BrowserOrchestrator:
         """
         await self._ensure_initialized()
         
-        if deep and self.openclaw:
-            logger.info(f"[BrowserOrchestrator] Deep endpoint extraction on {url}")
-            return await self.openclaw.extract_endpoints_deep(url)
-        elif self.pinchtab:
+        if deep:
+            await self._lazy_init_openclaw()
+            if self.openclaw:
+                try:
+                    logger.info(f"[BrowserOrchestrator] Deep endpoint extraction on {url}")
+                    return await self.openclaw.extract_endpoints_deep(url)
+                except Exception as exc:
+                    logger.warning("[BrowserOrchestrator] Deep extraction failed, trying fast mode: %s", exc)
+
+        await self._lazy_init_pinchtab()
+        if self.pinchtab:
             logger.info(f"[BrowserOrchestrator] Fast endpoint extraction on {url}")
             return await self.pinchtab.extract_endpoints_fast(url)
-        else:
-            return []
+        return []
             
     async def execute_workflow(self, workflow: Dict, scan_id: str):
         """
@@ -363,8 +377,12 @@ class BrowserOrchestrator:
         """Detect JavaScript framework (React/Vue/Angular)"""
         await self._ensure_initialized()
         
+        await self._lazy_init_openclaw()
         if self.openclaw:
-            return await self.openclaw.detect_framework(url)
+            try:
+                return await self.openclaw.detect_framework(url)
+            except Exception as exc:
+                logger.warning("[BrowserOrchestrator] Framework detection failed: %s", exc)
         return None
         
     async def intercept_network(self, url: str):
@@ -570,12 +588,19 @@ class BrowserOrchestrator:
         if getattr(settings, "OPENCLAW_ENABLED", True):
             try:
                 from backend.core.openclaw_engine import OpenClawEngine
-                self.openclaw = OpenClawEngine()
-                await self.openclaw.initialize()
+                engine = OpenClawEngine()
+                ok = await engine.initialize()
                 self._openclaw_initialized = True
-                logger.info("[BrowserOrchestrator] ✓ OpenClaw lazy-initialized")
+                if ok:
+                    self.openclaw = engine
+                    logger.info("[BrowserOrchestrator] OpenClaw lazy-initialized")
+                else:
+                    self.openclaw = None
+                    logger.warning("[BrowserOrchestrator] OpenClaw unavailable")
             except Exception as e:
-                logger.error(f"[BrowserOrchestrator] ✗ OpenClaw lazy-init failed: {e}")
+                self.openclaw = None
+                self._openclaw_initialized = True
+                logger.error(f"[BrowserOrchestrator] OpenClaw lazy-init failed: {e}")
     
     async def _lazy_init_pinchtab(self):
         """Lazy initialization of PinchTab engine."""
@@ -585,12 +610,19 @@ class BrowserOrchestrator:
         if getattr(settings, "PINCHTAB_ENABLED", True):
             try:
                 from backend.core.pinchtab_engine import PinchTabEngine
-                self.pinchtab = PinchTabEngine()
-                await self.pinchtab.initialize()
+                engine = PinchTabEngine()
+                ok = await engine.initialize()
                 self._pinchtab_initialized = True
-                logger.info("[BrowserOrchestrator] ✓ PinchTab lazy-initialized")
+                if ok:
+                    self.pinchtab = engine
+                    logger.info("[BrowserOrchestrator] PinchTab lazy-initialized")
+                else:
+                    self.pinchtab = None
+                    logger.warning("[BrowserOrchestrator] PinchTab unavailable")
             except Exception as e:
-                logger.error(f"[BrowserOrchestrator] ✗ PinchTab lazy-init failed: {e}")
+                self.pinchtab = None
+                self._pinchtab_initialized = True
+                logger.error(f"[BrowserOrchestrator] PinchTab lazy-init failed: {e}")
     
     def get_resource_stats(self) -> Dict[str, Any]:
         """Get comprehensive resource usage statistics."""

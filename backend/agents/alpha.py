@@ -47,6 +47,10 @@ class AlphaAgent(BrowserEnabledAgent):
         target_url = event.payload.get("url")
         if not target_url:
             return
+
+        if event.source == "Orchestrator" and getattr(settings, "ALPHA_RECON_VIA_PLANNER", True):
+            print(f"[{self.name}] Target received; waiting for Mission Planner recon assignment.")
+            return
         
         print(f"[{self.name}] TARGET ACQUIRED: {target_url}. Initiating hybrid recon...")
         
@@ -83,16 +87,20 @@ class AlphaAgent(BrowserEnabledAgent):
             
             # Check for framework indicators
             framework = await self.browser.detect_framework(url)
+            framework_name = str(framework or "").lower()
             
-            is_spa = framework in ["react", "vue", "angular", "svelte"]
+            is_spa = framework_name in ["react", "vue", "angular", "svelte"]
             
             if is_spa:
-                print(f"[{self.name}] Framework detected: {framework.upper()}")
+                print(f"[{self.name}] Framework detected: {framework_name.upper()}")
             
             return is_spa
             
         except Exception as e:
-            print(f"[{self.name}] SPA detection failed: {e}")
+            if "No browser engines available" in str(e):
+                print(f"[{self.name}] SPA detection skipped: browser engines unavailable; continuing Alpha V6 HTTP recon.")
+            else:
+                print(f"[{self.name}] SPA detection failed: {e}")
             return False
     
     async def _browser_recon(self, url: str, scan_id: str):
@@ -289,6 +297,37 @@ class AlphaAgent(BrowserEnabledAgent):
 
         # Am I the target?
         if packet.config.agent_id != AgentID.ALPHA:
+            return
+
+        if packet.config.module_id == "alpha_v6_recon":
+            params = packet.config.params or {}
+            mode = (
+                params.get("scan_mode")
+                or params.get("mode")
+                or getattr(settings, "ALPHA_DEFAULT_MODE", "STANDARD")
+            )
+            print(f"[{self.name}] Planner assigned Alpha V6 recon on {packet.target.url} (mode={mode}).")
+            try:
+                await self.alpha_recon.run(packet.target.url, scan_id=event.scan_id, mode=mode)
+                await self.bus.publish(HiveEvent(
+                    type=EventType.JOB_COMPLETED,
+                    source=self.name,
+                    scan_id=event.scan_id,
+                    payload={"job_id": packet.id, "status": "SUCCESS", "module_id": packet.config.module_id}
+                ))
+            except Exception as exc:
+                print(f"[{self.name}] Planner-assigned Alpha V6 recon failed: {exc}")
+                await self.bus.publish(HiveEvent(
+                    type=EventType.JOB_COMPLETED,
+                    source=self.name,
+                    scan_id=event.scan_id,
+                    payload={
+                        "job_id": packet.id,
+                        "status": "FAILED",
+                        "module_id": packet.config.module_id,
+                        "error": str(exc)[:300],
+                    }
+                ))
             return
 
         # ELE-ST FIX 1: Infinite Recursion Deadlock Prevention

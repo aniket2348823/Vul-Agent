@@ -333,3 +333,666 @@ async def reset_dashboard(request: Request):
     from backend.core.state import stats_db_manager
     stats_db_manager.wipe_scans()
     return {"status": "success", "message": "All historical scans have been wiped."}
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONTINUOUS LEARNING METRICS ENDPOINT
+# ═══════════════════════════════════════════════════════════════════════
+
+@router.get("/api/learning/metrics")
+async def get_learning_metrics():
+    """
+    Get continuous learning metrics showing how the system improves over time.
+    Returns pattern counts, confidence scores, and learning rate.
+    """
+    try:
+        from backend.core.learning_engine import learning_engine
+        metrics = learning_engine.get_metrics()
+        
+        # Add pattern breakdown by type
+        pattern_breakdown = {}
+        for pattern in learning_engine.patterns.values():
+            ptype = pattern.pattern_type
+            if ptype not in pattern_breakdown:
+                pattern_breakdown[ptype] = {
+                    "count": 0,
+                    "high_confidence": 0,
+                    "avg_success_rate": 0.0
+                }
+            pattern_breakdown[ptype]["count"] += 1
+            if pattern.confidence > 0.7:
+                pattern_breakdown[ptype]["high_confidence"] += 1
+        
+        # Calculate average success rates
+        for ptype in pattern_breakdown:
+            patterns_of_type = [p for p in learning_engine.patterns.values() if p.pattern_type == ptype]
+            if patterns_of_type:
+                avg_sr = sum(p.success_rate for p in patterns_of_type) / len(patterns_of_type)
+                pattern_breakdown[ptype]["avg_success_rate"] = round(avg_sr, 3)
+        
+        return {
+            "success": True,
+            "metrics": metrics,
+            "pattern_breakdown": pattern_breakdown,
+            "learning_enabled": True
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "metrics": {
+                "total_patterns": 0,
+                "high_confidence_patterns": 0,
+                "total_scans_analyzed": 0,
+                "total_vulns_learned": 0,
+                "avg_pattern_confidence": 0.0,
+                "learning_rate": 0.0
+            },
+            "pattern_breakdown": {},
+            "learning_enabled": False
+        }
+
+
+@router.get("/api/learning/patterns")
+async def get_learning_patterns(
+    pattern_type: str = None,
+    min_confidence: float = 0.0,
+    limit: int = 50
+):
+    """
+    Get learned patterns with optional filtering.
+    
+    Query params:
+    - pattern_type: Filter by type (endpoint_pattern, payload_success, vuln_correlation, recon_strategy)
+    - min_confidence: Minimum confidence threshold (0.0 to 1.0)
+    - limit: Maximum number of patterns to return
+    """
+    try:
+        from backend.core.learning_engine import learning_engine
+        
+        patterns = list(learning_engine.patterns.values())
+        
+        # Apply filters
+        if pattern_type:
+            patterns = [p for p in patterns if p.pattern_type == pattern_type]
+        
+        patterns = [p for p in patterns if p.confidence >= min_confidence]
+        
+        # Sort by confidence (highest first)
+        patterns.sort(key=lambda p: p.confidence, reverse=True)
+        
+        # Limit results
+        patterns = patterns[:limit]
+        
+        # Convert to dict for JSON serialization
+        from dataclasses import asdict
+        patterns_data = [asdict(p) for p in patterns]
+        
+        return {
+            "success": True,
+            "patterns": patterns_data,
+            "total_count": len(patterns_data),
+            "filtered": pattern_type is not None or min_confidence > 0.0
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "patterns": [],
+            "total_count": 0
+        }
+
+
+@router.get("/api/learning/recommendations/{target_url:path}")
+async def get_learning_recommendations(target_url: str):
+    """
+    Get attack recommendations based on learned patterns for a specific target URL.
+    """
+    try:
+        from backend.core.learning_engine import learning_engine
+        
+        recommendations = await learning_engine.get_recommendations(
+            target_url,
+            {"scan_id": "preview"}
+        )
+        
+        return {
+            "success": True,
+            "target_url": target_url,
+            "recommendations": recommendations
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "recommendations": {
+                "priority_vulns": [],
+                "effective_payloads": [],
+                "correlated_vulns": [],
+                "confidence": 0.0
+            }
+        }
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# AGENT EVOLUTION SYSTEM ENDPOINTS
+# ═══════════════════════════════════════════════════════════════════════
+
+@router.get("/api/evolution/health")
+async def get_agent_health():
+    """Get health metrics for all agents."""
+    try:
+        from backend.core.agent_health_monitor import health_monitor
+        
+        all_health = health_monitor.get_all_health()
+        summary = health_monitor.get_system_health_summary()
+        alerts = health_monitor.get_alerts(limit=20)
+        
+        return {
+            "success": True,
+            "agents": all_health,
+            "summary": summary,
+            "alerts": alerts
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "agents": {},
+            "summary": {},
+            "alerts": []
+        }
+
+
+@router.get("/api/evolution/health/{agent_name}")
+async def get_agent_health_detail(agent_name: str):
+    """Get detailed health metrics and history for a specific agent."""
+    try:
+        from backend.core.agent_health_monitor import health_monitor
+        
+        current = health_monitor.get_agent_health(agent_name)
+        history = health_monitor.get_agent_history(agent_name, limit=100)
+        
+        if not current:
+            return JSONResponse(
+                status_code=404,
+                content={"success": False, "error": f"Agent {agent_name} not found"}
+            )
+        
+        return {
+            "success": True,
+            "agent_name": agent_name,
+            "current": current,
+            "history": history
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "current": None,
+            "history": []
+        }
+
+
+@router.get("/api/evolution/healing")
+async def get_healing_metrics():
+    """Get self-healing metrics and recovery history."""
+    try:
+        from backend.core.self_healing_engine import healing_engine
+        
+        metrics = healing_engine.get_healing_metrics()
+        history = healing_engine.get_recovery_history(limit=50)
+        
+        return {
+            "success": True,
+            "metrics": metrics,
+            "recovery_history": history
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "metrics": {},
+            "recovery_history": []
+        }
+
+
+@router.get("/api/evolution/healing/{agent_name}")
+async def get_agent_healing_history(agent_name: str):
+    """Get healing history for a specific agent."""
+    try:
+        from backend.core.self_healing_engine import healing_engine
+        
+        history = healing_engine.get_recovery_history(agent_name=agent_name, limit=50)
+        
+        return {
+            "success": True,
+            "agent_name": agent_name,
+            "recovery_history": history
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "recovery_history": []
+        }
+
+
+@router.get("/api/evolution/skills")
+async def get_skills(
+    skill_type: str = None,
+    min_confidence: float = 0.0,
+    min_success_rate: float = 0.0,
+    limit: int = 50
+):
+    """
+    Get skills from the skill library.
+    
+    Query params:
+    - skill_type: Filter by type (payload_generation, endpoint_discovery, attack_chain, evasion)
+    - min_confidence: Minimum confidence threshold
+    - min_success_rate: Minimum success rate threshold
+    - limit: Maximum number of skills to return
+    """
+    try:
+        from backend.core.skill_library import skill_library
+        from dataclasses import asdict
+        
+        skills = skill_library.search_skills(
+            skill_type=skill_type,
+            min_confidence=min_confidence,
+            min_success_rate=min_success_rate,
+            limit=limit
+        )
+        
+        skills_data = [asdict(s) for s in skills]
+        
+        return {
+            "success": True,
+            "skills": skills_data,
+            "total_count": len(skills_data)
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "skills": [],
+            "total_count": 0
+        }
+
+
+@router.get("/api/evolution/skills/top")
+async def get_top_skills(limit: int = 10):
+    """Get top-performing skills."""
+    try:
+        from backend.core.skill_library import skill_library
+        from dataclasses import asdict
+        
+        skills = skill_library.get_top_skills(limit=limit)
+        skills_data = [asdict(s) for s in skills]
+        
+        return {
+            "success": True,
+            "skills": skills_data,
+            "total_count": len(skills_data)
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "skills": [],
+            "total_count": 0
+        }
+
+
+@router.get("/api/evolution/skills/{skill_id}")
+async def get_skill_detail(skill_id: str):
+    """Get detailed information about a specific skill."""
+    try:
+        from backend.core.skill_library import skill_library
+        from dataclasses import asdict
+        
+        skill = skill_library.get_skill(skill_id)
+        
+        if not skill:
+            return JSONResponse(
+                status_code=404,
+                content={"success": False, "error": f"Skill {skill_id} not found"}
+            )
+        
+        return {
+            "success": True,
+            "skill": asdict(skill)
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "skill": None
+        }
+
+
+@router.get("/api/evolution/skills/stats")
+async def get_skill_library_stats():
+    """Get statistics about the skill library."""
+    try:
+        from backend.core.skill_library import skill_library
+        
+        stats = skill_library.get_library_stats()
+        
+        return {
+            "success": True,
+            "stats": stats
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "stats": {}
+        }
+
+
+@router.post("/api/evolution/skills/extract")
+@csrf_protect()
+async def extract_skills_from_patterns(request: Request):
+    """
+    Manually trigger skill extraction from learned patterns.
+    This is normally done automatically, but can be triggered manually.
+    """
+    try:
+        from backend.core.skill_extractor import skill_extractor
+        from backend.core.skill_library import skill_library
+        from dataclasses import asdict
+        
+        # Extract skills
+        new_skills = await skill_extractor.extract_skills_from_patterns()
+        
+        # Add to library
+        added_count = 0
+        for skill in new_skills:
+            if skill_library.add_skill(skill):
+                added_count += 1
+        
+        return {
+            "success": True,
+            "message": f"Extracted {len(new_skills)} skills, added {added_count} to library",
+            "extracted_count": len(new_skills),
+            "added_count": added_count,
+            "skills": [asdict(s) for s in new_skills]
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "extracted_count": 0,
+            "added_count": 0
+        }
+
+
+@router.get("/api/evolution/metrics")
+async def get_evolution_metrics():
+    """Get comprehensive evolution system metrics."""
+    try:
+        from backend.core.learning_engine import learning_engine
+        from backend.core.agent_health_monitor import health_monitor
+        from backend.core.self_healing_engine import healing_engine
+        from backend.core.skill_library import skill_library
+        from backend.core.skill_extractor import skill_extractor
+        
+        learning_metrics = learning_engine.get_metrics()
+        health_summary = health_monitor.get_system_health_summary()
+        healing_metrics = healing_engine.get_healing_metrics()
+        skill_stats = skill_library.get_library_stats()
+        extraction_metrics = skill_extractor.get_extraction_metrics()
+        
+        return {
+            "success": True,
+            "learning": learning_metrics,
+            "health": health_summary,
+            "healing": healing_metrics,
+            "skills": skill_stats,
+            "extraction": extraction_metrics,
+            "timestamp": time.time()
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "learning": {},
+            "health": {},
+            "healing": {},
+            "skills": {},
+            "extraction": {}
+        }
+
+
+# ============================================================================
+# INTEGRATION METRICS ENDPOINTS (Section 20)
+# ============================================================================
+
+@router.get("/api/integration/metrics")
+async def get_integration_metrics():
+    """
+    Get unified integration metrics.
+    Includes skill acquisition, health, performance, and resource metrics.
+    """
+    try:
+        from backend.core.integration_coordinator import integration_coordinator
+        from backend.core.learning_engine import learning_engine, browser_learning
+        from backend.core.skill_library import skill_library
+        from backend.core.agent_health_monitor import health_monitor
+        from backend.core.unified_resource_manager import UnifiedResourceManager
+        from backend.core.performance_optimizer import performance_optimizer
+        
+        metrics = {
+            "timestamp": time.time(),
+            "integration": {},
+            "learning": {},
+            "skills": {},
+            "health": {},
+            "resources": {},
+            "performance": {}
+        }
+        
+        # Integration coordinator metrics
+        if integration_coordinator:
+            metrics["integration"] = integration_coordinator.get_integration_metrics()
+        
+        # Learning metrics
+        if learning_engine:
+            metrics["learning"] = {
+                "total_patterns": len(learning_engine.patterns),
+                "http_patterns": len([p for p in learning_engine.patterns.values() if "http" in p.pattern_type]),
+                "browser_patterns": len([p for p in learning_engine.patterns.values() if "browser" in p.pattern_type])
+            }
+        
+        # Skill acquisition metrics
+        if skill_library:
+            all_skills = skill_library.get_all_skills()
+            metrics["skills"] = {
+                "total_skills": len(all_skills),
+                "http_skills": len([s for s in all_skills if s.execution_context == "http_only"]),
+                "browser_skills": len([s for s in all_skills if s.execution_context == "browser_required"]),
+                "hybrid_skills": len([s for s in all_skills if s.execution_context == "hybrid"]),
+                "acquisition_rate": len(all_skills) / max(1, metrics["learning"].get("total_patterns", 1))
+            }
+        
+        # Health metrics
+        if health_monitor:
+            all_health = health_monitor.get_all_health()
+            metrics["health"] = {
+                "total_agents": len(all_health),
+                "healthy_agents": len([h for h in all_health.values() if h["health_score"] > 70]),
+                "unhealthy_agents": len([h for h in all_health.values() if h["health_score"] < 40]),
+                "avg_health_score": sum(h["health_score"] for h in all_health.values()) / len(all_health) if all_health else 0
+            }
+        
+        # Performance metrics
+        metrics["performance"] = performance_optimizer.get_performance_report()
+        
+        return JSONResponse(content=metrics)
+        
+    except Exception as e:
+        return JSONResponse(
+            content={"error": str(e)},
+            status_code=500
+        )
+
+
+@router.get("/api/integration/realtime")
+async def get_realtime_monitoring():
+    """
+    Get real-time monitoring data.
+    Includes active browser contexts, resource usage, evolution progress, self-healing events.
+    """
+    try:
+        from backend.core.browser_orchestrator import browser_orchestrator
+        from backend.core.agent_health_monitor import health_monitor, browser_health_monitor
+        from backend.core.self_healing_engine import healing_engine
+        from backend.core.unified_resource_manager import UnifiedResourceManager
+        
+        realtime = {
+            "timestamp": time.time(),
+            "browser_contexts": {},
+            "resource_usage": {},
+            "evolution_progress": {},
+            "healing_events": {}
+        }
+        
+        # Active browser contexts
+        if browser_orchestrator:
+            realtime["browser_contexts"] = {
+                "active_count": len(browser_orchestrator.active_contexts) if hasattr(browser_orchestrator, 'active_contexts') else 0,
+                "total_memory_mb": 0,  # Would be calculated from actual contexts
+                "contexts": []
+            }
+        
+        # Resource usage
+        if browser_health_monitor:
+            browser_health = browser_health_monitor.get_all_browser_health()
+            total_memory = sum(h.get("context_memory_mb", 0) for h in browser_health.values())
+            realtime["resource_usage"] = {
+                "browser_memory_mb": total_memory,
+                "active_contexts": len(browser_health)
+            }
+        
+        # Evolution progress
+        from backend.core.learning_engine import learning_engine
+        if learning_engine:
+            realtime["evolution_progress"] = {
+                "patterns_learned": len(learning_engine.patterns),
+                "learning_rate": 0.0  # Would be calculated from recent patterns
+            }
+        
+        # Self-healing events
+        if healing_engine:
+            recent_recoveries = healing_engine.get_recovery_history(limit=10)
+            realtime["healing_events"] = {
+                "recent_count": len(recent_recoveries),
+                "recent_events": recent_recoveries
+            }
+        
+        return JSONResponse(content=realtime)
+        
+    except Exception as e:
+        return JSONResponse(
+            content={"error": str(e)},
+            status_code=500
+        )
+
+
+@router.get("/api/integration/drilldown/{metric_type}")
+async def get_drilldown_metrics(metric_type: str):
+    """
+    Get drill-down metrics for specific types.
+    Supports: http_vs_browser, skill_breakdown, agent_specific
+    """
+    try:
+        from backend.core.skill_library import skill_library
+        from backend.core.agent_health_monitor import health_monitor
+        from backend.core.performance_optimizer import performance_optimizer
+        
+        if metric_type == "http_vs_browser":
+            # HTTP vs Browser performance comparison
+            http_metrics = list(performance_optimizer.metrics.get("http", []))
+            browser_metrics = list(performance_optimizer.metrics.get("browser", []))
+            
+            http_avg = sum(m["response_time_ms"] for m in http_metrics) / len(http_metrics) if http_metrics else 0
+            browser_avg = sum(m["response_time_ms"] for m in browser_metrics) / len(browser_metrics) if browser_metrics else 0
+            
+            return JSONResponse(content={
+                "http": {
+                    "avg_response_ms": http_avg,
+                    "sample_size": len(http_metrics)
+                },
+                "browser": {
+                    "avg_response_ms": browser_avg,
+                    "sample_size": len(browser_metrics)
+                },
+                "comparison": {
+                    "faster": "http" if http_avg < browser_avg else "browser",
+                    "speedup_factor": max(http_avg, browser_avg) / min(http_avg, browser_avg) if min(http_avg, browser_avg) > 0 else 0
+                }
+            })
+        
+        elif metric_type == "skill_breakdown":
+            # Skill type breakdown
+            if skill_library:
+                all_skills = skill_library.get_all_skills()
+                
+                breakdown = {
+                    "by_type": {},
+                    "by_context": {},
+                    "by_success_rate": {
+                        "high": 0,  # > 0.8
+                        "medium": 0,  # 0.5-0.8
+                        "low": 0  # < 0.5
+                    }
+                }
+                
+                for skill in all_skills:
+                    # By type
+                    skill_type = skill.skill_type
+                    breakdown["by_type"][skill_type] = breakdown["by_type"].get(skill_type, 0) + 1
+                    
+                    # By context
+                    context = skill.execution_context
+                    breakdown["by_context"][context] = breakdown["by_context"].get(context, 0) + 1
+                    
+                    # By success rate
+                    if skill.success_rate > 0.8:
+                        breakdown["by_success_rate"]["high"] += 1
+                    elif skill.success_rate > 0.5:
+                        breakdown["by_success_rate"]["medium"] += 1
+                    else:
+                        breakdown["by_success_rate"]["low"] += 1
+                
+                return JSONResponse(content=breakdown)
+        
+        elif metric_type == "agent_specific":
+            # Agent-specific metrics
+            if health_monitor:
+                all_health = health_monitor.get_all_health()
+                
+                agent_metrics = {}
+                for agent_name, health in all_health.items():
+                    agent_metrics[agent_name] = {
+                        "health_score": health["health_score"],
+                        "error_rate": health.get("error_rate", 0),
+                        "response_time_ms": health.get("response_time_ms", 0),
+                        "memory_mb": health.get("memory_mb", 0)
+                    }
+                
+                return JSONResponse(content=agent_metrics)
+        
+        else:
+            return JSONResponse(
+                content={"error": f"Unknown metric type: {metric_type}"},
+                status_code=400
+            )
+        
+    except Exception as e:
+        return JSONResponse(
+            content={"error": str(e)},
+            status_code=500
+        )

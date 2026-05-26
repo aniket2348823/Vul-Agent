@@ -416,37 +416,15 @@ class SigmaAgent(BrowserEnabledAgent):
             # Detect framework
             framework = await self.browser.detect_framework(url)
             
-            # Extract DOM elements using browser
-            # In a real implementation, this would use browser automation to:
-            # 1. Find all forms on the page
-            # 2. Extract input fields with their attributes
-            # 3. Identify buttons and their actions
-            # 4. Detect validation patterns
-            
+            dom_details = await self.browser.analyze_dom(url)
             dom_structure = {
                 "framework": framework,
-                "forms": [],
-                "inputs": [],
-                "buttons": [],
+                "forms": dom_details.get("forms", []) if isinstance(dom_details, dict) else [],
+                "inputs": dom_details.get("inputs", []) if isinstance(dom_details, dict) else [],
+                "buttons": dom_details.get("buttons", []) if isinstance(dom_details, dict) else [],
                 "scripts": [],
                 "url": url
             }
-            
-            # Placeholder for actual DOM extraction
-            # This would use browser.execute_script() or similar to run JavaScript
-            # that extracts form data, input fields, etc.
-            
-            # Example structure that would be populated:
-            # dom_structure["forms"] = [
-            #     {
-            #         "action": "/login",
-            #         "method": "POST",
-            #         "inputs": [
-            #             {"name": "username", "type": "text", "required": True},
-            #             {"name": "password", "type": "password", "required": True}
-            #         ]
-            #     }
-            # ]
             
             print(f"[{self.name}] DOM analysis complete. Framework: {framework}")
             
@@ -539,7 +517,7 @@ class SigmaAgent(BrowserEnabledAgent):
             print(f"[{self.name}] Pre-testing payload in browser: {payload[:50]}...")
             
             # Test payload using browser
-            result = await self.browser.test_payload(url, payload, param="test")
+            result = await self.browser.test_payload(url, payload)
             
             if result.get("triggered"):
                 print(f"[{self.name}] [PRE-TEST SUCCESS] Payload effective: {payload[:50]}")
