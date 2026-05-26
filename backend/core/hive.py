@@ -28,6 +28,14 @@ class EventType(str, Enum):
     SCOPE_VIOLATION = "SCOPE_VIOLATION"
     REPORT_READY = "REPORT_READY"
     PATTERN_LEARNED = "PATTERN_LEARNED"
+    
+    # V6 Lifecycle Management Events
+    MISSION_PLANNED = "MISSION_PLANNED"
+    PHASE_STARTED = "PHASE_STARTED"
+    PHASE_COMPLETED = "PHASE_COMPLETED"
+    ENDPOINT_DISCOVERED = "ENDPOINT_DISCOVERED"
+    ENDPOINT_TESTED = "ENDPOINT_TESTED"
+    COVERAGE_UPDATE = "COVERAGE_UPDATE"
 
 class HiveEvent(BaseModel):
     """
@@ -46,6 +54,7 @@ class HiveEvent(BaseModel):
 from backend.core.protocol import ModuleConfig, ResultPacket, Vulnerability
 from backend.core.context import ScanContext
 from backend.core.guard_layer import PromptInjectionBlocked, guard_layer
+from backend.core.content_boundary import content_boundary
 from backend.core.stdout_watchdog import watch_output
 from backend.core.memory import memory_store
 from backend.core.knowledge_graph import knowledge_graph
@@ -101,13 +110,40 @@ class EventBus:
         if event_type in self.subscribers and handler in self.subscribers[event_type]:
             self.subscribers[event_type].remove(handler)
 
+    def _sanitize_event_payload(self, event: HiveEvent) -> Dict[str, Any]:
+        attack_payload_events = {
+            EventType.LIVE_ATTACK,
+            EventType.JOB_ASSIGNED,
+            EventType.JOB_COMPLETED,
+            EventType.VULN_CANDIDATE,
+            EventType.VULN_CONFIRMED,
+        }
+        payload_keys = {"payload", "generated_payloads", "payloads", "all_payloads"}
+
+        def sanitize_value(value: Any, key: str = "") -> Any:
+            if key in payload_keys and event.type in attack_payload_events:
+                if isinstance(value, str):
+                    return content_boundary.sanitize_control_tokens(value)[:4096]
+                if isinstance(value, list):
+                    return [sanitize_value(item, key) for item in value[:100]]
+                if isinstance(value, dict):
+                    return {k: sanitize_value(v, k) for k, v in value.items()}
+                return value
+            if isinstance(value, dict):
+                return {k: sanitize_value(v, k) for k, v in value.items()}
+            if isinstance(value, list):
+                return [sanitize_value(item, key) for item in value]
+            return guard_layer.sanitize_payload(value)
+
+        return sanitize_value(event.payload)
+
     async def publish(self, event: HiveEvent):
         """
         Broadcasts an event to all interested agents.
         Routes to purely causal queue isolation by default.
         """
         try:
-            event.payload = guard_layer.sanitize_payload(event.payload)
+            event.payload = self._sanitize_event_payload(event)
             watched_payload = await watch_output(event.payload)
             if watched_payload.truncated:
                 event.payload = {"guarded_payload": watched_payload.content}
