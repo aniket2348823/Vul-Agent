@@ -8,7 +8,7 @@ from fpdf import FPDF
 # Hybrid AI Engine for intelligent reporting
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 from backend.core.chain_analyzer import ChainAnalyzer
-from backend.core.graph_engine import graph_engine
+from backend.core.unified_knowledge_graph import graph_engine
 from backend.core.config import settings
 
 class SecurityReportPDF(FPDF):

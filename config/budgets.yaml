@@ -1,0 +1,26 @@
+# Vigilagent Iteration Budgets (Architecture §5, §29.3)
+# ----------------------------------------------------------------------------
+# Every agent, child agent, worker, tool call, and skill run consumes bounded
+# budget. A child budget is independent and can never drain the parent.
+# ----------------------------------------------------------------------------
+
+budgets:
+  campaign: 200        # Omega campaign commander (parent)
+  commander: 90        # Recon/Validation/Browser/Network/Verification commanders
+  child: 50            # Specialized child agents / workers
+  skill_run: 20        # A single skill execution
+  tool_run: 1          # One terminal/tool invocation consumes one unit
+
+# Per-phase soft budgets (Architecture §16 phase lifecycle). A phase that
+# exhausts its budget yields back to the planner instead of running forever.
+phases:
+  passive_recon: 40
+  active_recon: 60
+  surface_modeling: 20
+  planning: 15
+  controlled_validation: 80
+  verification: 40
+  evidence_capture: 15
+  risk_scoring: 10
+  reporting: 15
+  learning: 10

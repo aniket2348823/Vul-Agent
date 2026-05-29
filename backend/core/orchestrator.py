@@ -21,7 +21,7 @@ from backend.core.state import stats_db_manager
 from backend.core.database import db_manager # [NEW] Distributed Intelligence Backbone
 from backend.core.config import settings
 from backend.api.socket_manager import manager
-from backend.core.graph_engine import GraphEngine
+from backend.core.unified_knowledge_graph import GraphEngine
 from backend.core.guard_layer import guard_layer
 from backend.core.stdout_watchdog import watch_output
 from backend.core.scope import ScopePolicy
@@ -69,6 +69,9 @@ ai_cortex = get_cortex_engine()
 class HiveOrchestrator:
     # Global Registry for API Access (Nervous System)
     active_agents = {}
+    # Control plane (Architecture §5.5): delegation manager + campaign budget.
+    delegation = None
+    campaign_budget = None
     _orphaned_tasks = set()
     _task_manager = TaskManager("HiveOrchestrator")
 
@@ -240,7 +243,24 @@ class HiveOrchestrator:
 
         else:
             bus = EventBus()
+            master = None
             logger.info("🛡️ Local Singularity Initialized (Standalone).")
+
+        # --- CONTROL PLANE (Architecture §5.5, §24 step 13) ---
+        # Layer the DelegationManager on top of the EventBus so commander agents
+        # can spawn budgeted, isolated child agents and await structured results.
+        # The EventBus remains the telemetry/coordination plane (frontend feed).
+        try:
+            from backend.core.delegation_manager import make_delegation_manager
+            from backend.core.iteration_budget import campaign_budget
+            delegation = make_delegation_manager(
+                bus=bus, master=master if redis_url else None, scan_id=scan_id or "GLOBAL")
+            HiveOrchestrator.delegation = delegation
+            HiveOrchestrator.campaign_budget = campaign_budget(label=f"campaign:{scan_id or 'GLOBAL'}")
+            logger.info("🧭 Delegation control plane active (campaign budget=%d).",
+                        HiveOrchestrator.campaign_budget.max_total)
+        except Exception as _de:
+            logger.warning(f"Delegation manager not attached: {_de}")
 
 
 
@@ -526,6 +546,15 @@ class HiveOrchestrator:
         # AWAKENING: The Mission Planner (V6 Strategic Heart)
         planner = MissionPlanner(bus)
 
+        # AWAKENING: The Network Service Commander (Architecture §5, §29.7)
+        # Importing the package also registers delegation child runners (§5.1.2).
+        try:
+            from backend.agents.commanders import NetworkServiceCommander
+            net_commander = NetworkServiceCommander(bus)
+        except Exception as _ne:
+            logger.warning(f"NetworkServiceCommander unavailable: {_ne}")
+            net_commander = None
+
         # 4. Wake Up the Hive
         # DATA WIRING: Pass Mission Profile
         mission_profile = {
@@ -539,6 +568,8 @@ class HiveOrchestrator:
         # Alpha: Recon, Kappa: Memory, Planner: Strategy, Prism: Defense, Chi: Defense
         # Gamma: Forensic Audit, Omega: Campaign Strategy, Zeta: Governance/Throttle, Delta: DOM Interceptor
         core_agents = [planner, scout, kappa, sentinel, inspector, analyst, strategist, governor, delta]
+        if net_commander is not None:
+            core_agents.append(net_commander)
         
         # Offensive agents mapped to modules (Beta + Sigma are attack-specific)
         module_agent_map = {
@@ -606,7 +637,7 @@ class HiveOrchestrator:
             })
 
         # --- ENHANCED SELF-HEALING SYSTEM ---
-        from backend.core.self_healing_engine import healing_engine
+        from backend.core.recovery_engine import healing_engine
         
         # Register restart callbacks for all agents
         for agent in agents:
@@ -679,6 +710,9 @@ class HiveOrchestrator:
         HiveOrchestrator.active_agents[AgentID.DELTA] = delta
         
         HiveOrchestrator.active_agents["PLANNER"] = planner
+        
+        if net_commander is not None:
+            HiveOrchestrator.active_agents["agent_network_commander"] = net_commander
         
         # HYBRID AI: Log campaign strategy
         strategy_name = "Dynamic Multi-Core Heuristics"
@@ -1118,6 +1152,22 @@ class HiveOrchestrator:
                             )
                         except Exception as le:
                             logger.warning(f"[{scan_id}] Learning analysis failed: {le}")
+
+                        # PER-SCAN LEARNING LOOP (Architecture §13.3): collect
+                        # outcomes, update tool/agent reliability, create/promote
+                        # skills, store a learning update.
+                        try:
+                            from backend.skills.learning_loop import per_scan_learning_loop, ScanOutcome
+                            findings = [e.get("payload", {}) for e in scan_events
+                                        if e.get("type") in (EventType.VULN_CONFIRMED, "VULN_CONFIRMED")]
+                            outcome = ScanOutcome(scan_id=scan_id, findings=findings)
+                            lo = await per_scan_learning_loop.run(outcome)
+                            logger.info(
+                                f"[{scan_id}] Per-scan learning: {len(lo.new_candidate_skills)} new skills, "
+                                f"{len(lo.promoted)} promoted"
+                            )
+                        except Exception as le:
+                            logger.warning(f"[{scan_id}] Per-scan learning loop failed: {le}")
                         # ═══════════════════════════════════════════════════════════════════════
                         
                         # [TEST HARNESS COMPLIANCE: TC010] 

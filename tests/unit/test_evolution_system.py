@@ -10,7 +10,7 @@ import shutil
 from pathlib import Path
 
 from backend.core.agent_health_monitor import AgentHealthMonitor, HealthMetrics
-from backend.core.self_healing_engine import SelfHealingEngine, CircuitBreaker
+from backend.core.recovery_engine import SelfHealingEngine, CircuitBreaker
 from backend.core.skill_extractor import SkillExtractor, Skill
 from backend.core.skill_library import SkillLibrary
 from backend.core.learning_engine import LearningPattern

@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 
 from backend.core.database import db_manager
-from backend.core.graph_engine import GraphEngine
+from backend.core.unified_knowledge_graph import GraphEngine
 from backend.core.task_manager import TaskManager
 
 logger = logging.getLogger("MasterNode")

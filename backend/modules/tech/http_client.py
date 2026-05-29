@@ -8,7 +8,7 @@ import aiohttp
 
 from backend.core.content_boundary import content_boundary
 from backend.core.database import db_manager
-from backend.core.knowledge_graph import knowledge_graph
+from backend.core.unified_knowledge_graph import knowledge_graph
 from backend.core.proxy import network_interceptor
 from backend.core.scope import ScopePolicy
 from backend.core.stdout_watchdog import watch_output

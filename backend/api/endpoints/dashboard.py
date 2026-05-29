@@ -647,7 +647,7 @@ async def get_agent_health_detail(agent_name: str):
 async def get_healing_metrics():
     """Get self-healing metrics and recovery history."""
     try:
-        from backend.core.self_healing_engine import healing_engine
+        from backend.core.recovery_engine import healing_engine
         
         metrics = healing_engine.get_healing_metrics()
         history = healing_engine.get_recovery_history(limit=50)
@@ -670,7 +670,7 @@ async def get_healing_metrics():
 async def get_agent_healing_history(agent_name: str):
     """Get healing history for a specific agent."""
     try:
-        from backend.core.self_healing_engine import healing_engine
+        from backend.core.recovery_engine import healing_engine
         
         history = healing_engine.get_recovery_history(agent_name=agent_name, limit=50)
         
@@ -844,7 +844,7 @@ async def get_evolution_metrics():
     try:
         from backend.core.learning_engine import learning_engine
         from backend.core.agent_health_monitor import health_monitor
-        from backend.core.self_healing_engine import healing_engine
+        from backend.core.recovery_engine import healing_engine
         from backend.core.skill_library import skill_library
         from backend.core.skill_extractor import skill_extractor
         
@@ -957,7 +957,7 @@ async def get_realtime_monitoring():
     try:
         from backend.core.browser_orchestrator import browser_orchestrator
         from backend.core.agent_health_monitor import health_monitor, browser_health_monitor
-        from backend.core.self_healing_engine import healing_engine
+        from backend.core.recovery_engine import healing_engine
         from backend.core.unified_resource_manager import UnifiedResourceManager
         
         realtime = {

@@ -11,7 +11,7 @@ from typing import Any
 
 from backend.agents.alpha_v6.models import ReconEntity, SourceRef, stable_id
 from backend.core.database import db_manager
-from backend.core.knowledge_graph import (
+from backend.core.unified_knowledge_graph import (
     EdgeKind, KGEdge, KGNode, NodeKind, knowledge_graph,
 )
 from backend.parsers.recon.base import ParsedEntity

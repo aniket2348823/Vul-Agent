@@ -85,6 +85,15 @@ class WorkerNode:
         tid = task.get("task_id", str(uuid.uuid4()))
         scan_id = task.get("scan_id", "GLOBAL")
         module_id = task.get("config", {}).get("module_id")
+        agent_class = task.get("agent_class")
+
+        # Delegation task path (Architecture §5.1.2): a child-agent packet from
+        # the DelegationManager. Run the registered in-process child runner and
+        # write the structured result to the delegation_result key the manager
+        # is awaiting.
+        if agent_class and not module_id:
+            await self._execute_delegation_task(task, tid, scan_id, agent_class)
+            return
 
         try:
             await self.update_task_status(tid, "RUNNING")
@@ -183,6 +192,43 @@ class WorkerNode:
         except Exception as e:
             logger.error(f"Worker Task Error [{tid}]: {e}")
             await self.update_task_status(tid, "FAILED")
+
+    async def _execute_delegation_task(self, task: Dict, tid: str, scan_id: str, agent_class: str):
+        """Run a delegated child-agent task and publish its structured result
+        (Architecture §5.1.2). Result is written to delegation_result:{tid} which
+        the DelegationManager polls."""
+        import json
+        from backend.core.delegation_manager import DelegationManager
+        from backend.core.iteration_budget import IterationBudget
+
+        cfg = task.get("config", {}) or {}
+        budget = IterationBudget(int(cfg.get("budget", 50)), label=f"worker:{tid}")
+        context = cfg.get("context", {})
+        result = {"status": "failed", "findings": [], "artifacts": [], "summary": "", "budget_used": 0}
+        try:
+            await self.update_task_status(tid, "RUNNING")
+            runner = DelegationManager._runners.get(agent_class)
+            if runner is None:
+                result["summary"] = f"no in-process runner for {agent_class}"
+            else:
+                out = await runner(context, budget) or {}
+                result.update({
+                    "status": "completed",
+                    "findings": list(out.get("findings", [])),
+                    "artifacts": list(out.get("artifacts", [])),
+                    "summary": str(out.get("summary", "")),
+                    "budget_used": budget.consumed,
+                })
+            await self.update_task_status(tid, "COMPLETED")
+        except Exception as e:
+            logger.error(f"Worker delegation task error [{tid}]: {e}")
+            result["summary"] = str(e)
+            await self.update_task_status(tid, "FAILED")
+        finally:
+            try:
+                await self.redis_client.set(f"delegation_result:{tid}", json.dumps(result), ex=900)
+            except Exception:
+                pass
 
     async def update_task_status(self, tid: str, status: str):
         try:

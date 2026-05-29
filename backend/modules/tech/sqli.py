@@ -48,14 +48,41 @@ class SQLInjectionProbe(BaseArsenalModule):
         return targets
 
     async def analyze_responses(self, interactions: list[tuple[TaskTarget, str]], packet: JobPacket) -> list[Vulnerability]:
+        """Confirm SQLi via differential analysis, not a bare substring match.
+
+        A DB-error signature alone is a weak signal; we require it to coincide
+        with a material differential vs the baseline response (Architecture §9,
+        §17 — >= 2 independent signals)."""
+        from backend.modules.evidence import differential
+
         vulnerabilities = []
-        for target, text in interactions:
-            if isinstance(text, str) and text and ("sql" in text.lower() or "syntax" in text.lower()):
+        if not interactions:
+            return vulnerabilities
+
+        # Baseline = first interaction (original/unmodified request).
+        baseline_target, baseline_text = interactions[0]
+        baseline_text = baseline_text if isinstance(baseline_text, str) else ""
+
+        sql_error_markers = ["sql syntax", "sql error", "mysql", "psql", "ora-",
+                             "sqlite", "syntax error", "unclosed quotation", "odbc"]
+        seen = set()
+        for idx, (target, text) in enumerate(interactions):
+            if idx == 0 or not isinstance(text, str) or not text:
+                continue
+            low = text.lower()
+            error_signal = any(m in low for m in sql_error_markers)
+            ev = differential(baseline_text, text)
+            # Require either (error signature + at least one diff signal) or a
+            # strong differential (>=2 signals). Never confirm on substring alone.
+            confirmed = (error_signal and ev.signals >= 1) or ev.verified
+            if confirmed and target.url not in seen:
+                seen.add(target.url)
                 vulnerabilities.append(Vulnerability(
                     name="SQL Injection",
                     severity="CRITICAL",
-                    description=f"Database error triggered in targeted URL.",
-                    evidence=f"Target: {target.url}\nResponse contains SQL error.",
+                    description="Injection caused a material, repeatable response divergence.",
+                    evidence=(f"Target: {target.url}\n"
+                              f"DB-error signature: {error_signal}; {ev.summary}"),
                     remediation="Use parameterized queries (Prepared Statements)."
                 ))
         return vulnerabilities

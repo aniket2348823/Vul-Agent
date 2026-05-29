@@ -292,3 +292,51 @@ class LearningIntegrator:
                 logger.debug(f"[LearningIntegrator] Avoiding approach {approach_type} (failed {approach.failure_count} times)")
                 return True
         return False
+
+    # ── READ PATH (Architecture §6.8, §29.9) ──────────────────────────────────
+    # The integrator must not be write-only. These methods deliver learned
+    # recommendations OUT to agents/planner before they form a plan.
+
+    def get_recommendations(
+        self,
+        *,
+        target_url: Optional[str] = None,
+        vuln_class: Optional[str] = None,
+        action_type: Optional[str] = None,
+        limit: int = 10,
+    ) -> Dict[str, Any]:
+        """Return a consolidated recommendation bundle for planning.
+
+        Pulls from: (1) the SkillLibrary recommendations, (2) locally-learned
+        successful strategies, and (3) approaches to avoid. Agents call this
+        before planning so learning is actually consumed (Architecture §29.9).
+        """
+        skill_recs: list[dict] = []
+        try:
+            from backend.core.skill_library import skill_library
+            skill_recs = skill_library.get_recommendations(
+                target_url=target_url, vuln_class=vuln_class, skill_type=action_type, limit=limit,
+            )
+        except Exception as exc:
+            logger.debug(f"[LearningIntegrator] skill recs unavailable: {exc}")
+
+        strategies = [
+            {"name": s.name, "action_type": s.action_type, "success_count": s.success_count}
+            for s in sorted(self.successful_strategies.values(),
+                            key=lambda x: x.success_count, reverse=True)[:limit]
+        ]
+        avoid = [
+            {"approach_type": a.approach_type, "failure_count": a.failure_count}
+            for a in self.failed_approaches.values() if a.failure_count >= 3
+        ]
+        return {
+            "skills": skill_recs,
+            "successful_strategies": strategies,
+            "avoid": avoid,
+        }
+
+    def recommend_strategies(self, action_type: str, limit: int = 5) -> list[Strategy]:
+        """Return learned successful strategies for a given action type."""
+        matches = [s for s in self.successful_strategies.values() if s.action_type == action_type]
+        matches.sort(key=lambda s: s.success_count, reverse=True)
+        return matches[:limit]

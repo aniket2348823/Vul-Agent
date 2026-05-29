@@ -33,14 +33,14 @@ class TestCVSS:
         assert len(CVSSCalculator(success_count=1).calculate()[1].split('/'))==9
 class TestGraph:
     def test_node(self):
-        from backend.core.graph_engine import GraphEngine; g=GraphEngine(); g.nodes.clear(); g.edges.clear()
+        from backend.core.unified_knowledge_graph import GraphEngine; g=GraphEngine(); g.nodes.clear(); g.edges.clear()
         assert g._add_or_update_node('XSS','/a').type=='XSS'
     def test_chain_ok(self):
-        from backend.core.graph_engine import GraphEngine; assert GraphEngine().can_chain('SQL_INJECTION','BROKEN_AUTH')
+        from backend.core.unified_knowledge_graph import GraphEngine; assert GraphEngine().can_chain('SQL_INJECTION','BROKEN_AUTH')
     def test_chain_bad(self):
-        from backend.core.graph_engine import GraphEngine; assert not GraphEngine().can_chain('XSS','SQL_INJECTION')
+        from backend.core.unified_knowledge_graph import GraphEngine; assert not GraphEngine().can_chain('XSS','SQL_INJECTION')
     def test_eq(self):
-        from backend.core.graph_engine import VulnNode; assert VulnNode('A','/x')==VulnNode('A','/x')
+        from backend.core.unified_knowledge_graph import VulnNode; assert VulnNode('A','/x')==VulnNode('A','/x')
 class TestProtocol:
     def test_pri(self):
         from backend.core.protocol import TaskPriority; assert TaskPriority.CRITICAL=='CRITICAL'

@@ -1,0 +1,43 @@
+# Vigilagent Tool Inventory (Architecture §7, §29.5)
+# ----------------------------------------------------------------------------
+# Recon tools discovered from ALPHA_TOOL_ROOT (default D:\projects) and
+# represented through the Alpha recon registry. Execution rules (§7):
+#   1. Prefer argv-based execution over shell strings.
+#   2. Resolve binaries from PATH first, then the tool root.
+#   3. Docker execution preferred for Linux-native tools on Windows.
+#   4. Every command must have timeout, output cap, artifact path,
+#      parser hint, and scan ID.
+#   5. Tool output is parsed into typed entities before the knowledge graph.
+# ----------------------------------------------------------------------------
+
+execution:
+  prefer_docker: true          # default backend for external security tools
+  allow_local_fallback: true   # trusted native tools / lightweight commands
+  default_timeout_seconds: 180
+  output_cap_bytes: 10485760   # 10 MB per tool run
+  argv_only: true              # shell strings are rejected by guardrails
+
+# Tool root where the recon arsenal is installed.
+tool_root: "D:\\projects"
+
+# Primary recon tools (Architecture §7). The recon registry is the source of
+# truth for availability; this list documents the expected arsenal.
+recon_tools:
+  passive_intelligence: [subfinder, amass, gau, waybackurls, cloudlist, spiderfoot]
+  dns_infrastructure: [dnsx, shuffledns, naabu, nmap, tlsx]
+  http_browser_intelligence: [httpx, katana, hakrawler, linkfinder, secretfinder]
+  directory_route_discovery: [feroxbuster, ffuf, dirsearch, gobuster]
+  api_reconnaissance: [kiterunner, inql]
+  visual_documentation: [gowitness]
+  template_validation: [nuclei, interactsh]
+
+# Supporting data directories (Architecture §7).
+supporting_dirs:
+  - SecLists
+  - wordlists
+  - PayloadsAllTheThings
+  - graphql-voyager
+  - openclaw
+  - pinchtab_core
+  - playwright
+  - selenium

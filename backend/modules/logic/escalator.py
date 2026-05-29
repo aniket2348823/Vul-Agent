@@ -37,18 +37,30 @@ class TheEscalator(BaseArsenalModule):
         return targets
         
     async def analyze_responses(self, interactions: list[tuple[TaskTarget, str]], packet: JobPacket) -> list[Vulnerability]:
+        """Confirm mass assignment with >= 2 independent signals (Architecture §9.3)."""
+        from backend.modules.evidence import logic_confirm
+
         vulns = []
         for target, text in interactions:
-            if not isinstance(text, str): continue
-            
-            if "admin" in text.lower():
+            if not isinstance(text, str):
+                continue
+            # Reflected privilege value (e.g. the injected role) is a strong signal.
+            reflected = None
+            if isinstance(target.payload, dict):
+                for key in ("role", "is_admin", "permissions"):
+                    if key in target.payload:
+                        reflected = str(target.payload[key])
+                        break
+            ev = logic_confirm(text, positive_markers=["admin", "role", "elevated", "granted"],
+                               reflected=reflected)
+            if ev.verified:
                 meth = target.method
                 severity = "CRITICAL" if meth == "PATCH" else "HIGH"
                 vulns.append(Vulnerability(
-                    name=f"Mass Assignment ({meth})", 
-                    severity=severity, 
+                    name=f"Mass Assignment ({meth})",
+                    severity=severity,
                     description=f"Accepted {target.payload} via {meth}",
-                    evidence=f"Response contained 'admin' for payload {target.payload}",
+                    evidence=f"Payload {target.payload}. {ev.summary}",
                     remediation="Use explicit DTOs and block arbitrary model bindings."
                 ))
         return vulns

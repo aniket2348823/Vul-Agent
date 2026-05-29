@@ -16,6 +16,7 @@ AGENT_MODULES = [
     "backend.agents.delta",
     "backend.agents.prism",
     "backend.agents.chi",
+    "backend.agents.commanders.network_commander",
 ]
 
 
@@ -32,7 +33,7 @@ def discover_agent_classes() -> dict[str, type]:
         except Exception:
             continue
         for name, obj in inspect.getmembers(module, inspect.isclass):
-            if name.endswith("Agent") or name.startswith("Agent"):
+            if name.endswith("Agent") or name.startswith("Agent") or name.endswith("Commander"):
                 discovered[name] = obj
     return discovered
 

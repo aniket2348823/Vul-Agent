@@ -51,24 +51,31 @@ class TheTycoon(BaseArsenalModule):
         return targets
 
     async def analyze_responses(self, interactions: list[tuple[TaskTarget, str]], packet: JobPacket) -> list[Vulnerability]:
+        """Confirm financial logic flaws with >= 2 independent signals (Architecture §9.3)."""
+        from backend.modules.evidence import logic_confirm
+
         vulns = []
         for target, text in interactions:
-            if isinstance(text, str) and ("success" in text.lower() or "order confirmed" in text.lower()):
-                if target.payload and "quantity" in target.payload:
-                    qty = target.payload.get("quantity")
-                    vulns.append(Vulnerability(
-                        name="Financial Logic Flaw (Qty)",
-                        severity="CRITICAL",
-                        description=f"Server accepted quantity {qty}, potentially refunding or overflowing.",
-                        evidence=str(target.payload),
-                        remediation="Perform strict validation on quantity and ensure it is > 0."
-                    ))
-                elif target.payload and "price" in target.payload:
-                    vulns.append(Vulnerability(
-                        name="Precision Rounding Bypass",
-                        severity="HIGH",
-                        description="Server accepted sub-atomic currency values.",
-                        evidence=str(target.payload),
-                        remediation="Validate decimal precision matches currency constraints."
-                    ))
+            if not isinstance(text, str):
+                continue
+            ev = logic_confirm(text, positive_markers=["success", "order confirmed", "accepted", "paid"])
+            if not ev.verified:
+                continue
+            if target.payload and "quantity" in target.payload:
+                qty = target.payload.get("quantity")
+                vulns.append(Vulnerability(
+                    name="Financial Logic Flaw (Qty)",
+                    severity="CRITICAL",
+                    description=f"Server accepted quantity {qty}, potentially refunding or overflowing.",
+                    evidence=f"{target.payload}. {ev.summary}",
+                    remediation="Perform strict validation on quantity and ensure it is > 0."
+                ))
+            elif target.payload and "price" in target.payload:
+                vulns.append(Vulnerability(
+                    name="Precision Rounding Bypass",
+                    severity="HIGH",
+                    description="Server accepted sub-atomic currency values.",
+                    evidence=f"{target.payload}. {ev.summary}",
+                    remediation="Validate decimal precision matches currency constraints."
+                ))
         return vulns

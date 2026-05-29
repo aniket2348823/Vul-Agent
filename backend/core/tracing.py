@@ -23,6 +23,8 @@ try:
     OTEL_AVAILABLE = True
 except ImportError:
     OTEL_AVAILABLE = False
+    trace = None  # type: ignore
+    TracerProvider = None  # type: ignore
     logger.warning("OpenTelemetry not available - tracing disabled")
 
 
@@ -38,8 +40,8 @@ class TracingConfig:
         self.sample_rate = float(os.getenv("TRACING_SAMPLE_RATE", "1.0"))
 
 
-_tracer_provider: Optional[TracerProvider] = None
-_tracer: Optional[trace.Tracer] = None
+_tracer_provider: Optional["TracerProvider"] = None
+_tracer = None
 
 
 def init_tracing(config: Optional[TracingConfig] = None) -> None:
@@ -105,7 +107,7 @@ def init_tracing(config: Optional[TracingConfig] = None) -> None:
     logger.info(f"Tracing initialized: service={config.service_name}, exporter={config.exporter_type}")
 
 
-def get_tracer() -> trace.Tracer:
+def get_tracer() -> "trace.Tracer":
     """
     Get the global tracer instance.
     

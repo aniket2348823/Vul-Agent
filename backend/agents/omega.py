@@ -1,10 +1,9 @@
 import asyncio
-import random
 from backend.core.hive import EventType, HiveEvent
 from backend.core.browser_agent import BrowserEnabledAgent
 from backend.core.protocol import JobPacket, ResultPacket, AgentID, TaskPriority, ModuleConfig, TaskTarget
 from backend.ai.cortex import CortexEngine, get_cortex_engine
-from backend.core.graph_engine import graph_engine
+from backend.core.unified_knowledge_graph import graph_engine
 from backend.core.queue import command_lane
 from backend.core.content_boundary import content_boundary
 
@@ -14,7 +13,7 @@ class OmegaAgent(BrowserEnabledAgent):
     Role: Campaign Intelligence & Attack Chain Orchestration with Browser-Aware Strategies.
     
     Advanced Capabilities:
-    1. Nash Equilibrium Strategy (Randomized mixed strategies)
+    1. LLM strategy reasoning (gpt-oss-20b) with deterministic evidence-weighted fallback
     2. Dynamic Campaign Chaining
     3. Graph-Driven Attack Prioritization (V6 Phase 2)
     4. Mid-Scan Strategy Adaptation
@@ -103,9 +102,13 @@ class OmegaAgent(BrowserEnabledAgent):
     }
 
     def _select_strategy(self, target_url: str, ai_strategy: str = None, scan_id: str = "GLOBAL") -> str:
-        """Selects optimal strategy based on AI recommendation and graph intelligence."""
-        
-        # 1. If AI gave a valid recommendation, use it
+        """Selects optimal strategy from LLM recommendation + graph evidence.
+
+        Order (Architecture §5.2, §29.4): (1) a valid LLM recommendation from
+        gpt-oss-20b, (2) graph-driven historical confidence, (3) a deterministic
+        evidence-weighted fallback (NOT random) based on defense pressure."""
+
+        # 1. If the LLM gave a valid recommendation, use it
         if ai_strategy and ai_strategy in self.STRATEGY_PROFILES:
             return ai_strategy
 
@@ -114,15 +117,21 @@ class OmegaAgent(BrowserEnabledAgent):
         if predictions and predictions[0].get("confidence", 0) > 40:
             return "GRAPH_DRIVEN"
 
-        # 3. Nash Equilibrium mixed strategy (game-theoretic randomization)
-        return self._generate_mixed_strategy(self._defense_pressure(scan_id))
+        # 3. Deterministic evidence-weighted selection (replaces fake "Nash"
+        #    random.choices — Architecture §25, §29.4).
+        return self._select_by_evidence(self._defense_pressure(scan_id))
 
-    def _generate_mixed_strategy(self, defense_pressure: float = 0.0) -> str:
-        strategies = ["BLITZKRIEG", "LOW_AND_SLOW", "MULTI_STEP_EXPLOIT", "E_COMMERCE_BLITZ"]
-        weights = [0.15, 0.25, 0.40, 0.20]
+    def _select_by_evidence(self, defense_pressure: float = 0.0) -> str:
+        """Deterministic strategy selection by defense pressure (no randomness).
+
+        Under high defense pressure (WAF/rate-limit signals) prefer stealth;
+        otherwise prefer a balanced multi-vector pipeline. This is an explainable
+        heuristic, not a game-theoretic randomization."""
+        if defense_pressure >= 0.5:
+            return "LOW_AND_SLOW"
         if defense_pressure >= 0.15:
-            weights = [0.05, 0.55, 0.30, 0.10]
-        return random.choices(strategies, weights=weights, k=1)[0]
+            return "MULTI_STEP_EXPLOIT"
+        return "MULTI_STEP_EXPLOIT"
 
     def _defense_pressure(self, scan_id: str) -> float:
         ctx = getattr(self.bus, "scan_contexts", {}).get(scan_id)
@@ -295,8 +304,10 @@ class OmegaAgent(BrowserEnabledAgent):
         
         print(f"[{self.name}] ▶ Campaign Strategy: {strategy_name} | {profile['description']}")
 
-        # 3. HYPOTHESIS GENERATION (Enhanced with learned patterns)
-        hypotheses = [
+        # 3. HYPOTHESIS GENERATION — derived from recon/graph evidence first,
+        #    with a base list as fallback (Architecture §6.5: evidence-derived,
+        #    not a random pick from a hardcoded list).
+        base_hypotheses = [
             "Changing user_id may expose another user's data (IDOR)",
             "Negative price may bypass payment validation (Logic Flaw)",
             "JWT algorithm change may bypass verification (Auth Bypass)",
@@ -304,14 +315,24 @@ class OmegaAgent(BrowserEnabledAgent):
             "Race condition on coupon application (Financial Exploit)",
             "Path traversal in file upload (Config Exposure)",
         ]
-        
-        # Add learned hypotheses
-        for vuln_rec in recommendations.get("priority_vulns", [])[:2]:
+
+        # Evidence-derived hypotheses from learned recommendations + graph.
+        evidence_hypotheses: list[str] = []
+        for vuln_rec in recommendations.get("priority_vulns", [])[:3]:
             vuln_type = vuln_rec["type"]
             success_rate = vuln_rec.get("success_rate", 0)
-            hypotheses.append(f"{vuln_type} vulnerability likely (learned: {success_rate:.0%} success rate)")
-        
-        selected_hypothesis = hypotheses[0] if recommendations.get("confidence", 0) > 0.5 else random.choice(hypotheses)
+            evidence_hypotheses.append(
+                f"{vuln_type} vulnerability likely (learned: {success_rate:.0%} success rate)")
+        for pred in graph_engine.predict_next("TARGET_ACQUIRED", target_url)[:2]:
+            sug = pred.get("suggestion")
+            if sug:
+                evidence_hypotheses.append(
+                    f"{sug} suggested by attack graph (confidence: {pred.get('confidence', 0):.0f}%)")
+
+        hypotheses = evidence_hypotheses + base_hypotheses
+        # Deterministic: prefer the strongest evidence-derived hypothesis;
+        # otherwise the first base hypothesis. No randomness.
+        selected_hypothesis = hypotheses[0]
 
         # Broadcast campaign start
         await self.bus.publish(HiveEvent(

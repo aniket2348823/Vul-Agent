@@ -12,20 +12,29 @@ class Chronomancer(BaseArsenalModule):
         return [packet.target] * 20
 
     async def analyze_responses(self, interactions: list[tuple[TaskTarget, str]], packet: JobPacket) -> list[Vulnerability]:
+        """Confirm a race condition by counting concurrent CLEAN successes
+        (Architecture §9.3): a success marker AND no denial/error marker. A
+        single success is not a race; we require > 1 simultaneous clean success."""
+        from backend.modules.evidence import logic_confirm
+
         vulns = []
-        
-        # Analysis: Did we get multiple successes?
-        # Since we lost HTTP status codes, we assume success if response contains "success" or "redeem"
-        success_count = sum(1 for _, text in interactions if isinstance(text, str) and ("success" in text.lower() or "redeem" in text.lower() or "confirm" in text.lower()))
-        
-        # If target logic was "Redeem Coupon", and we got 20 successes...
-        if success_count > 1:
+        clean_successes = 0
+        for _target, text in interactions:
+            if not isinstance(text, str):
+                continue
+            ev = logic_confirm(text, positive_markers=["success", "redeem", "confirm", "applied"])
+            if ev.verified:
+                clean_successes += 1
+
+        # The race signal is multiple clean concurrent successes where the logic
+        # should have allowed only one.
+        if clean_successes > 1:
             vulns.append(Vulnerability(
                 name="Race Condition (Concurrency Exploitation)",
                 severity="HIGH",
-                description=f"Executed 20 parallel requests. {success_count} succeeded simultaneously.",
-                evidence=f"Success Rate: {success_count}/20",
+                description=f"Executed {len(interactions)} parallel requests; "
+                            f"{clean_successes} succeeded simultaneously without denial.",
+                evidence=f"Clean concurrent successes: {clean_successes}/{len(interactions)}",
                 remediation="Implement strict database locks, atomic operations, or mutexes."
             ))
-
         return vulns

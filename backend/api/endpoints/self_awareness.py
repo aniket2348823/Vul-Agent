@@ -153,42 +153,42 @@ async def get_all_agents_metrics_summary():
                 summary["self_aware_agents"] += 1
                 
                 # Get metrics for this agent
-            performance_tracker = agent.self_awareness.performance_tracker
-            metrics = await performance_tracker.get_metrics_summary()
+                performance_tracker = agent.self_awareness.performance_tracker
+                metrics = await performance_tracker.get_metrics_summary()
+                
+                # Check stuck state
+                stuck_info = await performance_tracker.detect_stuck_state()
+                
+                agent_summary = {
+                    "agent_id": agent.agent_id,
+                    "total_actions": metrics.get("total_actions", 0),
+                    "success_rate": metrics.get("success_rate", 0.0),
+                    "is_stuck": stuck_info is not None
+                }
+                
+                summary["agents"].append(agent_summary)
+                
+                # Aggregate
+                summary["aggregated"]["total_actions"] += metrics.get("total_actions", 0)
+                summary["aggregated"]["total_successful"] += metrics.get("successful_actions", 0)
+                summary["aggregated"]["total_failed"] += metrics.get("failed_actions", 0)
+                total_success_rate += metrics.get("success_rate", 0.0)
+                
+                if stuck_info:
+                    summary["aggregated"]["stuck_agents"] += 1
             
-            # Check stuck state
-            stuck_info = await performance_tracker.detect_stuck_state()
+            # Calculate average success rate
+            if summary["self_aware_agents"] > 0:
+                summary["aggregated"]["avg_success_rate"] = total_success_rate / summary["self_aware_agents"]
             
-            agent_summary = {
-                "agent_id": agent.agent_id,
-                "total_actions": metrics.get("total_actions", 0),
-                "success_rate": metrics.get("success_rate", 0.0),
-                "is_stuck": stuck_info is not None
-            }
+            return JSONResponse(content=summary)
             
-            summary["agents"].append(agent_summary)
-            
-            # Aggregate
-            summary["aggregated"]["total_actions"] += metrics.get("total_actions", 0)
-            summary["aggregated"]["total_successful"] += metrics.get("successful_actions", 0)
-            summary["aggregated"]["total_failed"] += metrics.get("failed_actions", 0)
-            total_success_rate += metrics.get("success_rate", 0.0)
-            
-            if stuck_info:
-                summary["aggregated"]["stuck_agents"] += 1
-        
-        # Calculate average success rate
-        if summary["self_aware_agents"] > 0:
-            summary["aggregated"]["avg_success_rate"] = total_success_rate / summary["self_aware_agents"]
-        
-        return JSONResponse(content=summary)
-        
-    except Exception as e:
-        logger.error(f"Failed to get metrics summary: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={"error": str(e)}
-        )
+        except Exception as e:
+            logger.error(f"Failed to get metrics summary: {e}")
+            return JSONResponse(
+                status_code=500,
+                content={"error": str(e)}
+            )
 
 
 # ============================================================================

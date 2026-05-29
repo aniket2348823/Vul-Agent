@@ -6,6 +6,8 @@ from backend.core.hive import BaseAgent, EventType, HiveEvent
 from backend.core.protocol import JobPacket, ModuleConfig, AgentID, TaskPriority, TaskTarget
 from backend.core.config import settings
 from backend.ai.cortex import CortexEngine, get_cortex_engine
+from backend.core.skill_library import skill_library
+from backend.core.unified_knowledge_graph import unified_knowledge_graph
 
 logger = logging.getLogger("MissionPlanner")
 
@@ -37,6 +39,27 @@ class MissionPlanner(BaseAgent):
         # 3. Listen for job completions to trigger logical next steps
         self.bus.subscribe(EventType.JOB_COMPLETED, self.handle_job_completion)
 
+    def _pre_plan(self, target_url: str) -> Dict[str, Any]:
+        """Query the SkillLibrary and unified knowledge graph before planning.
+
+        Architecture §6.7 / §29.1: the planner consumes learned skills and graph
+        evidence up front so plans are informed by prior outcomes, not formed in
+        a vacuum. Failures here are non-fatal (planning proceeds without recs)."""
+        recs: Dict[str, Any] = {"skills": [], "graph_predictions": [], "chains": []}
+        try:
+            recs["skills"] = skill_library.get_recommendations(target_url=target_url, limit=10)
+        except Exception as exc:
+            logger.debug(f"[{self.name}] skill recommendations unavailable: {exc}")
+        try:
+            recs["graph_predictions"] = unified_knowledge_graph.predict_next("TARGET_ACQUIRED", target_url)
+            recs["chains"] = unified_knowledge_graph.find_chains(max_depth=3)[:5]
+        except Exception as exc:
+            logger.debug(f"[{self.name}] graph pre-plan unavailable: {exc}")
+        if recs["skills"] or recs["graph_predictions"]:
+            logger.info(f"[{self.name}] pre-plan for {target_url}: "
+                        f"{len(recs['skills'])} skills, {len(recs['graph_predictions'])} graph predictions")
+        return recs
+
     async def handle_new_target(self, event: HiveEvent):
         """
         Phase 1: RECONNAISSANCE
@@ -47,12 +70,18 @@ class MissionPlanner(BaseAgent):
              return
 
         print(f"[{self.name}] [MISSION] Target '{target_url}' acquired. Starting Phase 1: RECON.")
-        
+
+        # Pre-planning: consume learned skills + graph evidence BEFORE planning
+        # (Architecture §29.1 priority 13, §6.7 — query skills/graph up front,
+        # not only when stuck).
+        recommendations = self._pre_plan(target_url)
+
         self.active_missions[target_url] = {
             "scan_id": event.scan_id,
             "state": MissionState.RECON,
             "findings": [],
-            "history": []
+            "history": [],
+            "recommendations": recommendations,
         }
 
         # Dispatch Alpha for intelligent mapping
@@ -65,7 +94,8 @@ class MissionPlanner(BaseAgent):
                 params={
                     "scan_mode": event.payload.get("scan_mode")
                     or event.payload.get("mode")
-                    or getattr(settings, "ALPHA_DEFAULT_MODE", "STANDARD")
+                    or getattr(settings, "ALPHA_DEFAULT_MODE", "STANDARD"),
+                    "skill_recommendations": recommendations.get("skills", []),
                 },
             )
         )

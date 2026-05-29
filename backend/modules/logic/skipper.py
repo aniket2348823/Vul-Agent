@@ -34,29 +34,30 @@ class TheSkipper(BaseArsenalModule):
         return targets
 
     async def analyze_responses(self, interactions: list[tuple[TaskTarget, str]], packet: JobPacket) -> list[Vulnerability]:
+        """Confirm workflow bypass with >= 2 independent signals (Architecture §9.3)."""
+        from backend.modules.evidence import logic_confirm
+
         vulns = []
-        
         for idx, (target, text) in enumerate(interactions):
-            if not isinstance(text, str): continue
-            
-            # Since we lost HTTP status codes in pure evaluation, we look for success strings
-            is_success = "success" in text.lower() or "welcome" in text.lower() or "confirmed" in text.lower()
-            
-            if is_success:
-                if idx == 0:
-                    vulns.append(Vulnerability(
-                        name="Workflow Bypass (Direct Access)", 
-                        severity="HIGH", 
-                        description="Accessed final step directly.",
-                        evidence="Direct Access Successful",
-                        remediation="Enforce state machine checks at each workflow step."
-                    ))
-                elif idx == 1:
-                    vulns.append(Vulnerability(
-                        name="Workflow Bypass (Referer Spoofing)", 
-                        severity="CRITICAL", 
-                        description="Accessed final step by spoofing Referer header.",
-                        evidence=f"Referer: {target.headers.get('Referer', '')}",
-                        remediation="Do not rely on Referer headers for authorization."
-                    ))
+            if not isinstance(text, str):
+                continue
+            ev = logic_confirm(text, positive_markers=["success", "welcome", "confirmed", "complete"])
+            if not ev.verified:
+                continue
+            if idx == 0:
+                vulns.append(Vulnerability(
+                    name="Workflow Bypass (Direct Access)",
+                    severity="HIGH",
+                    description="Accessed final step directly.",
+                    evidence=f"Direct Access Successful. {ev.summary}",
+                    remediation="Enforce state machine checks at each workflow step."
+                ))
+            elif idx == 1:
+                vulns.append(Vulnerability(
+                    name="Workflow Bypass (Referer Spoofing)",
+                    severity="CRITICAL",
+                    description="Accessed final step by spoofing Referer header.",
+                    evidence=f"Referer: {target.headers.get('Referer', '')}. {ev.summary}",
+                    remediation="Do not rely on Referer headers for authorization."
+                ))
         return vulns

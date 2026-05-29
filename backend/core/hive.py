@@ -58,7 +58,7 @@ from backend.core.guard_layer import PromptInjectionBlocked, guard_layer
 from backend.core.content_boundary import content_boundary
 from backend.core.stdout_watchdog import watch_output
 from backend.core.memory import memory_store
-from backend.core.knowledge_graph import knowledge_graph
+from backend.core.unified_knowledge_graph import knowledge_graph
 from backend.core.task_manager import TaskManager
 import collections
 

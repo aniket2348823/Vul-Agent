@@ -289,6 +289,48 @@ class SkillLibrary:
         )
         
         return all_skills[:limit]
+
+    def get_recommendations(
+        self,
+        *,
+        target_url: Optional[str] = None,
+        vuln_class: Optional[str] = None,
+        skill_type: Optional[str] = None,
+        min_confidence: float = 0.5,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """Return ranked skill recommendations for planning.
+
+        This is the READ path required by Architecture §6.7 and §29.2: Omega,
+        Sigma, Beta, Gamma, Kappa, and the Planner query this before forming a
+        plan (not only when stuck). Results are scored by confidence and
+        historical success rate and returned as plain dicts so any consumer can
+        use them without importing the Skill type.
+        """
+        candidates = self.search_skills(skill_type=skill_type, min_confidence=min_confidence, limit=1000)
+        recs: List[Dict[str, Any]] = []
+        needle = (vuln_class or skill_type or "").lower()
+        target = (target_url or "").lower()
+        for skill in candidates:
+            score = (getattr(skill, "confidence", 0.5) * 0.5
+                     + getattr(skill, "success_rate", 0.0) * 0.5)
+            text = f"{getattr(skill, 'name', '')} {getattr(skill, 'description', '')} {getattr(skill, 'skill_type', '')}".lower()
+            # Light relevance boost when the recommendation matches the query.
+            if needle and needle in text:
+                score += 0.25
+            if target and target in text:
+                score += 0.1
+            recs.append({
+                "skill_id": getattr(skill, "skill_id", ""),
+                "name": getattr(skill, "name", ""),
+                "skill_type": getattr(skill, "skill_type", ""),
+                "description": getattr(skill, "description", ""),
+                "confidence": getattr(skill, "confidence", 0.5),
+                "success_rate": getattr(skill, "success_rate", 0.0),
+                "score": round(score, 4),
+            })
+        recs.sort(key=lambda r: r["score"], reverse=True)
+        return recs[:limit]
     
     def deprecate_skill(self, skill_id: str, reason: str) -> bool:
         """

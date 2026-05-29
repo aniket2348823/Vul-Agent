@@ -1,0 +1,34 @@
+# Vigilagent Browser Extension Bridge (Architecture §4.2, §19, §29.8)
+# ----------------------------------------------------------------------------
+# The extension is an optional, passive-first session and telemetry bridge.
+# It captures only in-scope data and never independently exploits targets.
+# ----------------------------------------------------------------------------
+
+extension:
+  enabled: false               # hybrid mode is optional; off by default
+  backend_url: "http://127.0.0.1:8000"
+  capture_paused: false
+  mask_sensitive_values: true  # sensitive values masked in popup UI
+
+  # Scope-aware capture only. Mirrors scope.extension_capture_allowlist.
+  capture:
+    cookies: true
+    auth_headers: true
+    xhr_metadata: true
+    websocket_metadata: true
+    dom_snapshot: true
+    security_headers: true
+    forms: true
+    routes: true
+
+  # Backend bridge endpoints (Architecture §19). Documented here for the
+  # extension client; the backend exposes these additively.
+  endpoints:
+    session: "POST /bridge/session"
+    token: "POST /bridge/token"
+    traffic: "POST /bridge/traffic"
+    dom: "POST /bridge/dom"
+    storage: "POST /bridge/storage"
+    ws: "POST /bridge/ws"
+    commands: "GET /bridge/commands"
+    live: "WS /bridge/live"

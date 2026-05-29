@@ -1,0 +1,46 @@
+# Vigilagent Scope Policy
+# ----------------------------------------------------------------------------
+# Scope is law (Architecture §2.1, §10). Every network request, browser action,
+# command execution, tool run, and extension-captured event must pass scope
+# validation before execution or ingestion.
+#
+# SAFE DEFAULT: authorization is "none" so the system runs recon/passive only
+# until an operator explicitly authorizes an engagement.
+# ----------------------------------------------------------------------------
+
+engagement:
+  name: default-unauthorized
+  # authorization: one of [none, explicit]. Active/intrusive testing requires
+  # "explicit". With "none" Vigilagent degrades to passive/recon only.
+  authorization: none
+  starts_at: null        # ISO-8601, e.g. 2026-05-29T00:00:00Z
+  ends_at: null          # ISO-8601, e.g. 2026-06-05T00:00:00Z
+
+scope:
+  allowed_hosts: []
+  allowed_cidrs: []
+  allowed_url_globs: []
+  denied_hosts: []
+  denied_url_globs:
+    - "*://*/logout"
+    - "*://*/logout*"
+    - "*://*/delete*"
+    - "*://*/signout*"
+  allowed_ports: []      # empty => any port on an in-scope host
+  allow_private_networks: false
+  # Extension capture allowlist (Architecture §19). Only these in-scope data
+  # classes may be ingested from the browser extension bridge.
+  extension_capture_allowlist:
+    - cookies
+    - auth_headers
+    - xhr_metadata
+    - websocket_metadata
+    - dom_snapshot
+    - security_headers
+    - forms
+    - routes
+
+limits:
+  max_rps: 25
+  max_concurrency: 8
+  max_runtime_minutes: 120

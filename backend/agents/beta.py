@@ -11,6 +11,10 @@ from backend.core.content_boundary import content_boundary
 from backend.core.proxy import network_interceptor
 from backend.core.sandbox import TempWorkspace
 from backend.core.queue import command_lane, LanePriority
+from backend.core.payload_delivery import (
+    PayloadDeliveryEngine, payload_bandit, payload_family, HTTP_VECTORS,
+)
+from backend.core.exploit_engine import MultiLayerVerifier
 
 class BetaAgent(BrowserEnabledAgent):
     """
@@ -28,7 +32,7 @@ class BetaAgent(BrowserEnabledAgent):
     def __init__(self, bus):
         super().__init__("agent_beta", bus)
         
-        # CORTEX AI Integration (Local Ollama)
+        # CORTEX AI Integration (two-LLM policy: Gemini + OpenRouter)
         try:
             self.ai = get_cortex_engine()
         except Exception:self.ai = None
@@ -43,6 +47,12 @@ class BetaAgent(BrowserEnabledAgent):
         # Governance: throttle flag from Zeta
         self._throttled = False
         self._seen_payload_batches = set()
+
+        # Real adaptive intelligence (Architecture §6, §5.2): epsilon-greedy
+        # PayloadBandit over (vuln_class, vector, payload_family) + multi-vector
+        # HTTP delivery. Replaces the former fake "RL" log-line behavior.
+        self.bandit = payload_bandit
+        self.delivery = PayloadDeliveryEngine()
         
         # Browser Integration inherited from BrowserEnabledAgent
         # self.browser, self.session_manager, self.forensics available via properties
@@ -173,44 +183,129 @@ class BetaAgent(BrowserEnabledAgent):
             return
         self._seen_payload_batches.add(batch_key)
 
-        print(f"[{self.name}] Intercepted {len(payloads)} payloads from Sigma. Commencing RL Adaptive Execution.")
+        print(f"[{self.name}] Intercepted {len(payloads)} payloads. Commencing bandit-driven multi-vector validation.")
         try:
             import aiohttp
             timeout = aiohttp.ClientTimeout(total=10)
             async with aiohttp.ClientSession(timeout=timeout) as session:
-                async def execute_payload_rl(p, index: int, scan_id=None):
+                async def execute_payload_adaptive(p, index: int, scan_id=None):
                     try:
                         await self.bus.publish(HiveEvent(
                             type=EventType.LIVE_ATTACK,
                             source=self.name,
                             scan_id=scan_id or "GLOBAL",
-                            payload={"url": target_url, "arsenal": "Adaptive Fuzzer", "action": "Executing Payload", "payload": p[:50]}
+                            payload={"url": target_url, "arsenal": "Adaptive Fuzzer",
+                                     "action": "Executing Payload", "payload": p[:50]}
                         ))
-                        
-                        reward = await self._execute_and_eval(session, target_url, p, scan_id=scan_id)
-                        
-                        if reward > 0:
-                            print(f"[{self.name}] [+ REWARD] Successful payload interaction. Retaining strategy.")
-                        else:
-                            if index < 3:
-                                print(f"[{self.name}] [- PENALTY] Payload failed. Executing AI mutation layer.")
+                        success = await self._deliver_and_verify(session, target_url, p, scan_id=scan_id)
+                        if not success and index < 3:
+                            # Mutation fallback for early payloads (WAF evasion).
                             mutated = await self.waf_mutate(p)
                             if mutated != p:
                                 await self.bus.publish(HiveEvent(
                                     type=EventType.LIVE_ATTACK,
                                     source=self.name,
                                     scan_id=scan_id or "GLOBAL",
-                                    payload={"url": target_url, "arsenal": "RL Mutation", "action": "Retrying Mutated Payload", "payload": mutated[:50]}
+                                    payload={"url": target_url, "arsenal": "WAF Mutation",
+                                             "action": "Retrying Mutated Payload", "payload": mutated[:50]}
                                 ))
-                                await self._execute_and_eval(session, target_url, mutated, scan_id=scan_id)
+                                await self._deliver_and_verify(session, target_url, mutated, scan_id=scan_id)
                     except Exception as payload_err:
                         print(f"[{self.name}] [PAYLOAD ERROR] Skipping payload: {payload_err}")
-                
-                # Execute all AI generated payloads explicitly in parallel
-                print(f"[{self.name}] Dispatching {len(payloads)} AI generative payloads concurrently...")
-                await asyncio.gather(*[execute_payload_rl(p, i, scan_id) for i, p in enumerate(payloads)])
+
+                print(f"[{self.name}] Dispatching {len(payloads)} payloads concurrently across vectors...")
+                await asyncio.gather(*[execute_payload_adaptive(p, i, scan_id) for i, p in enumerate(payloads)])
         except Exception as session_err:
             print(f"[{self.name}] [SESSION ERROR] Failed to create HTTP session: {session_err}")
+
+    async def _deliver_and_verify(self, session, target_url: str, payload_str: str, scan_id: str = None) -> bool:
+        """Deliver a payload across a bandit-selected HTTP vector, verify the
+        result differentially, and update the bandit with the REAL outcome
+        (Architecture §5.2, §6, §29.6)."""
+        from datetime import datetime
+        from backend.api.socket_manager import publish_request_event
+
+        family = payload_family(payload_str)
+        # Coarse vuln class from family for bandit keying.
+        vuln_class = {"sqli": "sql_injection", "xss": "xss", "ssti": "ssti",
+                      "traversal": "path_traversal", "cmdi": "command_injection"}.get(family, "generic")
+
+        # Bandit selects the most promising vector (explore/exploit).
+        vector = self.bandit.select_vector(vuln_class, family, HTTP_VECTORS)
+
+        # Differential baseline.
+        baseline = await self.delivery.baseline(target_url, session=session)
+        results = await self.delivery.deliver(
+            target_url, payload_str, vectors=[vector], session=session, action="validate",
+        )
+        if not results:
+            self.bandit.update(vuln_class, vector, family, False)
+            return False
+
+        res = results[0]
+        base_status = baseline.status if baseline else 200
+        base_body = baseline.body if baseline else ""
+        verified, confidence, signals = MultiLayerVerifier.verify(
+            {"status": base_status, "response": base_body},
+            {"status": res.status, "body": res.body},
+        )
+        success = bool(verified and signals >= 2)
+
+        # REAL reward feeds the bandit (not a log line).
+        self.bandit.update(vuln_class, vector, family, success)
+
+        try:
+            await publish_request_event({
+                "timestamp": datetime.now().strftime("%H:%M:%S"),
+                "method": "POST" if vector in ("json_body", "form_body") else "GET",
+                "endpoint": target_url.split("?")[0][-30:],
+                "payload": payload_str[:25],
+                "vector": vector,
+                "status": res.status,
+                "latency": res.latency_ms,
+                "result": f"VERIFIED ({signals} signals)" if success else "OK",
+                "anomaly": success,
+            }, scan_id=scan_id)
+        except Exception:
+            pass
+
+        if success:
+            evidence = content_boundary.wrap_http_response(res.status, {}, res.body[:4000], res.request_url)
+            # Persist to DB (preserves prior exploit-logging behavior).
+            try:
+                vuln_id = await self.db.report_vulnerability(
+                    scan_id=scan_id or "GLOBAL",
+                    endpoint=target_url,
+                    vuln_type=vuln_class.upper(),
+                    severity="HIGH",
+                    evidence={"payload": payload_str, "vector": vector,
+                              "response_excerpt": evidence[:800], "signals": signals},
+                    validated_by=self.name,
+                )
+                if vuln_id and vuln_id != "CACHED":
+                    await self.db.log_exploit_result(vuln_id, {
+                        "payload": payload_str, "vector": vector, "worker_id": self.name,
+                        "status": "EXPLOITED", "response": evidence[:1200], "time_ms": res.latency_ms,
+                    })
+            except Exception as db_err:
+                print(f"[{self.name}] DB Logging Error: {db_err}")
+
+            await self.bus.publish(HiveEvent(
+                type=EventType.VULN_CANDIDATE,
+                source=self.name,
+                scan_id=scan_id or "GLOBAL",
+                payload={
+                    "url": target_url,
+                    "payload": payload_str,
+                    "vector": vector,
+                    "vuln_type": vuln_class.upper(),
+                    "description": evidence[:1200],
+                    "evidence": (f"Differential verification passed via '{vector}' vector. "
+                                 f"Signals: {signals}, confidence: {confidence}%."),
+                }
+            ))
+            print(f"[{self.name}] [HIT] {vuln_class} via {vector} on {target_url} ({signals} signals)")
+        return success
 
     async def _execute_real_attack(self, url: str, payload_str: str, scan_id: str = None):
         """Execute a real HTTP attack against the target with the given payload."""
@@ -288,103 +383,11 @@ class BetaAgent(BrowserEnabledAgent):
         except Exception as e:
             print(f"[{self.name}] [ATTACK ERROR] {e}")
 
-    async def _execute_and_eval(self, session, url: str, p: str, scan_id: str = None):
-        """Executes a payload against a target URL and returns an RL reward score."""
-        import time
-        from datetime import datetime
-        from backend.api.socket_manager import publish_request_event
-        
-        start_t = time.time()
-        try:
-            # We assume a GET request with query params for this example, but it scales
-            target = url + ("&" if "?" in url else "?") + f"test={p}"
-            response = await network_interceptor.fetch("GET", target, session=session, timeout=10)
-            text = response.body
-            status = response.status
-            latency = response.elapsed_ms
-
-            reward = 0
-            evidence = ""
-            anomaly = False
-            result = "OK"
-
-            from backend.core.exploit_engine import MultiLayerVerifier
-            base_status = 200
-            base_text = ""
-            try:
-                base_response = await network_interceptor.fetch("GET", url.split("?")[0], session=session, timeout=5)
-                base_status = base_response.status; base_text = base_response.body
-            except Exception: pass
-
-            verified, conf, signals = MultiLayerVerifier.verify(
-                {"status": base_status, "response": base_text},
-                {"status": status, "body": text}
-            )
-
-            if verified and signals >= 2:
-                reward = 1.0
-                evidence = f"Mathematical verification via Jaccard metrics passed. Confidence: {conf}%. Signals: {signals}"
-                anomaly = True
-                result = "HARD_VERIFIED"
-            else:
-                return 0
-
-            try:
-                await publish_request_event({
-                    "timestamp": datetime.now().strftime("%H:%M:%S"),
-                    "method": "GET",
-                    "endpoint": url.split("?")[0][-30:] if len(url) > 30 else url,
-                    "payload": p[:25],
-                    "status": status,
-                    "latency": latency,
-                    "result": result,
-                    "anomaly": anomaly
-                }, scan_id=scan_id)
-            except Exception:
-                pass
-
-            if reward > 0:
-                safe_response = content_boundary.wrap_http_response(status, response.headers, text, response.url)
-                try:
-                    vuln_id = await self.db.report_vulnerability(
-                        scan_id=scan_id or "GLOBAL",
-                        endpoint=url,
-                        vuln_type=result,
-                        severity="HIGH" if reward >= 1 else "MEDIUM",
-                        evidence={"payload": p, "response_excerpt": safe_response[:800], "reward": reward},
-                        validated_by=self.name
-                    )
-
-                    if vuln_id and vuln_id != "CACHED":
-                        await self.db.log_exploit_result(vuln_id, {
-                            "payload": p,
-                            "worker_id": self.name,
-                            "status": "EXPLOITED" if reward >= 1 else "PARTIAL",
-                            "response": safe_response[:1200],
-                            "time_ms": latency
-                        })
-                except Exception as db_err:
-                    print(f"[{self.name}] DB Logging Error: {db_err}")
-
-                await self.bus.publish(HiveEvent(
-                    type=EventType.VULN_CANDIDATE,
-                    source=self.name,
-                    scan_id=scan_id or "GLOBAL",
-                    payload={
-                        "url": url,
-                        "payload": p,
-                        "description": safe_response[:1200],
-                        "evidence": evidence
-                    }
-                ))
-            return reward
-        except Exception as e:
-            return 0
-
     async def waf_mutate(self, payload: str) -> str:
         """
-        CORTEX AI: WAF Bypass Mutation Engine
-        Uses Ollama to generate intelligent WAF evasion variants.
+        WAF Bypass Mutation Engine.
+        Uses the tactical LLM (Gemini) to generate intelligent WAF evasion
+        variants, falling back to deterministic mutations when offline.
         """
         if self.ai and self.ai.enabled:
             try:

@@ -23,29 +23,59 @@ class AuthBypassTester(BaseArsenalModule):
         return targets
 
     async def analyze_responses(self, interactions: list[tuple[TaskTarget, str]], packet: JobPacket) -> list[Vulnerability]:
+        """Confirm auth bypass via differential analysis (Architecture §9, §17).
+
+        A success keyword alone is insufficient. We require the bypass response
+        to (a) contain authenticated-context markers AND (b) differ materially
+        from a deny/baseline response, so >= 2 independent signals agree."""
+        from backend.modules.evidence import differential
+
         vulnerabilities = []
-        
+        if not interactions:
+            return vulnerabilities
+
+        success_markers = ["admin", "dashboard", "welcome", "logout", "account", "profile"]
+
+        baseline_target, baseline_text = interactions[0]
+        baseline_text = baseline_text if isinstance(baseline_text, str) else ""
+
         for idx, (target, text) in enumerate(interactions):
-            if not isinstance(text, str): continue
-            
-            # Since we lost status == 200, we guess based on context.
-            is_success = "admin" in text.lower() or "dashboard" in text.lower() or "welcome" in text.lower()
-            if is_success:
-                if idx == 0 and ("admin" in packet.target.url or "api/secure" in packet.target.url):
-                    vulnerabilities.append(Vulnerability(
-                        name="Broken Access Control (No Auth)",
-                        severity="CRITICAL",
-                        description="Secure endpoint accessible without credentials.",
-                        evidence=f"GET {packet.target.url} without headers succeeded.",
-                        remediation="Enforce authentication middleware on all secure routes."
-                    ))
-                elif idx > 0:
-                    vulnerabilities.append(Vulnerability(
-                        name="Auth Bypass (AI Header Injection)",
-                        severity="HIGH",
-                        description=f"Endpoint accessible with bypass headers: {list(target.headers.keys())}",
-                        evidence=f"Headers: {target.headers}",
-                        remediation="Validate auth tokens server-side, not via headers."
-                    ))
-                    break # One bypass is enough
+            if not isinstance(text, str) or not text:
+                continue
+            low = text.lower()
+            has_auth_markers = any(m in low for m in success_markers)
+            if not has_auth_markers:
+                continue
+
+            # Differential vs baseline (index 0). For idx 0 itself, compare
+            # against the smallest/most-restrictive sibling response.
+            if idx == 0:
+                others = [t for j, (_tg, t) in enumerate(interactions) if j != 0 and isinstance(t, str)]
+                ref = min(others, key=len) if others else ""
+                ev = differential(ref, text)
+            else:
+                ev = differential(baseline_text, text)
+
+            # Require differential confirmation (>=2 signals) in addition to the
+            # authenticated-context marker. Never confirm on substring alone.
+            if not ev.verified:
+                continue
+
+            if idx == 0 and ("admin" in packet.target.url or "api/secure" in packet.target.url):
+                vulnerabilities.append(Vulnerability(
+                    name="Broken Access Control (No Auth)",
+                    severity="CRITICAL",
+                    description="Secure endpoint returned authenticated content without credentials.",
+                    evidence=f"GET {packet.target.url} without headers succeeded. {ev.summary}",
+                    remediation="Enforce authentication middleware on all secure routes."
+                ))
+            elif idx > 0:
+                vulnerabilities.append(Vulnerability(
+                    name="Auth Bypass (Header Injection)",
+                    severity="HIGH",
+                    description=f"Endpoint accessible with bypass headers: {list(target.headers.keys())}",
+                    evidence=f"Headers: {target.headers}. {ev.summary}",
+                    remediation="Validate auth tokens server-side, not via headers."
+                ))
+                break  # One confirmed bypass is enough
         return vulnerabilities

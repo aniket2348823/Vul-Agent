@@ -1,0 +1,225 @@
+"""
+Vigilagent Payload Delivery Engine + Bandit (Architecture §5.2, §6, §29.6)
+================================================================================
+Beta must stop being only a query-string payload sender (Architecture §5.2). The
+PayloadDeliveryEngine delivers an authorized validation payload across the
+correct channel instead of forcing everything into a GET parameter.
+
+Delivery vectors (Architecture §5.2, §29.6):
+  query, json_body, form_body, header, cookie, path
+  (multipart/file, browser, websocket, graphql vectors are delivered by the
+   browser/API agents; this engine covers the HTTP vectors.)
+
+PayloadBandit (Architecture §6 "real, not fake"): an epsilon-greedy multi-armed
+bandit keyed by (vuln_class, vector, payload_family). The reward is the REAL
+verification outcome from the MultiLayerVerifier — not a log line.
+
+Every delivery records request/response/timestamp/vector for evidence
+(Architecture §6 Phase 6).
+"""
+from __future__ import annotations
+
+import logging
+import random
+import time
+from dataclasses import dataclass, field
+from typing import Any, Iterable
+from urllib.parse import urlencode, urlparse, urlunparse
+
+from backend.core.proxy import network_interceptor
+from backend.core.scope import ScopePolicy, ScopeViolation, scope_guard
+
+logger = logging.getLogger("vigilagent.payload_delivery")
+
+HTTP_VECTORS = ("query", "json_body", "form_body", "header", "cookie", "path")
+
+
+def payload_family(payload: str) -> str:
+    """Classify a payload into a coarse family for bandit keying."""
+    p = payload.lower()
+    if any(t in p for t in ("select", "union", "' or", "1=1", "--", "/*")):
+        return "sqli"
+    if any(t in p for t in ("<script", "onerror", "onload", "alert(", "svg/")):
+        return "xss"
+    if any(t in p for t in ("{{", "}}", "${", "<%", "#{")):
+        return "ssti"
+    if any(t in p for t in ("../", "..\\", "/etc/passwd", "%2e%2e")):
+        return "traversal"
+    if any(t in p for t in (";", "|", "`", "$(", "&&")):
+        return "cmdi"
+    return "generic"
+
+
+@dataclass
+class DeliveryResult:
+    vector: str
+    payload: str
+    family: str
+    status: int
+    body: str
+    latency_ms: float
+    request_url: str
+    timestamp: float = field(default_factory=time.time)
+    error: str = ""
+
+    def evidence(self) -> dict[str, Any]:
+        return {
+            "vector": self.vector,
+            "payload": self.payload[:200],
+            "family": self.family,
+            "status": self.status,
+            "latency_ms": round(self.latency_ms, 2),
+            "request_url": self.request_url,
+            "timestamp": self.timestamp,
+            "response_len": len(self.body or ""),
+            "error": self.error,
+        }
+
+
+class PayloadBandit:
+    """Epsilon-greedy bandit over (vuln_class, vector, payload_family) (§6)."""
+
+    def __init__(self, epsilon: float = 0.15) -> None:
+        self.epsilon = epsilon
+        # key -> {"tries": int, "hits": int}
+        self._arms: dict[tuple[str, str, str], dict[str, int]] = {}
+
+    @staticmethod
+    def _key(vuln_class: str, vector: str, family: str) -> tuple[str, str, str]:
+        return (vuln_class.lower(), vector, family)
+
+    def hit_rate(self, vuln_class: str, vector: str, family: str) -> float:
+        arm = self._arms.get(self._key(vuln_class, vector, family))
+        if not arm or arm["tries"] == 0:
+            return 0.0
+        return arm["hits"] / arm["tries"]
+
+    def select_vector(self, vuln_class: str, family: str, vectors: Iterable[str] | None = None) -> str:
+        """Choose a delivery vector: explore with prob epsilon, else exploit the
+        best historical hit-rate for this (vuln_class, family)."""
+        candidates = list(vectors) if vectors else list(HTTP_VECTORS)
+        if random.random() < self.epsilon:
+            return random.choice(candidates)
+        scored = sorted(candidates, key=lambda v: self.hit_rate(vuln_class, v, family), reverse=True)
+        # If nothing has history yet, scored order is arbitrary; that's fine.
+        return scored[0]
+
+    def update(self, vuln_class: str, vector: str, family: str, success: bool) -> None:
+        """Update arm statistics with the REAL verification outcome."""
+        arm = self._arms.setdefault(self._key(vuln_class, vector, family), {"tries": 0, "hits": 0})
+        arm["tries"] += 1
+        if success:
+            arm["hits"] += 1
+
+    def snapshot(self) -> dict[str, dict[str, int]]:
+        return {f"{k[0]}|{k[1]}|{k[2]}": dict(v) for k, v in self._arms.items()}
+
+
+class PayloadDeliveryEngine:
+    """Delivers a payload across multiple HTTP vectors (Architecture §5.2, §29.6)."""
+
+    def __init__(self, scope: ScopePolicy | None = None) -> None:
+        self.scope = scope or scope_guard
+
+    async def deliver(self, target_url: str, payload: str, *, vectors: Iterable[str] = HTTP_VECTORS,
+                      param: str = "q", header_name: str = "X-Vigilagent-Test",
+                      cookie_name: str = "va_test", session=None,
+                      base_headers: dict[str, str] | None = None,
+                      action: str = "validate") -> list[DeliveryResult]:
+        """Deliver ``payload`` to ``target_url`` over each requested vector.
+
+        Every request is scope-checked first (Architecture §9). ``action`` of
+        validate/attack requires an authorized engagement."""
+        try:
+            self.scope.assert_allowed(target_url, action=action)
+        except ScopeViolation as exc:
+            logger.warning("[Delivery] scope blocked %s: %s", target_url, exc)
+            return []
+
+        family = payload_family(payload)
+        results: list[DeliveryResult] = []
+        for vector in vectors:
+            res = await self._deliver_one(
+                target_url, payload, vector, family, param, header_name, cookie_name,
+                session, base_headers or {},
+            )
+            if res:
+                results.append(res)
+        return results
+
+    async def _deliver_one(self, url: str, payload: str, vector: str, family: str,
+                           param: str, header_name: str, cookie_name: str,
+                           session, base_headers: dict[str, str]) -> DeliveryResult | None:
+        method = "GET"
+        kwargs: dict[str, Any] = {"timeout": 10}
+        if session is not None:
+            kwargs["session"] = session
+        headers = dict(base_headers)
+        request_url = url
+        parsed = urlparse(url)
+
+        try:
+            if vector == "query":
+                sep = "&" if parsed.query else "?"
+                request_url = f"{url}{sep}{urlencode({param: payload})}"
+            elif vector == "path":
+                # Append payload as a path segment (encoded).
+                new_path = parsed.path.rstrip("/") + "/" + payload
+                request_url = urlunparse(parsed._replace(path=new_path))
+            elif vector == "json_body":
+                method = "POST"
+                kwargs["json"] = {param: payload}
+            elif vector == "form_body":
+                method = "POST"
+                kwargs["data"] = {param: payload}
+                headers["Content-Type"] = "application/x-www-form-urlencoded"
+            elif vector == "header":
+                headers[header_name] = payload
+            elif vector == "cookie":
+                existing = headers.get("Cookie", "")
+                headers["Cookie"] = (existing + "; " if existing else "") + f"{cookie_name}={payload}"
+            else:
+                return None
+
+            if headers:
+                kwargs["headers"] = headers
+
+            start = time.perf_counter()
+            response = await network_interceptor.fetch(method, request_url, **kwargs)
+            latency = (time.perf_counter() - start) * 1000
+            return DeliveryResult(
+                vector=vector, payload=payload, family=family,
+                status=getattr(response, "status", 0), body=getattr(response, "body", ""),
+                latency_ms=latency, request_url=request_url,
+            )
+        except Exception as exc:
+            return DeliveryResult(
+                vector=vector, payload=payload, family=family, status=0, body="",
+                latency_ms=0.0, request_url=request_url, error=str(exc),
+            )
+
+    async def baseline(self, target_url: str, *, session=None) -> DeliveryResult | None:
+        """Fetch a clean baseline for differential comparison (Architecture §17)."""
+        try:
+            self.scope.assert_allowed(target_url, action="request")
+        except ScopeViolation:
+            return None
+        kwargs: dict[str, Any] = {"timeout": 10}
+        if session is not None:
+            kwargs["session"] = session
+        try:
+            start = time.perf_counter()
+            response = await network_interceptor.fetch("GET", target_url.split("?")[0], **kwargs)
+            latency = (time.perf_counter() - start) * 1000
+            return DeliveryResult(
+                vector="baseline", payload="", family="baseline",
+                status=getattr(response, "status", 0), body=getattr(response, "body", ""),
+                latency_ms=latency, request_url=target_url,
+            )
+        except Exception as exc:
+            return DeliveryResult("baseline", "", "baseline", 0, "", 0.0, target_url, error=str(exc))
+
+
+# Global instances.
+payload_bandit = PayloadBandit()
+payload_delivery_engine = PayloadDeliveryEngine(scope=scope_guard)

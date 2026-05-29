@@ -93,7 +93,7 @@ class DockerSandbox:
         cpus: str = "1.0",
         network: str = "none",
     ):
-        self.image = image or os.getenv("VULAGENT_SANDBOX_IMAGE", "python:3.12-slim")
+        self.image = image or os.getenv("VIGILAGENT_SANDBOX_IMAGE", os.getenv("VULAGENT_SANDBOX_IMAGE", "python:3.12-slim"))
         self.workspace_root = Path(workspace_root)
         self.memory = memory
         self.cpus = cpus

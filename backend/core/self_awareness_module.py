@@ -18,7 +18,8 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 
 from backend.core.self_awareness_config import SelfAwarenessConfig
-from backend.core.feature_flags import feature_flags
+from backend.core.feature_flags import get_feature_flags as _get_feature_flags
+feature_flags = _get_feature_flags()
 from backend.core.tracing import get_tracer, trace_span
 
 if TYPE_CHECKING:
@@ -245,7 +246,7 @@ class SelfAwarenessModule:
     async def _init_strategy_adapter(self):
         """Initialize strategy adapter component"""
         try:
-            from backend.core.strategy_adapter import StrategyAdapter
+            from backend.core.recovery_engine import StrategyAdapter
             self._strategy_adapter = StrategyAdapter(
                 agent_id=self.agent_id,
                 config=self.config,

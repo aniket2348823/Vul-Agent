@@ -11,6 +11,13 @@ logger = logging.getLogger(__name__)
 # Initialize Environment
 load_dotenv()
 
+
+def vigil_env(name: str, default: str = "") -> str:
+    """Read a VIGILAGENT_<name> env var, falling back to VULAGENT_<name>, then
+    a plain default (Architecture §13.2 branding — user-facing rename only,
+    backward compatible with existing .env files)."""
+    return os.getenv(f"VIGILAGENT_{name}", os.getenv(f"VULAGENT_{name}", default))
+
 # --- VUL AGENT: UNIFIED PATH RESOLUTION (V6-OMEGA) ---
 # Ensure absolute roots regardless of where the app is launched
 CONFIG_DIR = os.path.dirname(os.path.abspath(__file__)) # .../backend/core
@@ -25,6 +32,17 @@ os.makedirs(STATIC_DIR, exist_ok=True)
 
 # XYTHERION CONFIGURATION MATRIX
 # Role: Dynamic environment-based settings for the distributed swarm.
+
+# Vigilagent declarative config files (Architecture §21).
+CONFIG_FILES_DIR = os.path.join(PROJECT_ROOT, "config")
+SCOPE_CONFIG_PATH = os.path.join(CONFIG_FILES_DIR, "scope.yaml")
+TOOLS_CONFIG_PATH = os.path.join(CONFIG_FILES_DIR, "tools.yaml")
+BUDGETS_CONFIG_PATH = os.path.join(CONFIG_FILES_DIR, "budgets.yaml")
+MODELS_CONFIG_PATH = os.path.join(CONFIG_FILES_DIR, "models.yaml")
+EXTENSION_CONFIG_PATH = os.path.join(CONFIG_FILES_DIR, "extension.yaml")
+
+# Product identity (Architecture §1, §13). User-facing only.
+PRODUCT_NAME = vigil_env("PRODUCT_NAME", "Vigilagent")
 
 @dataclass
 class GlobalSettings:
@@ -58,6 +76,20 @@ class GlobalSettings:
     ALPHA_ENABLE_OPENCTI_EXPORT: bool = os.getenv("ALPHA_ENABLE_OPENCTI_EXPORT", "false").lower() == "true"
     OPENCTI_URL: str = os.getenv("OPENCTI_URL", "")
     OPENCTI_TOKEN: str = os.getenv("OPENCTI_TOKEN", "")
+
+    # ── Vigilagent settings (Architecture §8, §11, §13, §21) ────────────────
+    PRODUCT_NAME: str = PRODUCT_NAME
+    SCOPE_CONFIG_PATH: str = SCOPE_CONFIG_PATH
+    TOOLS_CONFIG_PATH: str = TOOLS_CONFIG_PATH
+    BUDGETS_CONFIG_PATH: str = BUDGETS_CONFIG_PATH
+    MODELS_CONFIG_PATH: str = MODELS_CONFIG_PATH
+    EXTENSION_CONFIG_PATH: str = EXTENSION_CONFIG_PATH
+    # Terminal Engine (§8): prefer Docker-isolated execution for Linux-native tools.
+    TERMINAL_PREFER_DOCKER: bool = vigil_env("TERMINAL_PREFER_DOCKER", "true").lower() == "true"
+    SANDBOX_IMAGE: str = vigil_env("SANDBOX_IMAGE", "python:3.12-slim")
+    # Two-LLM policy (§11): only these two providers are reachable.
+    STRATEGIC_MODEL: str = vigil_env("STRATEGIC_MODEL", "openai/gpt-oss-20b")
+    TACTICAL_MODEL: str = vigil_env("TACTICAL_MODEL", "gemini-2.5-flash")
 
 settings = GlobalSettings()
 

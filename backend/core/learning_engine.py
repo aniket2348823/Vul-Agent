@@ -22,7 +22,7 @@ from dataclasses import dataclass, asdict
 import re
 
 from backend.core.memory import memory_store, cosine_similarity
-from backend.core.knowledge_graph import knowledge_graph
+from backend.core.unified_knowledge_graph import knowledge_graph
 
 try:
     import redis

@@ -23,6 +23,8 @@ from backend.api.endpoints import recon, attack, reports, dashboard, ai, runtime
 from backend.api.endpoints.code_analysis import router as code_analysis_router
 from backend.api.endpoints.data import router as data_router
 from backend.api.endpoints.self_awareness import router as self_awareness_router
+from backend.api.endpoints.skills import router as skills_router
+from backend.api.endpoints.bridge import router as bridge_router
 from backend.api import defense
 from backend.core.task_manager import TaskManager
 from backend.core.rate_limiter import start_cleanup_task
@@ -39,7 +41,7 @@ if sys.platform == 'win32':
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("\n" + "="*50)
-    print("VUL AGENT: UNIFIED LIFECYCLE START")
+    print("VIGILAGENT: UNIFIED LIFECYCLE START")
     print("="*50)
     
     # Clean up zombie scans from ungraceful shutdowns
@@ -50,6 +52,38 @@ async def lifespan(app: FastAPI):
     # Pillar Initiation (GSD, Ralph, TestSprite)
     print("[PILLAR] Activating Governance Frameworks...")
     register_default_tools()
+
+    # Runtime self-check on boot (Architecture §24): scope authorization,
+    # recon tool + Docker availability, configured LLMs, skill catalog.
+    try:
+        from backend.core.scope import scope_guard
+        from backend.core.terminal_engine import terminal_engine
+        from backend.core.config import settings as _settings
+        print(f"[BOOT] Engagement '{scope_guard.engagement_name}' "
+              f"authorization={scope_guard.authorization} authorized_now={scope_guard.is_authorized()}")
+        _tt = terminal_engine.get_telemetry()
+        print(f"[BOOT] Terminal Engine: docker_available={_tt['docker_available']} "
+              f"prefer_docker={_tt['prefer_docker']}")
+        print(f"[BOOT] LLMs: strategic={_settings.STRATEGIC_MODEL} tactical={_settings.TACTICAL_MODEL}")
+    except Exception as _e:
+        print(f"[BOOT] self-check warning: {_e}")
+
+    # Ingest skill catalog (Architecture §5.3 skill ingestion pipeline).
+    try:
+        from backend.skills import ingest_skills
+        n = ingest_skills()
+        print(f"[BOOT] Skill catalog ingested: {n} skills")
+    except Exception as _e:
+        print(f"[BOOT] skill ingestion skipped: {_e}")
+
+    # Register delegation child runners (Architecture §5.1.2) by importing the
+    # commanders package at boot.
+    try:
+        import backend.agents.commanders  # noqa: F401
+        from backend.core.delegation_manager import DelegationManager
+        print(f"[BOOT] Delegation child runners ready: NetworkChild={DelegationManager.has_runner('NetworkChild')}")
+    except Exception as _e:
+        print(f"[BOOT] commander runner registration skipped: {_e}")
     
     # Start rate limiter cleanup task
     cleanup_task = asyncio.create_task(start_cleanup_task())
@@ -81,7 +115,7 @@ async def lifespan(app: FastAPI):
         await manager.stop_tasks()
         print("[LIFECYCLE] Shutdown complete.")
 
-app = FastAPI(title="Vulagent Scanner", lifespan=lifespan)
+app = FastAPI(title="Vigilagent Scanner", lifespan=lifespan)
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -146,6 +180,8 @@ app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
 app.include_router(code_analysis_router, prefix="/api", tags=["Code Analysis"])  # PROBLEM 18
 app.include_router(data_router, prefix="/api/data", tags=["Data"])
 app.include_router(self_awareness_router, prefix="/api/self-awareness", tags=["Self-Awareness"])
+app.include_router(skills_router, prefix="/api/skills", tags=["Skills"])
+app.include_router(bridge_router, prefix="/bridge", tags=["Extension Bridge"])
 
 # Alpha Recon API
 from backend.agents.alpha_v6.api_routes import router as alpha_recon_router

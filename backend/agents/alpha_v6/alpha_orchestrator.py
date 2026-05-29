@@ -29,7 +29,7 @@ import backend.agents.alpha_v6.db_extensions  # patches db_manager
 from backend.core.config import settings
 from backend.core.database import db_manager
 from backend.core.hive import EventType, HiveEvent
-from backend.core.knowledge_graph import EdgeKind, KGNode, NodeKind, knowledge_graph
+from backend.core.unified_knowledge_graph import EdgeKind, KGNode, NodeKind, knowledge_graph
 from backend.core.scope import ScopePolicy, ScopeViolation
 from backend.core.telemetry import telemetry
 from backend.integrations.pinchtab_client import PinchTabClient

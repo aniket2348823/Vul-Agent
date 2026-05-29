@@ -1,0 +1,47 @@
+# Vigilagent LLM Policy (Architecture §11, §21)
+# ----------------------------------------------------------------------------
+# Only two external LLMs are allowed. GI5 is NOT an LLM; it is the deterministic
+# rules/scoring engine and offline fallback. Any legacy reference (Ollama,
+# NVIDIA, Claude, GPT-4, Mistral, etc.) must route to one of these two.
+# ----------------------------------------------------------------------------
+
+models:
+  strategic:
+    provider: openrouter
+    model: openai/gpt-oss-20b
+    # Campaign planning, final arbitration, strategy reasoning,
+    # report synthesis, remediation explanation, high-level decision review.
+    responsibilities:
+      - campaign_planning
+      - arbitration
+      - strategy_reasoning
+      - report_synthesis
+      - remediation_explanation
+
+  tactical:
+    provider: gemini
+    model: gemini-2.5-flash
+    # Fast tactical reasoning, context compression, payload variant ideation
+    # for authorized validation, summarization, evidence narration.
+    responsibilities:
+      - tactical_reasoning
+      - context_compression
+      - payload_ideation
+      - summarization
+      - evidence_narration
+
+deterministic:
+  gi5:
+    # Not an LLM. Fast pattern detection, entropy checks, evidence prefiltering,
+    # offline fallback, false-positive reduction.
+    enabled: true
+
+# Providers that must never be reached; any call to these is aliased to one of
+# the two allowed models above (Architecture §11.4).
+disallowed_providers:
+  - ollama
+  - nvidia
+  - nemo
+  - claude
+  - gpt-4
+  - mistral

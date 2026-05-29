@@ -10,7 +10,7 @@ import json
 import aiohttp
 import time
 from datetime import datetime
-from backend.core.graph_engine import graph_engine
+from backend.core.unified_knowledge_graph import graph_engine
 from backend.core.content_boundary import content_boundary
 from backend.core.proxy import network_interceptor
 from backend.core.queue import command_lane, LanePriority

@@ -1,6 +1,7 @@
 import difflib
 from backend.core.base import BaseArsenalModule
 from backend.core.protocol import JobPacket, Vulnerability, TaskTarget
+from backend.core.credential_vault import credential_vault
 # Hybrid AI Engine
 from backend.ai.cortex import CortexEngine, get_cortex_engine
 
@@ -11,21 +12,33 @@ class Doppelganger(BaseArsenalModule):
     MODULE: DOPPELGANGER
     Logic: Insecure Direct Object Reference (IDOR).
     Cyber-Organism Protocol: Cosine Similarity Diffing.
+
+    Uses a REAL alternate identity from the CredentialVault (Architecture §25),
+    replacing the former hardcoded MOCK_USER_B_TOKEN.
     """
     async def generate_payloads(self, packet: JobPacket) -> list[TaskTarget]:
         target = packet.target
         user_a_token = target.headers.get("Authorization")
         if not user_a_token:
             return []
-            
-        # Simulated User B Token
-        user_b_token = "Bearer MOCK_USER_B_TOKEN"
+
+        # Obtain a real second identity (User B) from the credential vault.
+        # The vault holds only authorized, in-scope test credentials.
+        scan_id = getattr(packet, "scan_id", None) or getattr(getattr(packet, "config", None), "scan_id", "GLOBAL")
+        alt = credential_vault.get_alternate_identity(target.url, exclude_principal=user_a_token)
+        if not alt:
+            # No second authorized identity available — cannot run an IDOR
+            # differential safely. Skip rather than fabricate a mock token.
+            return []
+        _cred, user_b_secret = alt
+        user_b_token = user_b_secret if user_b_secret.lower().startswith("bearer ") else f"Bearer {user_b_secret}"
+
         headers_b = target.headers.copy()
         headers_b["Authorization"] = user_b_token
-        
+
         return [
-            target, # Baseline Target (User A)
-            TaskTarget(url=target.url, method=target.method, headers=headers_b, payload=target.payload) # Attack Target (User B)
+            target,  # Baseline Target (User A)
+            TaskTarget(url=target.url, method=target.method, headers=headers_b, payload=target.payload),  # Attack Target (User B)
         ]
 
     async def analyze_responses(self, interactions: list[tuple[TaskTarget, str]], packet: JobPacket) -> list[Vulnerability]:

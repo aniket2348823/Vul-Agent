@@ -52,7 +52,7 @@ for mod in modules:
 
 # Test 5: Graph engine
 try:
-    from backend.core.graph_engine import GraphEngine
+    from backend.core.unified_knowledge_graph import GraphEngine
     print('[PASS] GraphEngine import OK')
 except Exception as e:
     errors.append(str(e))
