@@ -2,7 +2,12 @@ import pytest,httpx,time
 B='http://localhost:8000';T=15.0
 @pytest.fixture(scope='session')
 def c():
-    with httpx.Client(base_url=B,timeout=T) as cl: yield cl
+    with httpx.Client(base_url=B,timeout=T) as cl:
+        try:
+            cl.get('/api/health')
+        except httpx.ConnectError:
+            pytest.skip('backend server not running on localhost:8000', allow_module_level=False)
+        yield cl
 class TestAttack:
     def _f(self,c,url='http://localhost:8000/api/health',**kw):
         return c.post('/api/attack/fire',json={'target_url':url,'method':'GET','duration':2,**kw})

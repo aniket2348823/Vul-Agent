@@ -2,32 +2,34 @@ import asyncio
 import collections
 import hashlib
 import time as _time
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-# ANTIGRAVITY :: CORTEX ENGINE â€” HYBRID DUAL-CORE ARCHITECTURE
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-# PURPOSE: Hybrid AI engine combining TWO intelligence cores:
+# ------------------------------------------------------------
+# VIGILAGENT :: CORTEX ENGINE - HYBRID INTELLIGENCE ARCHITECTURE
+# ------------------------------------------------------------
+# PURPOSE: Intelligence fusion engine combining a deterministic core with the
+#          two (and only two) permitted network LLMs.
 #
-#   CORE 1 â€” GI5 "OMEGA" (Deterministic)
-#     Speed:    Instant (<1ms per call)
-#     Strengths: Sanitization, deobfuscation, entropy analysis, pattern matching,
-#                sigmoid risk scoring, typosquatting detection, threat analysis
-#     Role:     Pre-processor, validator, fast-path, fallback
+#   CORE 1 - GI5 "OMEGA" (Deterministic, NON-LLM)
+#     Role: sanitization, deobfuscation, entropy/pattern analysis, sigmoid risk
+#           scoring, fast-path pre-processing, and offline fallback.
 #
-#   CORE 2 â€” NEURAL ENGINE (Ollama)
-#     Speed:    1-30 seconds per call
-#     Strengths: Context-aware reasoning, creative payload generation,
-#                semantic analysis, natural language understanding
-#     Role:     Deep analysis, creative generation, contextual judgment
+#   CORE 2 - GEMINI (gemini-2.5-flash) :: MID/LOW tier
+#     Role: fast tactical reasoning, payload ideation, validation support,
+#           summarization, evidence narration, embeddings.
+#
+#   CORE 3 - OPENROUTER (openai/gpt-oss-20b) :: HIGH tier
+#     Role: campaign planning, arbitration, strategy, remediation, reporting.
 #
 # HYBRID PROTOCOL:
-#   1. GI5 always runs first (fast, reliable, zero-latency)
-#   2. Neural engine enhances results when available (adds AI context)
-#   3. Results are FUSED: GI5 deterministic + Neural creative = best of both
-#   4. If Ollama is offline â†’ GI5 alone still provides full functionality
+#   1. GI5 always runs first (fast, reliable, zero-latency).
+#   2. The appropriate LLM tier enhances results when its API key is configured.
+#   3. Results are FUSED via the Bayesian weight matrix.
+#   4. If the LLMs are offline, GI5 alone still provides full functionality.
 #
-# MODEL:   antigravity-cortex (runs entirely on-device via Ollama)
-# PROTOCOL: Ollama REST API (http://localhost:11434/api/generate)
-# â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• 
+# MODEL POLICY (Architecture s11, s12): the ONLY network LLM endpoints reachable
+# are Gemini `gemini-2.5-flash` and OpenRouter `openai/gpt-oss-20b`. The legacy
+# `_call_ollama` / `_call_nvidia_*` names are backward-compatible ALIASES that
+# route onto `_call_gemini`. No on-device / Ollama / NVIDIA endpoint exists.
+# ------------------------------------------------------------
 
 import requests
 import aiohttp
@@ -41,7 +43,7 @@ from backend.core.queue import LanePriority, command_lane
 
 logger = logging.getLogger("CORTEX")
 
-# â”€â”€â”€ BAYESIAN FUSION LOGIC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+#  BAYESIAN FUSION LOGIC 
 def _logit(p: float, epsilon: float = 1e-6) -> float:
     p = max(min(p, 1 - epsilon), epsilon)
     return math.log(p / (1 - p))
@@ -104,25 +106,27 @@ TOKEN_BUDGETS = {
     "default": 200,
 }
 
-# â”€â”€â”€ OPTIMIZATION: Cache TTL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+#  OPTIMIZATION: Cache TTL 
 CACHE_TTL = 300  # 5 minutes
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# 
 
 
 class CortexEngine:
     """
-    Antigravity Cortex: HYBRID Dual-Core AI Engine.
+    Vigilagent Cortex: HYBRID Intelligence Engine.
 
-    Core 1: GI5 OMEGA â€” Deterministic heuristic engine (always available)
-    Core 2: Neural AI via local Ollama (Hybrid 1B model)
+    Core 1: GI5 OMEGA - deterministic heuristic engine (always available).
+    Core 2: Gemini (gemini-2.5-flash) - MID/LOW tier tactical reasoning.
+    Core 3: OpenRouter (openai/gpt-oss-20b) - HIGH tier deep reasoning.
 
     The hybrid architecture ensures:
     - GI5 provides instant deterministic analysis (sanitization, deobfuscation, patterns)
-    - Neural AI provides deep contextual AI reasoning (creative payloads, semantic judgment)
-    - Results are FUSED for maximum intelligence
-    - Full functionality even when Ollama is offline (GI5 takes over)
+    - The LLM tiers provide deep/creative reasoning when configured
+    - Results are FUSED via the Bayesian weight matrix
+    - Full functionality even when the LLMs are offline (GI5 takes over)
 
-    No API keys required â€” everything runs on-device.
+    Only two network LLM endpoints are ever reached (Architecture s11/s12):
+    Gemini `gemini-2.5-flash` and OpenRouter `openai/gpt-oss-20b`.
     """
 
     def __init__(self, api_key=None, base_url=None, model=None):
@@ -281,7 +285,7 @@ class CortexEngine:
             logger.warning(f"CORTEX: Warm-up failed: {e}")
 
     # =========================================================================
-    # CORE 2: Gemini Neural Engine (replaces Ollama + NVIDIA)
+    # CORE 2: Gemini Tactical Engine (gemini-2.5-flash)
     # =========================================================================
 
     async def _call_gemini(self, prompt, temperature=0.2, max_tokens=256, scan_ctx=None, model_override=None):
@@ -357,7 +361,7 @@ class CortexEngine:
         return await self._call_gemini(prompt, temperature=temperature, max_tokens=max_tokens, scan_ctx=scan_ctx)
 
     async def _call_nvidia_payload_model(self, prompt, max_tokens=1024, scan_ctx=None):
-        """Payload generation via Gemini (replaces NVIDIA Qwen 2.5 Coder 32B)."""
+        """LEGACY ALIAS: payload generation via Gemini (gemini-2.5-flash)."""
         if not self._gemini or not self._gemini.is_available:
             return "[CORTEX OFFLINE] Gemini API is not configured."
         async with command_lane.slot(LanePriority.LOW):
@@ -368,7 +372,7 @@ class CortexEngine:
             )
 
     async def _call_nvidia_validation_model(self, prompt, max_tokens=4096, scan_ctx=None):
-        """Validation via Gemini (replaces NVIDIA Nemotron Nano 8B)."""
+        """LEGACY ALIAS: validation via Gemini (gemini-2.5-flash)."""
         if not self._gemini or not self._gemini.is_available:
             return "[CORTEX OFFLINE] Gemini API is not configured."
         async with command_lane.slot(LanePriority.LOW):
@@ -443,9 +447,9 @@ class CortexEngine:
             return self.gi5.analyze_sensitivity(text)
         except Exception:return []
 
-    # —————————————————————————————————————————————————————————————————————————————
+    # 
     # HYBRID REPORTING METHODS
-    # —————————————————————————————————————————————————————————————————————————————
+    # 
 
     async def generate_executive_brief(self, target: str, success_count: int, total_count: int, duration: str, scan_ctx=None) -> str:
         """
@@ -469,8 +473,8 @@ class CortexEngine:
             except Exception as e:
                 logger.warning(f"Gemini executive brief failed ({e}), falling back to OpenRouter.")
 
-        # CORE 2: Granite AI narrative (enriched with GI5 data)
-        prompt = f"""You are a senior cybersecurity analyst writing a forensic report for Vulagent Scanner.
+        # CORE 2: Gemini AI narrative (enriched with GI5 data)
+        prompt = f"""You are a senior cybersecurity analyst writing a forensic report for Vigilagent.
 
 TARGET: {target}
 SCAN RESULTS: {success_count}/{total_count} requests returned HTTP 2xx ({hit_rate:.1f}% hit rate)
@@ -506,7 +510,7 @@ Use professional, technical language. No markdown. No headers. Just the summary.
         gi5_threats = gi5_threat.get("threats_found", [])
         gi5_info = f"\nGI5 RISK SCORE: {gi5_risk}\nGI5 DETECTED THREATS: {', '.join(gi5_threats) if gi5_threats else 'None'}" if gi5_threat else ""
 
-        # CORE 2: Granite forensic analysis (enriched with GI5 data)
+        # CORE 2: Gemini forensic analysis (enriched with GI5 data)
         prompt = f"""You are a cybersecurity forensic analyst examining an attack payload.
 
 VARIANT: {variant}
@@ -617,7 +621,7 @@ No markdown. No headers. Just the analysis."""
             }
 
         # CORE 3: OpenRouter generation (Professional Report Engine)
-        # Falls back to local Ollama if OpenRouter is unavailable
+        # Falls back to local Gemini if OpenRouter is unavailable
         if self._openrouter and self._openrouter.is_available:
             try:
                 result = await self._openrouter.generate_summary(vuln_type, payload, url, scan_ctx=scan_ctx)
@@ -628,7 +632,7 @@ No markdown. No headers. Just the analysis."""
             result = None
 
         if not result or result.startswith("["):
-            # Local Ollama fallback
+            # Local Gemini fallback
             prompt = f"""You are a senior cybersecurity forensic analyst writing a professional penetration test report.
 Analyze this security finding and generate a structured JSON report.
 
@@ -679,7 +683,7 @@ Output ONLY valid JSON. No markdown. No explanations."""
             # Validate code_fix is actual code, not English text
             code_fix = data.get('code_fix', '')
             if code_fix and not any(kw in code_fix for kw in ['def ', 'function ', 'import ', 'const ', 'var ', 'class ', '=', '(', '{', 'return', 'if ', 'for ']):
-                # LLM returned English text instead of code — generate a proper code fix
+                # LLM returned English text instead of code  generate a proper code fix
                 data['code_fix'] = self._generate_fallback_code_fix(vuln_type)
             return data
             
@@ -688,7 +692,7 @@ Output ONLY valid JSON. No markdown. No explanations."""
         return {
             "name": f"{vuln_type} Detection",
             "description": [
-                f"Vulagent Scanner detected a potential {vuln_type} pattern at this endpoint.",
+                f"Vigilagent detected a potential {vuln_type} pattern at this endpoint.",
                 "Heuristic analysis confirms bypass of standard input validation.",
                 "Evidence suggests the application processed a malicious test vector."
             ],
@@ -812,11 +816,11 @@ Output ONLY valid JSON. No markdown. No explanations."""
                 "    return decorator"
             )
 
-    # —————————————————————————————————————————————————————————————————————————————
+    # 
     # HYBRID AGENT METHODS
-    # —————————————————————————————————————————————————————————————————————————————
+    # 
 
-    # ——— P1: SIGMA — Attack Payload Generation (HYBRID) —————————————————————————
+    #  P1: SIGMA  Attack Payload Generation (HYBRID) 
 
     async def generate_attack_payloads(self, target_url: str, attack_types: List[str] = None, 
                                        target_field_type: str = "unknown", parameter_name: str = "unknown", 
@@ -842,8 +846,8 @@ Output ONLY valid JSON. No markdown. No explanations."""
             except Exception:pass
         gi5_count = len(all_payloads)
 
-        # CORE 2: Sigma Payload Forge (NVIDIA Qwen 2.5 Coder 32B)
-        prompt = f"""You are Sigma, the weapon-smith agent inside the Vulagent Scanner intelligence platform.
+        # CORE 2: Sigma Payload Forge (Gemini
+        prompt = f"""You are Sigma, the weapon-smith agent inside the Vigilagent intelligence platform.
 
 Your job is to generate exploit payloads designed to reveal vulnerabilities in APIs.
 
@@ -897,8 +901,8 @@ RULES
 
         result = await self._call_nvidia_payload_model(prompt, max_tokens=1024, scan_ctx=scan_ctx)
         if self._is_error(result):
-            logger.warning("NVIDIA payload generation unavailable; falling back to local Ollama payload model.")
-            result = await self._call_ollama(prompt, temperature=0.1, max_tokens=300, scan_ctx=scan_ctx, model_override="qwen2.5-coder:0.5b")
+            logger.warning("Gemini payload generation unavailable; using GI5 payloads only.")
+            result = await self._call_ollama(prompt, temperature=0.1, max_tokens=300, scan_ctx=scan_ctx)
         
         ai_payloads = self._extract_payload_list(result)
         if ai_payloads:
@@ -916,10 +920,10 @@ RULES
             seen.add(value)
             unique.append(value)
 
-        logger.info(f"HYBRID PAYLOAD GEN: {gi5_count} GI5 + {len(unique) - gi5_count} NVIDIA/Ollama = {len(unique)} total")
+        logger.info(f"HYBRID PAYLOAD GEN: {gi5_count} GI5 + {len(unique) - gi5_count} Gemini = {len(unique)} total")
         return unique[:15]  # Cap at 15
 
-    # ——— P2: BETA — WAF Bypass Mutation (HYBRID) —————————————————————————————————
+    #  P2: BETA  WAF Bypass Mutation (HYBRID) 
 
     async def mutate_waf_bypass(self, original_payload: str, waf_type: str = "generic", scan_ctx=None) -> str:
         """
@@ -940,7 +944,7 @@ RULES
                     gi5_mutation = urllib.parse.quote(raw) + "/**/"
             except Exception:pass
 
-        # CORE 2: Granite AI mutation (creative)
+        # CORE 2: Gemini AI mutation (creative)
         prompt = f"""You are a WAF evasion expert. A Web Application Firewall blocked this payload:
 
 BLOCKED PAYLOAD: {original_payload}
@@ -1009,7 +1013,7 @@ Output ONLY the mutated payload. Nothing else. No explanation."""
              
         return evidence
 
-    # ——— P3: KAPPA — Vulnerability Candidate Audit (HYBRID) ——————————————————————
+    #  P3: KAPPA  Vulnerability Candidate Audit (HYBRID) 
 
 
     async def audit_candidate(self, candidate_data: Dict[str, Any], scan_ctx=None) -> Dict[str, Any]:
@@ -1100,11 +1104,11 @@ RULES:
 • No preamble.
 • Output valid JSON only."""
 
-        # SELF-CONSISTENCY VALIDATION (NVIDIA Nemotron Nano 8B)
+        # SELF-CONSISTENCY VALIDATION (Gemini
         result_pass_1 = await self._call_nvidia_validation_model(prompt, max_tokens=4096, scan_ctx=scan_ctx)
         result_pass_2 = await self._call_nvidia_validation_model(prompt, max_tokens=4096, scan_ctx=scan_ctx)
         if self._is_error(result_pass_1) or self._is_error(result_pass_2):
-            logger.warning("NVIDIA validation unavailable; falling back to local Ollama validation.")
+            logger.warning("Gemini validation unavailable; falling back to GI5 validation.")
             result_pass_1 = await self._call_ollama(prompt, temperature=0.1, max_tokens=300, scan_ctx=scan_ctx)
             result_pass_2 = await self._call_ollama(prompt, temperature=0.1, max_tokens=300, scan_ctx=scan_ctx)
         
@@ -1182,7 +1186,7 @@ Answer strictly "yes" or "no"."""
             # Prior base rate (e.g. 40% of endpoints are vulnerable in regression)
             P_0 = 0.40
             
-            # P_LLM is the raw confidence from Granite after calibration (crush by 15%)
+            # P_LLM is the raw confidence from Gemini after calibration (crush by 15%)
             raw_llm_conf = verdict["confidence"] * 0.85
             P_L = raw_llm_conf if raw_llm_conf > 0.0 else 0.05
             
@@ -1282,7 +1286,7 @@ Answer strictly "yes" or "no"."""
 
         return verdict
 
-    # â”€â”€â”€ P4: OMEGA â€” Attack Strategy Selection (HYBRID) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  P4: OMEGA  Attack Strategy Selection (HYBRID) 
 
     async def select_attack_strategy(self, target_url: str, recon_data: Dict[str, Any] = None) -> str:
         """
@@ -1301,7 +1305,7 @@ Answer strictly "yes" or "no"."""
                     gi5_context = f"\nGI5 ALERT: Domain appears to be typosquatting: {typo}"
             except Exception:pass
 
-        # CORE 2: Granite AI strategy
+        # CORE 2: Gemini AI strategy
         recon_summary = json.dumps(recon_data or {}, indent=0)[:300]
         prompt = f"""You are an offensive security strategist.
 
@@ -1328,7 +1332,7 @@ Respond with ONLY the strategy name. Nothing else."""
                 return strategy
         return "BLITZKRIEG"
 
-    # â”€â”€â”€ P5: SENTINEL â€” Prompt Injection Detection (HYBRID) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  P5: SENTINEL  Prompt Injection Detection (HYBRID) 
 
     async def detect_prompt_injection(self, text: str) -> Dict[str, Any]:
         """
@@ -1342,7 +1346,7 @@ Respond with ONLY the strategy name. Nothing else."""
         gi5_threats = gi5_result.get("threats_found", [])
         gi5_injection = gi5_risk > 60
 
-        # CORE 2: Granite semantic analysis
+        # CORE 2: Gemini semantic analysis
         safe_text = text[:500].replace("\n", " ")
         gi5_info = f"\nGI5 PRE-ANALYSIS: risk={gi5_risk}, threats={gi5_threats}" if gi5_result else ""
 
@@ -1380,7 +1384,7 @@ TECHNIQUE: name of the technique or NONE"""
                 elif line_upper.startswith("TECHNIQUE:"):
                     ai_verdict["technique"] = line.split(":", 1)[1].strip()
 
-        # FUSION: Defense-in-depth â€” take MAX risk from both engines
+        # FUSION: Defense-in-depth  take MAX risk from both engines
         final = {
             "is_injection": gi5_injection or ai_verdict["is_injection"],
             "risk_score": max(gi5_risk, ai_verdict["risk_score"]),
@@ -1388,16 +1392,16 @@ TECHNIQUE: name of the technique or NONE"""
                 ", ".join(gi5_threats) if gi5_threats else "NONE"
             ),
             "engine": "HYBRID" if gi5_result and not self._is_error(result) else (
-                "GI5_ONLY" if gi5_result else "GRANITE_ONLY"
+                "GI5_ONLY" if gi5_result else "GEMINI_ONLY"
             )
         }
         return final
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # 
     # HYBRID MODULE METHODS
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # 
 
-    # â”€â”€â”€ P6: SQLi â€” DB-Specific Payload Generation (HYBRID) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  P6: SQLi  DB-Specific Payload Generation (HYBRID) 
 
     async def generate_sqli_payloads(self, target_url: str, db_type: str = "unknown", error_text: str = "") -> List[str]:
         """
@@ -1416,7 +1420,7 @@ TECHNIQUE: name of the technique or NONE"""
                     all_payloads.append(p)
             except Exception:pass
 
-        # CORE 2: NVIDIA creative payloads
+        # CORE 2: Gemini creative payloads
         prompt = f"""Generate 5 SQLi payloads.
 TARGET: {self._compress_context(target_url, 100)}
 DB: {db_type}
@@ -1435,7 +1439,7 @@ Output raw payloads only, one per line."""
         seen = set()
         return [p for p in all_payloads if not (p in seen or seen.add(p))][:12]
 
-    # â”€â”€â”€ P7: Fuzzer â€” Context-Aware Vector Generation (HYBRID) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  P7: Fuzzer  Context-Aware Vector Generation (HYBRID) 
 
     async def generate_fuzz_vectors(self, target_url: str, content_type: str = "", tech_stack: str = "") -> List[str]:
         """
@@ -1454,7 +1458,7 @@ Output raw payloads only, one per line."""
                     all_vectors.append(p)
             except Exception:pass
 
-        # CORE 2: NVIDIA creative vectors
+        # CORE 2: Gemini creative vectors
         prompt = f"""Generate 5 API fuzzing payloads.
 TARGET: {self._compress_context(target_url, 100)}
 CONTENT-TYPE: {content_type or 'unknown'}
@@ -1472,7 +1476,7 @@ Output raw payloads only, one per line."""
         seen = set()
         return [v for v in all_vectors if not (v in seen or seen.add(v))][:12]
 
-    # â”€â”€â”€ P8: Reporting â€” Forensic Narrative Generation (HYBRID) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  P8: Reporting  Forensic Narrative Generation (HYBRID) 
 
     async def generate_forensic_narrative(self, finding: Dict[str, Any]) -> str:
         """
@@ -1486,7 +1490,7 @@ Output raw payloads only, one per line."""
         if gi5_result:
             gi5_info = f"\nGI5 ANALYSIS: risk={gi5_result.get('risk_score', 'N/A')}, threats={gi5_result.get('threats_found', [])}"
 
-        # CORE 2: Granite narrative
+        # CORE 2: Gemini narrative
         prompt = f"""Write 3-sentence forensic narrative.
 VULN: {finding.get('type', 'Unknown')} | SEVERITY: {finding.get('severity', 'Unknown')}
 TARGET: {self._compress_context(str(finding.get('url', '')), 100)}
@@ -1504,7 +1508,7 @@ Explain: what was found, evidence, consequences. Professional tone. No markdown.
     # Deleted redundant generate_ai_executive_summary (moved to reporting section)
     # Deleted redundant analyze_attack_paths (moved to reporting section)
 
-    # â”€â”€â”€ P9: Risk Engine â€” Contextual Risk Assessment (HYBRID) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  P9: Risk Engine  Contextual Risk Assessment (HYBRID) 
 
     async def assess_contextual_risk(self, threat_type: str, target_url: str, context: Dict[str, Any] = None) -> int:
         """
@@ -1518,7 +1522,7 @@ Explain: what was found, evidence, consequences. Professional tone. No markdown.
         if gi5_result:
             gi5_score = gi5_result.get("risk_score", 50)
 
-        # CORE 2: Granite contextual score
+        # CORE 2: Gemini contextual score
         ctx_str = self._compress_context(json.dumps(context or {}), 150)
         prompt = f"""Risk score 0-100 for:
 THREAT: {threat_type} | TARGET: {self._compress_context(target_url, 80)}
@@ -1539,7 +1543,7 @@ Respond with ONLY a single number (0-100)."""
         hybrid_score = int(gi5_score * 0.5 + granite_score * 0.5)
         return max(0, min(100, hybrid_score))
 
-    # â”€â”€â”€ P10: Inspector â€” AI Intent Judgment (HYBRID) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  P10: Inspector  AI Intent Judgment (HYBRID) 
 
     async def judge_user_intent(self, button_text: str, action_url: str, page_url: str) -> Dict[str, Any]:
         """
@@ -1569,7 +1573,7 @@ Respond with ONLY a single number (0-100)."""
         if gi5_suspicious:
             return {"action": "BLOCK", "reason": gi5_reason, "risk_score": 85, "engine": "GI5"}
 
-        # CORE 2: Granite semantic analysis
+        # CORE 2: Gemini semantic analysis
         prompt = f"""You are a dark pattern detection AI analyzing a web page element.
 
 BUTTON TEXT: "{button_text}"
@@ -1604,11 +1608,11 @@ RISK: 0 to 100"""
                 except Exception:pass
         return verdict
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # 
     # FULL PROJECT INTEGRATION METHODS (Phase 2 Expansion)
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # 
 
-    # â”€â”€â”€ ALPHA: AI Target Classification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  ALPHA: AI Target Classification 
 
     async def classify_target(self, url: str, headers: Dict[str, Any] = None) -> Dict[str, Any]:
         """
@@ -1629,7 +1633,7 @@ RISK: 0 to 100"""
                     result["is_sensitive"] = True
             except Exception:pass
 
-        # CORE 2: Granite classification
+        # CORE 2: Gemini classification
         prompt = f"""You are a security reconnaissance AI. Classify this URL:
 
 URL: {url}
@@ -1652,7 +1656,7 @@ TAGS: comma-separated relevant tags"""
                     result["tags"].extend(tags)
         return result
 
-    # â”€â”€â”€ GAMMA: AI Anomaly Classification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  GAMMA: AI Anomaly Classification 
 
     async def classify_anomaly(self, baseline: str, attack_response: str, similarity: float) -> Dict[str, Any]:
         """
@@ -1669,7 +1673,7 @@ TAGS: comma-separated relevant tags"""
             result["severity"] = "CRITICAL"
             result["anomaly_type"] = "DATA_LEAK"
 
-        # CORE 2: Granite semantic classification
+        # CORE 2: Gemini semantic classification
         baseline_snippet = self._compress_context(baseline, 200)
         attack_snippet = self._compress_context(attack_response, 200)
         prompt = f"""Analyze differences between baseline and attack response.
@@ -1703,7 +1707,7 @@ SEVERITY: (CRITICAL, HIGH, MEDIUM, LOW)"""
             
         return result
 
-    # â”€â”€â”€ ZETA: AI Server Stress Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  ZETA: AI Server Stress Analysis 
 
     async def analyze_server_stress(self, error_msg: str, status_code: int = 0) -> Dict[str, Any]:
         """
@@ -1718,7 +1722,7 @@ SEVERITY: (CRITICAL, HIGH, MEDIUM, LOW)"""
         if gi5_result and gi5_result.get("risk_score", 0) > 50:
             result["indicators"].append("HIGH_ENTROPY_RESPONSE")
 
-        # CORE 2: Granite classification
+        # CORE 2: Gemini classification
         prompt = f"""Classify server stress from error response.
 
 ERROR: {self._compress_context(error_msg, 200)}
@@ -1742,7 +1746,7 @@ ACTION: CONTINUE, THROTTLE, PAUSE, or ABORT"""
                     result["recommended_action"] = line.split(":", 1)[1].strip().upper()
         return result
 
-    # â”€â”€â”€ SKIPPER: AI Workflow Chain Inference â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  SKIPPER: AI Workflow Chain Inference 
 
     async def infer_workflow_chain(self, url: str) -> List[str]:
         """
@@ -1764,7 +1768,7 @@ Output ONLY the URL paths, one per line, in sequential order. No explanations.""
         steps = [line.strip() for line in result.split("\n") if line.strip().startswith("/")]
         return steps if steps else [url]
 
-    # â”€â”€â”€ TYCOON: AI Financial Attack Vectors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  TYCOON: AI Financial Attack Vectors 
 
     async def generate_financial_vectors(self, url: str, payload: Dict = None) -> List[Dict]:
         """
@@ -1797,7 +1801,7 @@ Output one JSON object per line like: {{"field": "quantity", "value": -1, "attac
                 except Exception:pass
         return vectors if vectors else [{"field": "quantity", "value": -1, "attack": "Negative Quantity"}]
 
-    # â”€â”€â”€ ESCALATOR: AI Privilege Parameter Guessing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  ESCALATOR: AI Privilege Parameter Guessing 
 
     async def guess_privilege_params(self, url: str, known_params: Dict = None) -> List[Dict]:
         """
@@ -1825,7 +1829,7 @@ Output one JSON object per line like: {{"field": "is_admin", "value": true}}"""
                 except Exception:pass
         return params if params else [{"is_admin": True}, {"role": "admin"}]
 
-    # â”€â”€â”€ DOPPELGANGER MODULE: AI IDOR Response Classification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  DOPPELGANGER MODULE: AI IDOR Response Classification 
 
     async def classify_idor_response(self, response_text: str, similarity: float) -> Dict[str, Any]:
         """
@@ -1842,7 +1846,7 @@ Output one JSON object per line like: {{"field": "is_admin", "value": true}}"""
             result["sensitivity"] = "HIGH"
             result["data_types"] = leaked
 
-        # CORE 2: Granite semantic
+        # CORE 2: Gemini semantic
         prompt = f"""Analyze this HTTP response from an IDOR test (accessing another user's resource):
 
 SIMILARITY TO BASELINE: {similarity:.2f}
@@ -1869,7 +1873,7 @@ DATA_TYPES: comma-separated (pii, credentials, financial, medical, none)"""
                     result["data_types"].extend(types)
         return result
 
-    # â”€â”€â”€ AUTH BYPASS: AI Header Generation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  AUTH BYPASS: AI Header Generation 
 
     async def generate_auth_bypass_headers(self, url: str) -> List[Dict[str, str]]:
         """
@@ -1904,7 +1908,7 @@ Output one JSON object per line with header key-value pairs."""
                 except Exception:pass
         return headers if headers else defaults
 
-    # â”€â”€â”€ JWT: AI Token Weakness Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  JWT: AI Token Weakness Analysis 
 
     async def analyze_jwt_weakness(self, token: str = "", url: str = "") -> Dict[str, Any]:
         """
@@ -1920,7 +1924,7 @@ Output one JSON object per line with header key-value pairs."""
             if gi5_result:
                 result["risk_score"] = gi5_result.get("risk_score", 0)
 
-        # CORE 2: Granite analysis
+        # CORE 2: Gemini analysis
         prompt = f"""Analyze JWT for weaknesses:
 TOKEN: {token[:150] if token else 'None'}
 URL: {url}
@@ -1945,7 +1949,7 @@ RECOMMENDATION: one sentence"""
                     result["recommendations"].append(line.split(":", 1)[1].strip())
         return result
 
-    # â”€â”€â”€ REPORTING: AI Executive Summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  REPORTING: AI Executive Summary 
 
     async def generate_ai_executive_summary(self, target_url: str, total_vulns: int, categories: Dict[str, int]) -> List[str]:
         """
@@ -1981,7 +1985,7 @@ Each bullet should be one sentence. No numbering, no dashes, just the text.
         bullets = [line.strip().lstrip("â€¢-*123456789. ") for line in result.split("\n") if line.strip() and len(line.strip()) > 10]
         return bullets[:4]
 
-    # â”€â”€â”€ REPORTING: AI Vulnerability Categorization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  REPORTING: AI Vulnerability Categorization 
 
     async def categorize_vulnerability(self, vuln_type: str, description: str = "") -> str:
         """
@@ -2012,7 +2016,7 @@ Each bullet should be one sentence. No numbering, no dashes, just the text.
             if any(k in vt_clean for k in keywords):
                 return category
 
-        # CORE 2: Granite for unknown types
+        # CORE 2: Gemini for unknown types
         prompt = f"""Categorize this vulnerability:
 TYPE: {vuln_type}
 DESCRIPTION: {description[:100]}
@@ -2026,7 +2030,7 @@ Respond with ONLY the category name."""
             return result.strip()
         return "Injection & Fuzzing"
 
-    # â”€â”€â”€ CVSS: AI Score Adjustment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  CVSS: AI Score Adjustment 
 
     async def adjust_cvss_score(self, base_score: float, vuln_type: str, target_url: str) -> float:
         """
@@ -2046,7 +2050,7 @@ Respond with ONLY the category name."""
                     modifier += 1.0  # Typosquatting = higher risk
             except Exception:pass
 
-        # CORE 2: Granite context
+        # CORE 2: Gemini context
         prompt = f"""Adjust the CVSS score for this vulnerability based on context:
 
 BASE CVSS: {base_score}
@@ -2066,7 +2070,7 @@ Respond with ONLY a number (adjustment from -2.0 to +2.0). Example: 0.5"""
         adjusted = max(0.0, min(10.0, base_score + modifier))
         return round(adjusted, 1)
 
-    # â”€â”€â”€ MIMIC: AI Fingerprint Selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  MIMIC: AI Fingerprint Selection 
 
     async def select_browser_fingerprint(self, target_url: str) -> Dict[str, str]:
         """
@@ -2104,7 +2108,7 @@ Respond with ONLY the choice."""
             return profiles[1]
         return profiles[0]
 
-    # â”€â”€â”€ ADVANCED REPORTING: AI Forensic Reconstruction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  ADVANCED REPORTING: AI Forensic Reconstruction 
     async def reconstruct_forensic_evidence(self, vuln_type: str, payload: str, response_snippet: str, url: str, scan_ctx=None) -> Dict[str, Any]:
         """
         AI: Reconstruct exactly WHY an attack succeeded.
@@ -2131,7 +2135,7 @@ Respond with ONLY the choice."""
             except Exception as e:
                 logger.warning(f"OpenRouter forensic failed ({e}), falling back to local.")
 
-        # Fallback to local Ollama
+        # Fallback to local Gemini
         prompt = f"""You are a senior forensic security analyst reconstructing a successful security exploit.
 
 VULNERABILITY TYPE: {vuln_type}
@@ -2186,7 +2190,7 @@ Output ONLY valid JSON with these 3 fields. No markdown. No extra text."""
             except Exception as e:
                 logger.warning(f"OpenRouter code fix failed ({e}), falling back to local.")
 
-        # Fallback to local Ollama
+        # Fallback to local Gemini
         prompt = f"""Generate a secure, production-ready code fix for this vulnerability.
 
 VULNERABILITY: {vuln_type}
@@ -2214,7 +2218,7 @@ Now generate the fix for {vuln_type}. Output ONLY the code."""
             # Use deterministic fallback
             return self._generate_fallback_code_fix(vuln_type)
         
-        # Clean the result — strip markdown fences if present
+        # Clean the result  strip markdown fences if present
         cleaned = result.strip()
         if cleaned.startswith('```'):
             cleaned = cleaned.split('\n', 1)[-1] if '\n' in cleaned else cleaned[3:]
@@ -2272,7 +2276,7 @@ Focus on the causal relationship between steps. Professional tone. No markdown."
             return "The attack chain demonstrates a sequential progression from initial reconnaissance through multiple vulnerability triggers, ultimately leading to system compromise."
         return result
 
-    # â”€â”€â”€ ENTERPRISE REPORTING: Compliance & Risk Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  ENTERPRISE REPORTING: Compliance & Risk Analysis 
     async def map_to_compliance(self, vuln_type: str, scan_ctx=None) -> Dict[str, str]:
         """
         AI: Map a vulnerability to global compliance standards.
@@ -2364,7 +2368,7 @@ Provide a concise 3-sentence narrative. No headers. No markdown. Professional to
             return "The identified vulnerabilities represent a significant risk to organizational data integrity and regulatory compliance. Immediate remediation is advised to mitigate potential financial and reputational impact."
         return result
 
-    # â”€â”€â”€ ELITE REMEDIATION: Strategic Roadmaps & Verification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    #  ELITE REMEDIATION: Strategic Roadmaps & Verification 
     async def generate_remediation_roadmap(self, vuln_summary: str, scan_ctx=None) -> str:
         """
         AI: Generate a Tactical Remediation Roadmap.
@@ -2441,9 +2445,9 @@ Output ONLY valid JSON: {{"hours": "2-4 hours", "complexity": "Medium", "reason"
             return json.loads(result)
         except Exception:return {"hours": "2-8 hours", "complexity": "Variable", "reason": "Effort depends on existing architecture and validation framework."}
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # 
     # LEGACY COMPAT: GI5Engine Interface + GI5 Passthrough
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # 
 
     async def synthesize_payloads(self, base_request: Dict[str, Any]) -> List[Dict]:
         """Legacy compat: Hybrid payload synthesis."""
@@ -2506,12 +2510,12 @@ Output ONLY valid JSON: {{"hours": "2-4 hours", "complexity": "Medium", "reason"
         except Exception:return 0.05
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# 
+# 
 
-# ===============================================================================
+# ------------------------------------------------------------
 # GLOBAL SINGLETON PROVIDER (Stage 10 Zero-Leak)
-# ===============================================================================
+# ------------------------------------------------------------
 
 _global_cortex_engine = None
 

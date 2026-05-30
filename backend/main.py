@@ -13,7 +13,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 import uvicorn
 
-# Vul Agent Core Imports
+# Vigilagent Core Imports
 from backend.core.config import settings, ConfigManager
 from backend.core.default_tools import register_default_tools
 from backend.core.orchestrator import HiveOrchestrator, MasterNode, WorkerNode
@@ -238,7 +238,7 @@ class DistributedAttackCluster:
                 self.config.supabase.key
             )
             self.running = True
-            print("📡 VUL AGENT: Master Node Activated.")
+            print("📡 VIGILAGENT: Master Node Activated.")
             await self.master_node.start()
         except Exception as e:
             print(f"❌ Master start error: {e}")
@@ -255,7 +255,7 @@ class DistributedAttackCluster:
                 self.config.supabase.key
             )
             self.running = True
-            print(f"🦾 VUL AGENT: Worker Node Activated ({worker_id})")
+            print(f"🦾 VIGILAGENT: Worker Node Activated ({worker_id})")
             await self.worker_node.start()
         except Exception as e:
             print(f"❌ Worker start error: {e}")
@@ -283,7 +283,7 @@ class DistributedAttackCluster:
 
 async def vulagent_serve(args):
     if args.mode == "serve":
-        print(f"🚀 Launching Vul Agent API Gateway on {args.host}:{args.port}")
+        print(f"🚀 Launching Vigilagent API Gateway on {args.host}:{args.port}")
         config = uvicorn.Config(app, host=args.host, port=args.port, log_level="info")
         server = uvicorn.Server(config)
         await server.serve()
@@ -301,15 +301,21 @@ async def vulagent_serve(args):
             sys.exit(1)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Vul Agent: Unified Entry Point")
+    parser = argparse.ArgumentParser(description="Vigilagent: Unified Entry Point")
     parser.add_argument("--mode", choices=["serve", "master", "worker", "cluster"], default="serve", help="Execution mode.")
     parser.add_argument("--host", default="127.0.0.1", help="API Host.")
     parser.add_argument("--port", type=int, default=8000, help="API Port.")
-    parser.add_argument("--num-workers", type=int, default=3, help="Cluster worker count.")
+    # Cluster worker count default comes from config/workers.yaml (Architecture §29.10).
+    try:
+        from backend.core.config import load_workers_config
+        _default_workers = int(load_workers_config().get("default_num_workers", 3))
+    except Exception:
+        _default_workers = 3
+    parser.add_argument("--num-workers", type=int, default=_default_workers, help="Cluster worker count.")
     parser.add_argument("--worker-id", help="Override worker ID.")
     
     args = parser.parse_args()
     try:
         asyncio.run(vulagent_serve(args))
     except KeyboardInterrupt:
-        print("\n[VUL AGENT] Service shutdown by user.")
+        print("\n[VIGILAGENT] Service shutdown by user.")

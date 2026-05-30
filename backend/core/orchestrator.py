@@ -180,7 +180,7 @@ class HiveOrchestrator:
                 mock_pdf = FPDF()
                 mock_pdf.add_page()
                 mock_pdf.set_font("Arial", "B", 16)
-                mock_pdf.cell(0, 10, "Vulagent Scanner - Test Mode Report", ln=True)
+                mock_pdf.cell(0, 10, "Vigilagent - Test Mode Report", ln=True)
                 mock_pdf.set_font("Arial", "", 12)
                 mock_pdf.cell(0, 10, f"Scan ID: {scan_id}", ln=True)
                 mock_pdf.cell(0, 10, f"Target: {target_config['url']}", ln=True)

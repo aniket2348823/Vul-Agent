@@ -1,0 +1,37 @@
+# Vigilagent Skill Registry Configuration (Architecture §5.3, §29.10)
+# ----------------------------------------------------------------------------
+# Declares where skills are ingested from and the promotion/risk policy for
+# generated skills. Source skill files are always treated as READ-ONLY; only
+# normalized metadata is cached in the catalog.
+# ----------------------------------------------------------------------------
+
+# Skill source roots, scanned for `*/SKILL.md` (and optional index.json).
+# Relative paths resolve against the project root. Missing roots are skipped
+# gracefully so the system runs anywhere.
+roots:
+  - .agents/skills            # workspace-bundled skills (active by default)
+  - generated_skills          # auto-created skills (start as candidate)
+
+# Optional external skill libraries (Architecture §5.3). Add the path to the
+# Anthropic-Cybersecurity-Skills checkout here when present on the host.
+external_roots:
+  - D:\projects\Anthropic-Cybersecurity-Skills
+
+# Promotion gate (Architecture §13.2). Generated skills must pass evaluation
+# before they can be used automatically.
+promotion:
+  # Skills discovered outside generated_skills/ load as ACTIVE; generated ones
+  # always start as CANDIDATE and must be promoted.
+  generated_initial_state: candidate
+  # States in which a skill may execute automatically within matching scope.
+  auto_executable_states:
+    - active
+  # States requiring operator confirmation before execution.
+  approval_required_states:
+    - assisted
+
+# Risk policy: skills above this risk class never run without explicit approval.
+risk:
+  approval_required_at_or_above: intrusive_validation
+  disabled_classes:
+    - disabled_by_default

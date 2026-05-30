@@ -12,6 +12,17 @@ from backend.core.url_validator import validate_url
 
 router = APIRouter()
 
+
+def validate_target_url(url: str, allow_private: bool = True):
+    """Validate an attack target URL for SSRF safety.
+
+    Thin wrapper over the centralized SSRF validator so callers (and tests)
+    have a single, intention-revealing entry point at the API boundary.
+    Returns a ``(is_valid, reason)`` tuple.
+    """
+    return validate_url(url, allow_private=allow_private)
+
+
 # --- INPUT VALIDATION: URL ALLOWLIST ---
 _active_scan_targets: dict[str, float] = {}
 _active_scan_targets_lock = asyncio.Lock()

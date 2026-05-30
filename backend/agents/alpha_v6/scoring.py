@@ -137,7 +137,12 @@ def score_endpoint(endpoint: EndpointFinding) -> EndpointFinding:
     reasons.append(f"base:{endpoint_type}:{score}")
 
     # 3. Authentication state
-    if not endpoint.auth_required and endpoint.status_code not in {401, 403}:
+    # Low-value public asset types (static/media) are expected to be
+    # unauthenticated, so the "no auth" signal carries no risk meaning for them.
+    _low_value_types = {"STATIC", "MEDIA"}
+    if endpoint_type in _low_value_types:
+        pass
+    elif not endpoint.auth_required and endpoint.status_code not in {401, 403}:
         score += 20
         reasons.append("no_auth_observed:+20")
     elif endpoint.status_code in {401, 403}:

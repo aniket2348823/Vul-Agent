@@ -33,13 +33,45 @@ os.makedirs(STATIC_DIR, exist_ok=True)
 # XYTHERION CONFIGURATION MATRIX
 # Role: Dynamic environment-based settings for the distributed swarm.
 
-# Vigilagent declarative config files (Architecture §21).
+# Vigilagent declarative config files (Architecture §21, §29.10).
 CONFIG_FILES_DIR = os.path.join(PROJECT_ROOT, "config")
 SCOPE_CONFIG_PATH = os.path.join(CONFIG_FILES_DIR, "scope.yaml")
 TOOLS_CONFIG_PATH = os.path.join(CONFIG_FILES_DIR, "tools.yaml")
 BUDGETS_CONFIG_PATH = os.path.join(CONFIG_FILES_DIR, "budgets.yaml")
 MODELS_CONFIG_PATH = os.path.join(CONFIG_FILES_DIR, "models.yaml")
 EXTENSION_CONFIG_PATH = os.path.join(CONFIG_FILES_DIR, "extension.yaml")
+SKILLS_CONFIG_PATH = os.path.join(CONFIG_FILES_DIR, "skills.yaml")
+WORKERS_CONFIG_PATH = os.path.join(CONFIG_FILES_DIR, "workers.yaml")
+ENGAGEMENT_CONFIG_PATH = os.path.join(CONFIG_FILES_DIR, "engagement.yaml")
+
+
+def load_workers_config() -> Dict[str, Any]:
+    """Load cluster/worker defaults from config/workers.yaml (Architecture
+    §4.3, §5.1.2, §29.10). Returns a dict with safe fallbacks so the cluster
+    runs even if the file is missing or malformed."""
+    defaults: Dict[str, Any] = {
+        "default_num_workers": 3,
+        "heartbeat_interval_seconds": 30,
+        "max_concurrent_tasks_per_worker": 5,
+        "in_process_fallback": True,
+        "specialties": ["hybrid", "recon", "browser", "api", "network",
+                         "validation", "forensics", "reporting", "skill"],
+        "default_specialty": "hybrid",
+    }
+    try:
+        import yaml  # type: ignore
+        if os.path.exists(WORKERS_CONFIG_PATH):
+            with open(WORKERS_CONFIG_PATH, "r", encoding="utf-8") as fh:
+                data = yaml.safe_load(fh) or {}
+            cluster = data.get("cluster", {}) or {}
+            defaults.update({k: v for k, v in cluster.items() if v is not None})
+            if data.get("specialties"):
+                defaults["specialties"] = list(data["specialties"])
+            if data.get("default_specialty"):
+                defaults["default_specialty"] = str(data["default_specialty"])
+    except Exception as exc:  # pragma: no cover - fail safe to defaults
+        logger.warning("Could not parse workers.yaml (%s); using defaults.", exc)
+    return defaults
 
 # Product identity (Architecture §1, §13). User-facing only.
 PRODUCT_NAME = vigil_env("PRODUCT_NAME", "Vigilagent")

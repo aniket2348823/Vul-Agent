@@ -2,7 +2,12 @@ import pytest,httpx,time
 B='http://localhost:8000';T=15.0
 @pytest.fixture(scope='session')
 def c():
-    with httpx.Client(base_url=B,timeout=T) as cl: yield cl
+    with httpx.Client(base_url=B,timeout=T) as cl:
+        try:
+            cl.get('/api/health')
+        except httpx.ConnectError:
+            pytest.skip('backend server not running on localhost:8000', allow_module_level=False)
+        yield cl
 class TestAI:
     def test_status(self,c): assert 'core_status' in c.get('/api/ai/status').json()
     def test_mutate(self,c): assert 'variants' in c.post('/api/ai/mutate',json={'url':'http://t','method':'GET'}).json()

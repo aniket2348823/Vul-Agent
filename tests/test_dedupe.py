@@ -117,9 +117,17 @@ class TestClassifyPath:
             assert ep_type == "DATA_ENDPOINT", f"Failed for {path}"
 
     def test_file_paths(self):
-        for path in ["/config.json", "/data.xml", "/backup.yaml", "/.env"]:
+        # Generic data files classify as FILE_ENDPOINT
+        for path in ["/data.xml", "/export.csv", "/dump.sql", "/server.log"]:
             ep_type, _ = classify_path(path)
             assert ep_type == "FILE_ENDPOINT", f"Failed for {path}"
+
+    def test_sensitive_config_files(self):
+        # Config/secret files are classified as the more specific CONFIG_ENDPOINT (CRITICAL)
+        for path in ["/config.json", "/.env", "/wp-config.php"]:
+            ep_type, risk = classify_path(path)
+            assert ep_type == "CONFIG_ENDPOINT", f"Failed for {path}"
+            assert risk == "CRITICAL"
 
     def test_js_files(self):
         ep_type, _ = classify_path("/static/app.js")

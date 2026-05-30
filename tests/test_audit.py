@@ -2,7 +2,12 @@ import pytest,httpx,time
 B='http://localhost:8000';T=15.0
 @pytest.fixture(scope='session')
 def c():
-    with httpx.Client(base_url=B,timeout=T) as cl: yield cl
+    with httpx.Client(base_url=B,timeout=T) as cl:
+        try:
+            cl.get('/api/health')
+        except httpx.ConnectError:
+            pytest.skip('backend server not running on localhost:8000', allow_module_level=False)
+        yield cl
 class TestHealth:
     def test_ok(self,c): assert c.get('/api/health').json()['status']=='online'
     def test_404(self,c): assert c.get('/api/nonexistent').status_code in(404,405)

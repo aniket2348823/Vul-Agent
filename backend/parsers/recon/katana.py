@@ -9,12 +9,19 @@ def parse_katana_jsonl(path: Path | str) -> list[ParsedEntity]:
     entities: list[ParsedEntity] = []
     seen: set[str] = set()
     for row in safe_json_lines(path):
-        url = str(row.get("endpoint", row.get("url", row.get("request", {}).get("endpoint", "")))).strip()
+        req = row.get("request", {}) if isinstance(row.get("request"), dict) else {}
+        url = str(
+            row.get("endpoint")
+            or row.get("url")
+            or req.get("endpoint")
+            or req.get("url")
+            or ""
+        ).strip()
         if not url or url in seen: continue
         seen.add(url)
         parsed = urlparse(url)
-        source_url = str(row.get("source", ""))
-        method = str(row.get("method", "GET")).upper()
+        source_url = str(row.get("source", "") or req.get("source", ""))
+        method = str(row.get("method") or req.get("method") or "GET").upper()
         tag = str(row.get("tag", ""))
         attr = str(row.get("attribute", ""))
         status = int(row.get("status_code", row.get("response", {}).get("status_code", 0)) or 0)

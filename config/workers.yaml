@@ -1,0 +1,30 @@
+# Vigilagent Worker / Cluster Configuration (Architecture §4.3, §5.1.2, §29.10)
+# ----------------------------------------------------------------------------
+# Defines worker specialties and cluster sizing for master/worker delegation.
+# Workers execute bounded child-agent task packets with heartbeats and scoped
+# tool access (Architecture §5.1.2).
+# ----------------------------------------------------------------------------
+
+cluster:
+  default_num_workers: 3
+  heartbeat_interval_seconds: 30
+  max_concurrent_tasks_per_worker: 5
+  # When Redis is unavailable, delegation runs in-process (Architecture §4.6).
+  in_process_fallback: true
+
+# Specialized worker roles (Architecture §5.1.2). A worker advertises a
+# specialty; the master routes matching task packets to it. "hybrid" accepts
+# any task type.
+specialties:
+  - hybrid          # accepts any task
+  - recon           # subfinder/httpx/katana/naabu/nmap recon
+  - browser         # OpenClaw + PinchTab driven analysis
+  - api             # API/GraphQL discovery + validation
+  - network         # port/service/TLS assessment
+  - validation      # controlled HTTP/browser exploit validation
+  - forensics       # evidence reconstruction + verification
+  - reporting       # report synthesis + exports
+  - skill           # bounded skill-job execution
+
+# Default specialty for a worker started without an explicit one.
+default_specialty: hybrid

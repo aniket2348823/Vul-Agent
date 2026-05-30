@@ -169,7 +169,7 @@ class OpenRouterClient:
             "Authorization": f"Bearer {self._api_key}",
             "Content-Type": "application/json",
             "HTTP-Referer": "https://antigravity.local",
-            "X-Title": "Vul Agent Elite",
+            "X-Title": "Vigilagent",
         }
 
         payload = {

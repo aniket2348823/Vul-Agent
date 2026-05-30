@@ -13,7 +13,7 @@ from backend.core.config import settings
 
 class SecurityReportPDF(FPDF):
     """
-    Vulagent Scanner Professional Forensic Engine.
+    Vigilagent Professional Forensic Engine.
     Matches specimen layout: Red/Blue/Purple accent palette.
     Pixel-locked to specimen images PS_1 through PS_4.
     """
@@ -50,7 +50,7 @@ class SecurityReportPDF(FPDF):
         self.set_font('Courier', '', 10)
         self.set_text_color(*self.DARK_BLUE)
         self.set_y(10)
-        self.cell(0, 5, 'Vulagent Scanner', align='L', ln=True)
+        self.cell(0, 5, 'Vigilagent', align='L', ln=True)
         
         # Thick Underline
         self.set_draw_color(*self.DARK_BLUE)

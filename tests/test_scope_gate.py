@@ -72,13 +72,13 @@ class TestPrivateNetworkBlocking:
     def test_blocks_localhost(self):
         scope = _make_scope(base_domain="localhost")
         gate = ScopeGate(scope)
-        with pytest.raises(ScopeGateViolation, match="globally_denied"):
+        with pytest.raises(ScopeGateViolation, match="private_network"):
             gate.validate_target("http://localhost:8080")
 
     def test_blocks_127(self):
         scope = _make_scope(base_domain="127.0.0.1")
         gate = ScopeGate(scope)
-        with pytest.raises(ScopeGateViolation, match="globally_denied"):
+        with pytest.raises(ScopeGateViolation, match="private_network"):
             gate.validate_target("http://127.0.0.1")
 
     def test_blocks_192_168(self):

@@ -71,7 +71,9 @@ class TestPassiveCommands:
     def test_all_have_parser_hint(self, planner, scope, raw_dir):
         cmds = planner.passive_commands(scope, raw_dir)
         for cmd in cmds:
-            assert cmd.parser_hint in {"jsonl", "json", "lines", "xml", "csv", "custom"}
+            assert cmd.parser_hint in {
+                "jsonl", "json", "json-file", "lines", "urls", "xml", "csv", "custom",
+            }
 
 
 class TestDNSCommands:
@@ -82,7 +84,7 @@ class TestDNSCommands:
         hosts_file.parent.mkdir(parents=True, exist_ok=True)
         hosts_file.write_text("api.example.com\nstaging.example.com\n")
 
-        cmds = planner.dns_commands(scope, hosts_file, raw_dir)
+        cmds = planner.dns_commands(scope, raw_dir, hosts_file)
         dnsx_cmds = [c for c in cmds if c.tool_name == "dnsx"]
         assert len(dnsx_cmds) >= 1
         cmd = dnsx_cmds[0]
@@ -98,11 +100,11 @@ class TestHTTPCommands:
         hosts_file.parent.mkdir(parents=True, exist_ok=True)
         hosts_file.write_text("api.example.com\n")
 
-        cmds = planner.http_commands(scope, hosts_file, raw_dir)
+        cmds = planner.http_commands(scope, raw_dir, hosts_file)
         httpx_cmds = [c for c in cmds if c.tool_name == "httpx"]
         assert len(httpx_cmds) >= 1
         cmd = httpx_cmds[0]
-        assert cmd.phase == "http_probing"
+        assert cmd.phase == "http_browser_intelligence"
         assert "httpx" in cmd.argv[0]
 
 
@@ -110,8 +112,9 @@ class TestDiscoveryCommands:
     """Discovery phase command planning."""
 
     def test_feroxbuster_command(self, planner, scope, raw_dir):
+        raw_dir.mkdir(parents=True, exist_ok=True)
         urls = ["https://example.com"]
-        cmds = planner.discovery_commands(scope, urls, raw_dir)
+        cmds = planner.discovery_commands(scope, raw_dir, urls)
         ferox_cmds = [c for c in cmds if c.tool_name == "feroxbuster"]
         # feroxbuster may or may not be planned depending on mode
         for cmd in ferox_cmds:

@@ -106,3 +106,40 @@ Priority order follows §29.11 (Priority Implementation Order).
 ## Notes
 - No working recon/reporting/browser/guard/forensic code deleted (§25 rule).
 - EventBus retained for telemetry only; control plane added on top (§5.5).
+
+## Phase 7 — Audit, branding, config completion (DONE)
+
+Full gap-audit of the implementation against the architecture, verifying each
+invariant in real code (not trusting the progress doc), plus closing the
+remaining declarative-config and branding gaps.
+
+| # | Item | Architecture ref | File(s) | Status |
+|---|------|------------------|---------|--------|
+| 41 | Cortex two-LLM honesty pass | §11, §12.4, §25 | `backend/ai/cortex.py` (rewrote misleading "Ollama on-device" header; cleaned 59 mojibake comment lines; NVIDIA/Granite/Ollama labels → Gemini; class docstring fixed) | ✅ |
+| 42 | Katana parser robustness | §7 | `backend/parsers/recon/katana.py` (handles nested `request.url`/`request.endpoint` + flat formats; was returning 0 entities) | ✅ |
+| 43 | Static/media scoring correctness | §17 scoring | `backend/agents/alpha_v6/scoring.py` (STATIC/MEDIA no longer get the "no-auth" risk boost) | ✅ |
+| 44 | SSRF validation entry point | §9 | `backend/api/endpoints/attack.py` (`validate_target_url` wrapper over centralized validator) | ✅ |
+| 45 | `config/skills.yaml` + wiring | §5.3.6, §29.10 | `config/skills.yaml`, `backend/skills/loader.py` (`load_skill_roots`; roots incl. external Anthropic path) | ✅ |
+| 46 | `config/workers.yaml` + wiring | §4.3, §5.1.2, §29.10 | `config/workers.yaml`, `backend/core/config.py` (`load_workers_config`), `backend/main.py` (cluster size from config) | ✅ |
+| 47 | `config/engagement.yaml` template | §9, §29.10 | `config/engagement.yaml` (engagement/authorization descriptor; scope.yaml remains the enforcing authority) | ✅ |
+| 48 | Branding rename (user-facing) | §13.1 | SARIF tool name, PDF report headers, console banners, CLI desc, OpenRouter X-Title, report prompts → Vigilagent. Stable IDs preserved (§13.3). | ✅ |
+| 49 | pytest async config fix | (tooling) | `pytest.ini` `[tool:pytest]` → `[pytest]` so `asyncio_mode=auto` applies; live-API audit tests skip gracefully when no server | ✅ |
+
+### Invariants verified in real code (Architecture §14)
+- **Scope containment + authorization gate (§1, §9, §14.1, §14.8):** `exploit_engine` routes every request through `ScopePolicy.assert_allowed`; no `ALLOWED_DOMAINS`/localhost lock.
+- **Two-LLM exclusivity (§11, §14.2):** only `openai/gpt-oss-20b` (OpenRouter) and `gemini-2.5-flash` (Gemini) clients exist; no calls to `11434`/NVIDIA endpoints; legacy `_call_ollama`/`_call_nvidia_*` are aliases onto `_call_gemini`.
+- **Budget boundedness (§3, §14.3):** `IterationBudget.child()` is independent; thread-safe consume/refund.
+- **No exploitation shell / no shell strings (§2, §14.4, §14.6):** recon guardrails enforce argv-only, reject shell metacharacters, allowlist binaries.
+- **Evidence-based confirmation ≥2 signals (§9, §17, §14.7):** `MultiLayerVerifier.verify` requires `signals >= 2`; all `modules/tech/*` + `modules/logic/*` use the differential/logic evidence helper; doppelganger skips rather than fabricating a mock token.
+- **No fake intelligence (§6, §25):** Beta uses a real epsilon-greedy `PayloadBandit` updated from real verifier outcomes; Omega uses LLM + graph + deterministic-evidence strategy (no `random.choices` Nash); evidence-derived hypotheses.
+- **Control plane wired (§24):** `DelegationManager` + `campaign_budget` + `NetworkServiceCommander` instantiated in `bootstrap_hive`; `ScanStateDB`, `UnifiedKnowledgeGraph` used across planner/agents/bridge/learning.
+- **Recon tool matrix (§7):** all 26 tools registered with availability checks.
+- **Config files (§21, §29.10):** scope, tools, budgets, models, extension, skills, workers, engagement all present; skills/workers wired into runtime.
+
+### Health
+- All 198 backend modules import cleanly (`compileall` + import sweep).
+- Full app imports with 95 routes registered.
+- Non-network test suite: 178 passed, 57 skipped (skips = live-API tests needing a running server).
+
+## Remaining (requires a running server — out of static-implementation scope)
+- Live API surface verification (§22): start backend, exercise `/api/*` endpoints end-to-end.

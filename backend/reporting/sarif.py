@@ -29,7 +29,7 @@ def findings_to_sarif(findings: list[dict[str, Any]]) -> dict[str, Any]:
         "runs": [{
             "tool": {
                 "driver": {
-                    "name": "Antigravity VulAgent",
+                    "name": "Vigilagent",
                     "informationUri": "https://owasp.org/API-Security/",
                     "rules": list(rules.values()),
                 }

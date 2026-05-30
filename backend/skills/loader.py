@@ -32,6 +32,7 @@ from backend.skills.policy import PromotionState, RiskClass
 logger = logging.getLogger("vigilagent.skills.loader")
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_SKILLS_CONFIG = _PROJECT_ROOT / "config" / "skills.yaml"
 
 # Default skill roots (Architecture §5.3 important source folders).
 _DEFAULT_ROOTS = [
@@ -43,6 +44,32 @@ try:
     import yaml  # type: ignore
 except Exception:  # pragma: no cover
     yaml = None  # type: ignore
+
+
+def _resolve_root(entry: str) -> Path:
+    """Resolve a configured root: absolute paths as-is, else under project root."""
+    p = Path(entry)
+    return p if p.is_absolute() else (_PROJECT_ROOT / p)
+
+
+def load_skill_roots(config_path: Path | None = None) -> list[Path]:
+    """Build the list of skill roots from config/skills.yaml (Architecture
+    §5.3.6, §29.10), falling back to sensible defaults. Missing roots are kept
+    in the list but skipped at scan time, so the system runs on any host."""
+    cfg = config_path or _SKILLS_CONFIG
+    roots: list[Path] = []
+    if yaml is not None and cfg.exists():
+        try:
+            data = yaml.safe_load(cfg.read_text(encoding="utf-8")) or {}
+            for entry in (data.get("roots") or []):
+                roots.append(_resolve_root(str(entry)))
+            for entry in (data.get("external_roots") or []):
+                roots.append(_resolve_root(str(entry)))
+        except Exception as exc:  # pragma: no cover - fail safe to defaults
+            logger.warning("Could not parse skills.yaml (%s); using defaults.", exc)
+    if not roots:
+        roots = list(_DEFAULT_ROOTS)
+    return roots
 
 
 def _slugify(text: str) -> str:
@@ -117,7 +144,7 @@ class SkillLoader:
     """Scans skill roots and populates the catalog (Architecture §5.3.1)."""
 
     def __init__(self, roots: list[Path] | None = None, catalog: SkillCatalog | None = None) -> None:
-        self.roots = roots or _DEFAULT_ROOTS
+        self.roots = roots or load_skill_roots()
         self.catalog = catalog or skill_catalog
 
     def load_all(self) -> int:
