@@ -1,0 +1,173 @@
+"""
+Alpha V6 Interactsh Client Adapter — Scan-wide OOB callback detection.
+
+Manages an Interactsh client per-scan for out-of-band vulnerability validation.
+Polls for interactions and correlates them back to source payloads.
+"""
+from __future__ import annotations
+
+import asyncio
+import hashlib
+import json
+import logging
+import time
+from pathlib import Path
+from typing import Any
+
+from backend.agents.alpha_recon.models import stable_id
+from backend.core.config import settings
+from backend.core.database import db_manager
+from backend.core.queue import command_lane
+
+logger = logging.getLogger("alpha.interactsh")
+
+
+class InteractshAdapter:
+    """Manages Interactsh client lifecycle for a scan."""
+
+    def __init__(self, scan_id: str, artifacts_root: Path):
+        self.scan_id = scan_id
+        self.artifacts_root = artifacts_root
+        self.interaction_log = artifacts_root / "raw" / "interactsh_interactions.jsonl"
+        self.interaction_log.parent.mkdir(parents=True, exist_ok=True)
+        self._correlation_id: str = ""
+        self._interactsh_url: str = ""
+        self._poll_task: asyncio.Task | None = None
+        self._interactions: list[dict] = []
+        self._running = False
+
+    @property
+    def oob_url(self) -> str:
+        """Get the OOB callback URL for embedding in payloads."""
+        return self._interactsh_url
+
+    @property
+    def correlation_id(self) -> str:
+        return self._correlation_id
+
+    async def start(self) -> str:
+        """Start the Interactsh client and return the OOB URL."""
+        # Generate a correlation ID for this scan
+        self._correlation_id = hashlib.sha1(
+            f"{self.scan_id}_{time.time()}".encode()).hexdigest()[:12]
+
+        # Check if interactsh-client is available
+        import shutil
+        client_path = shutil.which("interactsh-client")
+        if not client_path:
+            # Fallback: generate a placeholder URL for payload injection
+            self._interactsh_url = f"INTERACT_{self._correlation_id}.oast.live"
+            logger.warning("[INTERACTSH] Client not found, using placeholder URL")
+            return self._interactsh_url
+
+        # Start the client process
+        try:
+            async with command_lane.slot():
+                proc = await asyncio.create_subprocess_exec(
+                    client_path, "-json", "-poll-interval", "5",
+                    "-o", str(self.interaction_log),
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+            # Read the first line to get the URL
+            first_line = await asyncio.wait_for(
+                proc.stdout.readline(), timeout=15)
+            url_data = json.loads(first_line.decode("utf-8", errors="replace"))
+            self._interactsh_url = url_data.get("url", "")
+            self._running = True
+            self._poll_task = asyncio.create_task(
+                self._poll_interactions(proc))
+            logger.info(f"[INTERACTSH] Started with URL: {self._interactsh_url}")
+            return self._interactsh_url
+        except Exception as exc:
+            logger.warning(f"[INTERACTSH] Failed to start: {exc}")
+            self._interactsh_url = f"INTERACT_{self._correlation_id}.oast.live"
+            return self._interactsh_url
+
+    async def stop(self) -> list[dict]:
+        """Stop the client and return all interactions."""
+        self._running = False
+        if self._poll_task:
+            self._poll_task.cancel()
+            try:
+                await self._poll_task
+            except asyncio.CancelledError:
+                pass
+        return self._interactions
+
+    async def _poll_interactions(self, proc):
+        """Background task to read interactions from the client."""
+        try:
+            while self._running:
+                line = await asyncio.wait_for(
+                    proc.stdout.readline(), timeout=10)
+                if not line:
+                    await asyncio.sleep(1)
+                    continue
+                try:
+                    interaction = json.loads(line.decode("utf-8", errors="replace"))
+                    await self._process_interaction(interaction)
+                except json.JSONDecodeError:
+                    continue
+        except (asyncio.TimeoutError, asyncio.CancelledError):
+            pass
+        except Exception as exc:
+            logger.warning(f"[INTERACTSH] Poll error: {exc}")
+        finally:
+            try:
+                proc.terminate()
+            except Exception:
+                pass
+
+    async def _process_interaction(self, interaction: dict):
+        """Process a single OOB interaction."""
+        int_type = interaction.get("protocol", "unknown")
+        raw_request = interaction.get("raw-request", "")
+        remote_addr = interaction.get("remote-address", "")
+        timestamp = interaction.get("timestamp", "")
+
+        record = {
+            "id": stable_id(self.scan_id, "oob", str(time.time())),
+            "scan_id": self.scan_id,
+            "provider": "interactsh",
+            "interaction_type": int_type,
+            "correlation_id": self._correlation_id,
+            "source_endpoint": "",
+            "raw": {
+                "remote_address": remote_addr,
+                "raw_request": raw_request[:2000],
+                "timestamp": timestamp,
+                "full_response": interaction.get("raw-response", "")[:2000],
+            },
+            "severity": self._classify_severity(int_type),
+        }
+
+        self._interactions.append(record)
+
+        # Persist to database
+        try:
+            await db_manager.create_recon_oob_interaction(**record)
+        except Exception as exc:
+            logger.warning(f"[INTERACTSH] DB persist failed: {exc}")
+
+        # Log to file
+        with self.interaction_log.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record, default=str) + "\n")
+
+        logger.info(f"[INTERACTSH] OOB {int_type} from {remote_addr}")
+
+    @staticmethod
+    def _classify_severity(protocol: str) -> str:
+        high_protos = {"dns", "http", "https", "smtp", "ftp", "ldap"}
+        return "critical" if protocol in high_protos else "high"
+
+    def get_payload_markers(self) -> dict[str, str]:
+        """Get payload markers for use in Nuclei templates and custom payloads."""
+        url = self._interactsh_url
+        return {
+            "oob_url": url,
+            "oob_http": f"http://{url}",
+            "oob_https": f"https://{url}",
+            "oob_dns": url,
+            "correlation_id": self._correlation_id,
+        }

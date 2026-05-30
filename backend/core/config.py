@@ -118,6 +118,10 @@ class GlobalSettings:
     EXTENSION_CONFIG_PATH: str = EXTENSION_CONFIG_PATH
     # Terminal Engine (§8): prefer Docker-isolated execution for Linux-native tools.
     TERMINAL_PREFER_DOCKER: bool = vigil_env("TERMINAL_PREFER_DOCKER", "true").lower() == "true"
+    # Recon Docker arsenal image (§7 rule 3): the full 39-tool image so recon
+    # runs identically on any host without per-host installs.
+    RECON_DOCKER_IMAGE: str = vigil_env("RECON_DOCKER_IMAGE", "vigilagent/recon:latest")
+    RECON_DOCKER_NETWORK: str = vigil_env("RECON_DOCKER_NETWORK", "bridge")
     SANDBOX_IMAGE: str = vigil_env("SANDBOX_IMAGE", "python:3.12-slim")
     # Two-LLM policy (§11): only these two providers are reachable.
     STRATEGIC_MODEL: str = vigil_env("STRATEGIC_MODEL", "openai/gpt-oss-20b")

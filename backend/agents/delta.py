@@ -19,10 +19,29 @@ class AgentDelta(BrowserEnabledAgent):
         super().__init__("agent_delta", bus)
         
         self._last_session_id = ""
+        self._skill_rec_cache = {}
         
     async def setup(self):
         # Triggered by Recon/Orchestrator when navigating routes
         self.bus.subscribe(EventType.JOB_ASSIGNED, self.handle_hybrid_request)
+
+    def _recall_browser_skills(self, target_url: str = "") -> list:
+        """Kappa-style skill recall (Architecture §5.3.5, §29.9): Delta receives
+        browser, mobile, session, and dynamic-interaction skills. Cached per
+        target to avoid rework."""
+        cache = self._skill_rec_cache
+        if target_url in cache:
+            return cache[target_url]
+        recs = []
+        try:
+            from backend.core.skill_library import skill_library
+            for vuln_class in ("browser", "session", "mobile", "dynamic-interaction"):
+                recs.extend(skill_library.get_recommendations(
+                    target_url=target_url, vuln_class=vuln_class, limit=3))
+        except Exception:
+            recs = []
+        cache[target_url] = recs
+        return recs
 
     async def _safe_kill(self, proc):
         if not proc or proc.returncode is not None:
@@ -125,6 +144,8 @@ class AgentDelta(BrowserEnabledAgent):
              
     async def execute_pinchtab_flow(self, packet: JobPacket):
         target_url = packet.target.url
+        # Surface browser/session skills for this target before driving the browser.
+        self._recall_browser_skills(target_url)
         async with TempWorkspace(prefix="delta-pinchtab") as workspace:
             success = await self._pinch_nav(None, target_url)
             if not success: return

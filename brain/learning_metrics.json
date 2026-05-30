@@ -2,8 +2,8 @@
   "total_patterns": 0,
   "high_confidence_patterns": 0,
   "total_scans_analyzed": 0,
-  "total_vulns_learned": 6,
+  "total_vulns_learned": 20,
   "avg_pattern_confidence": 0.0,
   "learning_rate": 0.0,
-  "last_updated": 1779810153.4696424
+  "last_updated": 1780156916.0288746
 }

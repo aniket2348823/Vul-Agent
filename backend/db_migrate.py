@@ -25,7 +25,7 @@ def main():
     project_root = Path(__file__).resolve().parent
     migration_files = [
         project_root / "core" / "schema.sql",
-        project_root / "agents" / "alpha_v6" / "schema_extensions.sql",
+        project_root / "agents" / "alpha_recon" / "schema_extensions.sql",
     ]
 
     for sql_path in migration_files:
@@ -52,7 +52,7 @@ def main():
             print(f"  ✓ {f}")
     print("\nAlternatively, connect via psql:")
     print("  psql $DATABASE_URL -f backend/core/schema.sql")
-    print("  psql $DATABASE_URL -f backend/agents/alpha_v6/schema_extensions.sql")
+    print("  psql $DATABASE_URL -f backend/agents/alpha_recon/schema_extensions.sql")
 
 
 if __name__ == "__main__":

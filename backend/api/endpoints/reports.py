@@ -19,6 +19,59 @@ async def download_report_file(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(path=file_path, filename=filename, media_type='application/pdf')
 
+
+def _to_finding(raw: dict):
+    """Map a stored scan finding dict onto the unified Finding model (§17, §18)."""
+    from backend.schemas.findings import (
+        Finding, FindingSeverity, FindingState, FindingConfidence,
+    )
+    payload = raw.get("payload", raw) if isinstance(raw, dict) else {}
+    sev_raw = str(payload.get("severity", "medium")).lower()
+    sev = {
+        "critical": FindingSeverity.CRITICAL, "high": FindingSeverity.HIGH,
+        "medium": FindingSeverity.MEDIUM, "low": FindingSeverity.LOW,
+        "info": FindingSeverity.INFORMATIONAL, "informational": FindingSeverity.INFORMATIONAL,
+    }.get(sev_raw, FindingSeverity.MEDIUM)
+    controls = payload.get("false_positive_controls", [])
+    confirmed = bool(payload.get("verified") or controls)
+    return Finding(
+        id=str(payload.get("vuln_id") or payload.get("id") or payload.get("url", "finding")),
+        title=str(payload.get("type") or payload.get("vuln_type") or payload.get("name") or "Finding"),
+        severity=sev,
+        affected_target=str(payload.get("url") or payload.get("endpoint") or ""),
+        description=str(payload.get("description") or payload.get("evidence") or ""),
+        cvss_score=payload.get("cvss_score"),
+        cvss_vector=str(payload.get("cvss_vector", "")),
+        state=FindingState.CONFIRMED if confirmed else FindingState.CANDIDATE,
+        scope_status=str(payload.get("scope_status", "in_scope")),
+        business_impact=str(payload.get("business_impact", "")),
+        technical_impact=str(payload.get("technical_impact", "")),
+        steps_to_reproduce=list(payload.get("steps_to_reproduce", []) or []),
+        false_positive_controls=list(controls or []),
+        remediation=str(payload.get("remediation", "")),
+        references=list(payload.get("references", []) or []),
+        confidence=FindingConfidence.VERIFIED if confirmed else FindingConfidence.PROBABLE,
+    )
+
+
+@router.post("/findings/{scan_id}/export")
+async def export_findings(scan_id: str):
+    """Emit ALL evidence-first report formats from confirmed Finding objects
+    (Architecture §18): JSON, SARIF, HackerOne markdown, STIX, Executive PDF,
+    Technical PDF. Additive endpoint — existing /pdf route is unchanged."""
+    from pathlib import Path
+    from backend.reporting.finding_report import FindingReportEngine
+
+    scan = stats_db_manager.get_scan_state(scan_id) or {}
+    raw_findings = scan.get("results") or scan.get("findings") or []
+    findings = [_to_finding(r) for r in raw_findings]
+    target = scan.get("target_url") or scan.get("scope") or scan_id
+
+    base_dir = Path(REPORTS_DIR) / scan_id
+    engine = FindingReportEngine(scan_id, str(target))
+    outputs = engine.emit_all(findings, base_dir)
+    return {"scan_id": scan_id, "finding_count": len(findings), "outputs": outputs}
+
 @router.get("/")
 async def list_reports():
     """

@@ -25,7 +25,10 @@ except ImportError:
     OTEL_AVAILABLE = False
     trace = None  # type: ignore
     TracerProvider = None  # type: ignore
-    logger.warning("OpenTelemetry not available - tracing disabled")
+    # OpenTelemetry is an OPTIONAL observability dependency and tracing is off by
+    # default (TRACING_ENABLED=false). Log at DEBUG so a normal install/import is
+    # silent on stderr (avoids false-alarm noise, e.g. PowerShell NativeCommandError).
+    logger.debug("OpenTelemetry not available - tracing disabled")
 
 
 class TracingConfig:
@@ -54,7 +57,7 @@ def init_tracing(config: Optional[TracingConfig] = None) -> None:
     global _tracer_provider, _tracer
     
     if not OTEL_AVAILABLE:
-        logger.warning("OpenTelemetry not installed - tracing disabled")
+        logger.debug("OpenTelemetry not installed - tracing disabled")
         return
     
     if config is None:

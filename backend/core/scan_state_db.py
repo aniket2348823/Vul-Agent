@@ -29,6 +29,7 @@ import random
 import sqlite3
 import threading
 import time
+import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -36,7 +37,7 @@ from typing import Any, Iterable
 
 logger = logging.getLogger("vigilagent.scan_state_db")
 
-_SCHEMA_VERSION = 1
+_SCHEMA_VERSION = 2
 _DEFAULT_DB_PATH = Path("scan_states") / "scan_state.db"
 
 _SCHEMA = """
@@ -228,6 +229,10 @@ CREATE TABLE IF NOT EXISTS checkpoints (
     findings TEXT,
     graph_snapshot TEXT,
     budgets TEXT,
+    boundary TEXT,
+    safe INTEGER DEFAULT 1,
+    agent_health TEXT,
+    remaining_tasks TEXT,
     created_at TEXT
 );
 """
@@ -241,6 +246,19 @@ CREATE VIRTUAL TABLE IF NOT EXISTS search_index USING fts5(
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _loads(value: Any) -> dict:
+    """Best-effort JSON decode for persisted task payloads (already-dict safe)."""
+    if isinstance(value, dict):
+        return value
+    if not value:
+        return {}
+    try:
+        out = json.loads(value)
+        return out if isinstance(out, dict) else {}
+    except Exception:
+        return {}
 
 
 class ScanStateDB:
@@ -280,7 +298,29 @@ class ScanStateDB:
             row = cur.fetchone()
             if row is None:
                 self._conn.execute("INSERT INTO schema_version (version) VALUES (?);", (_SCHEMA_VERSION,))
+            else:
+                self._migrate(int(row["version"]))
             self._conn.commit()
+
+    def _migrate(self, from_version: int) -> None:
+        """Additive, idempotent schema migrations (Architecture §5.6)."""
+        if from_version >= _SCHEMA_VERSION:
+            return
+        # v1 -> v2: enrich checkpoints with safe-boundary/resume columns (§20).
+        existing = {r["name"] for r in
+                    self._conn.execute("PRAGMA table_info(checkpoints);").fetchall()}
+        for col, ddl in (
+            ("boundary", "ALTER TABLE checkpoints ADD COLUMN boundary TEXT;"),
+            ("safe", "ALTER TABLE checkpoints ADD COLUMN safe INTEGER DEFAULT 1;"),
+            ("agent_health", "ALTER TABLE checkpoints ADD COLUMN agent_health TEXT;"),
+            ("remaining_tasks", "ALTER TABLE checkpoints ADD COLUMN remaining_tasks TEXT;"),
+        ):
+            if col not in existing:
+                try:
+                    self._conn.execute(ddl)
+                except sqlite3.OperationalError:
+                    pass
+        self._conn.execute("UPDATE schema_version SET version=?;", (_SCHEMA_VERSION,))
 
     # ── Jittered write retry (Architecture §5.6) ──────────────────────────────
 
@@ -441,30 +481,178 @@ class ScanStateDB:
 
     def save_checkpoint(self, checkpoint_id: str, scan_id: str, *, phase: str,
                         completed_endpoints: list[str], pending_endpoints: list[str],
-                        findings: list[dict], graph_snapshot: dict, budgets: dict) -> None:
+                        findings: list[dict], graph_snapshot: dict, budgets: dict,
+                        boundary: str = "phase", safe: bool = True,
+                        agent_health: dict | None = None,
+                        remaining_tasks: list[dict] | None = None) -> None:
         with self._write() as c:
             c.execute(
                 "INSERT OR REPLACE INTO checkpoints (checkpoint_id, scan_id, phase, "
-                "completed_endpoints, pending_endpoints, findings, graph_snapshot, budgets, created_at) "
-                "VALUES (?,?,?,?,?,?,?,?,?);",
+                "completed_endpoints, pending_endpoints, findings, graph_snapshot, budgets, "
+                "boundary, safe, agent_health, remaining_tasks, created_at) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);",
                 (checkpoint_id, scan_id, phase, json.dumps(completed_endpoints),
                  json.dumps(pending_endpoints), json.dumps(findings),
-                 json.dumps(graph_snapshot), json.dumps(budgets), _now()))
+                 json.dumps(graph_snapshot), json.dumps(budgets),
+                 boundary, int(safe), json.dumps(agent_health or {}),
+                 json.dumps(remaining_tasks or []), _now()))
+
+    # ── Phase-boundary checkpoint/resume (Architecture §20) ───────────────────
+    #
+    # Hermes drives durability from explicit safe boundaries: a snapshot is
+    # taken AFTER each completed phase and BEFORE any risky/destructive step,
+    # and resume restores from the last *safe* boundary. The helpers below adopt
+    # that pattern for scans, capturing graph snapshot + remaining task queue +
+    # budget counters + agent health so a crashed scan resumes cleanly.
+
+    def _capture_graph_snapshot(self, scan_id: str) -> dict:
+        """Snapshot the durable target graph for a scan (nodes + edges)."""
+        with self._lock:
+            nodes = [dict(r) for r in self._conn.execute(
+                "SELECT node_id, kind, label, props FROM graph_nodes WHERE scan_id=?;",
+                (scan_id,)).fetchall()]
+            edges = [dict(r) for r in self._conn.execute(
+                "SELECT edge_id, src_id, dst_id, kind, weight FROM graph_edges WHERE scan_id=?;",
+                (scan_id,)).fetchall()]
+        return {"nodes": nodes, "edges": edges}
+
+    def _capture_findings(self, scan_id: str) -> list[dict]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT * FROM findings WHERE scan_id=?;", (scan_id,)).fetchall()
+        return [dict(r) for r in rows]
+
+    def checkpoint_phase(self, scan_id: str, phase: str, *,
+                         completed_endpoints: list[str] | None = None,
+                         pending_endpoints: list[str] | None = None,
+                         budgets: dict | None = None,
+                         agent_health: dict | None = None,
+                         boundary: str = "phase_complete", safe: bool = True,
+                         checkpoint_id: str | None = None) -> str:
+        """Checkpoint AFTER a phase completes (Architecture §20 safe boundary).
+
+        Auto-captures the graph snapshot, current findings, and the remaining
+        task queue (pending/running tasks) so resume() can restore execution
+        from this boundary. Returns the checkpoint_id.
+        """
+        cp_id = checkpoint_id or f"cp-{scan_id}-{uuid.uuid4().hex[:12]}"
+        remaining = self.pending_tasks(scan_id)
+        self.save_checkpoint(
+            cp_id, scan_id, phase=phase,
+            completed_endpoints=completed_endpoints or [],
+            pending_endpoints=pending_endpoints or [],
+            findings=self._capture_findings(scan_id),
+            graph_snapshot=self._capture_graph_snapshot(scan_id),
+            budgets=budgets or {},
+            boundary=boundary, safe=safe,
+            agent_health=agent_health or {},
+            remaining_tasks=remaining)
+        self.add_event(scan_id, "checkpoint", "scan_state_db",
+                       {"checkpoint_id": cp_id, "phase": phase,
+                        "boundary": boundary, "safe": safe})
+        return cp_id
+
+    def checkpoint_before_validation(self, scan_id: str, phase: str, *,
+                                     completed_endpoints: list[str] | None = None,
+                                     pending_endpoints: list[str] | None = None,
+                                     budgets: dict | None = None,
+                                     agent_health: dict | None = None,
+                                     checkpoint_id: str | None = None) -> str:
+        """Checkpoint BEFORE a risky validation/exploit step (Architecture §20).
+
+        Recorded as a safe boundary so a crash mid-validation resumes from the
+        pre-validation state rather than a partially-applied one.
+        """
+        return self.checkpoint_phase(
+            scan_id, phase,
+            completed_endpoints=completed_endpoints,
+            pending_endpoints=pending_endpoints,
+            budgets=budgets, agent_health=agent_health,
+            boundary="pre_validation", safe=True,
+            checkpoint_id=checkpoint_id)
 
     def latest_checkpoint(self, scan_id: str) -> dict | None:
         with self._lock:
             row = self._conn.execute(
                 "SELECT * FROM checkpoints WHERE scan_id=? ORDER BY created_at DESC LIMIT 1;",
                 (scan_id,)).fetchone()
+        return self._hydrate_checkpoint(row)
+
+    def latest_safe_checkpoint(self, scan_id: str) -> dict | None:
+        """Latest checkpoint at a safe boundary (Architecture §20 resume target)."""
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT * FROM checkpoints WHERE scan_id=? AND safe=1 "
+                "ORDER BY created_at DESC LIMIT 1;",
+                (scan_id,)).fetchone()
+        return self._hydrate_checkpoint(row)
+
+    @staticmethod
+    def _hydrate_checkpoint(row: sqlite3.Row | None) -> dict | None:
         if not row:
             return None
         data = dict(row)
-        for k in ("completed_endpoints", "pending_endpoints", "findings", "graph_snapshot", "budgets"):
-            try:
-                data[k] = json.loads(data[k]) if data[k] else None
-            except Exception:
-                pass
+        for k in ("completed_endpoints", "pending_endpoints", "findings",
+                  "graph_snapshot", "budgets", "agent_health", "remaining_tasks"):
+            if k in data:
+                try:
+                    data[k] = json.loads(data[k]) if data[k] else None
+                except Exception:
+                    pass
+        if "safe" in data and data["safe"] is not None:
+            data["safe"] = bool(data["safe"])
         return data
+
+    def resume(self, scan_id: str) -> dict | None:
+        """Resume a scan from its last completed safe boundary (Architecture §20).
+
+        Restores from the latest *safe* checkpoint (falling back to the latest
+        checkpoint if none is flagged safe), re-points the scan to that phase,
+        re-enqueues the persisted remaining task queue, and returns a resume
+        context: ``{checkpoint, phase, pending_tasks, budgets, agent_health,
+        graph_snapshot}``. Returns None when there is nothing to resume.
+        """
+        cp = self.latest_safe_checkpoint(scan_id) or self.latest_checkpoint(scan_id)
+        if not cp:
+            return None
+
+        phase = cp.get("phase") or ""
+        if phase:
+            self.set_phase(scan_id, phase)
+
+        # Re-enqueue any tasks captured in the checkpoint that are not already
+        # pending/running, so workers can pick them back up after a crash.
+        remaining = cp.get("remaining_tasks") or []
+        live_ids = {t["task_id"] for t in self.pending_tasks(scan_id)}
+        requeued: list[str] = []
+        for task in remaining:
+            tid = task.get("task_id")
+            if not tid or tid in live_ids:
+                continue
+            self.upsert_task(
+                tid, scan_id,
+                agent=task.get("agent", ""),
+                objective=task.get("objective", ""),
+                phase=task.get("phase", phase),
+                status="pending",
+                parent_task_id=task.get("parent_task_id"),
+                payload=_loads(task.get("payload")))
+            requeued.append(tid)
+
+        with self._write() as c:
+            c.execute("UPDATE scans SET status='running', updated_at=? WHERE scan_id=?;",
+                      (_now(), scan_id))
+        self.add_event(scan_id, "resume", "scan_state_db",
+                       {"checkpoint_id": cp.get("checkpoint_id"), "phase": phase,
+                        "requeued": requeued})
+        return {
+            "checkpoint": cp,
+            "phase": phase,
+            "pending_tasks": self.pending_tasks(scan_id),
+            "budgets": cp.get("budgets") or {},
+            "agent_health": cp.get("agent_health") or {},
+            "graph_snapshot": cp.get("graph_snapshot") or {},
+        }
 
     # ── Skills + learning (Architecture §5.3, §13.2, §13.3) ───────────────────
 

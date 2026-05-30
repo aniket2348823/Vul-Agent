@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from backend.agents.alpha_v6.models import ReconScope, ScanMode
+from backend.agents.alpha_recon.models import ReconScope, ScanMode
 from backend.core.config import settings
 
 
@@ -48,6 +48,13 @@ class ReconCommandPlanner:
                  str(raw_dir / "amass.passive.json")),
                 raw_dir / "amass.passive.stdout.txt", timeout_seconds=self.timeout,
                 parser_hint="json-file", metadata={"json_file": str(raw_dir / "amass.passive.json")}),
+            ReconCommand("assetfinder", "passive_intelligence",
+                ("assetfinder", "--subs-only", d),
+                raw_dir / "assetfinder.txt", timeout_seconds=self.timeout, parser_hint="lines"),
+            ReconCommand("github-subdomains", "passive_intelligence",
+                ("github-subdomains", "-d", d, "-raw"),
+                raw_dir / "github-subdomains.txt", timeout_seconds=self.timeout, parser_hint="lines",
+                metadata={"note": "Requires GITHUB_TOKEN env; safe to skip when unset."}),
             ReconCommand("gau", "passive_intelligence",
                 ("gau", "--threads", "5", "--subs", d),
                 raw_dir / "gau.urls.txt", timeout_seconds=self.timeout, parser_hint="urls"),
@@ -61,6 +68,15 @@ class ReconCommandPlanner:
                 ("cloudlist", "-silent"), raw_dir / "cloudlist.txt",
                 timeout_seconds=self.timeout, parser_hint="lines",
                 metadata={"note": "Requires provider credentials; safe to skip."}))
+        if scope.scan_mode == ScanMode.AGGRESSIVE:
+            sf_script = self.tool_root / "spiderfoot" / "sf.py"
+            if sf_script.exists():
+                cmds.append(ReconCommand("spiderfoot", "passive_intelligence",
+                    ("python", str(sf_script), "-s", d, "-q", "-o", "json",
+                     "-F", "DOMAIN_NAME,EMAILADDR,IP_ADDRESS,INTERNET_NAME"),
+                    raw_dir / "spiderfoot.json", timeout_seconds=self.timeout * 2,
+                    parser_hint="json",
+                    metadata={"note": "OSINT aggregation; passive only."}))
         return cmds
 
     # ── Phase 2: DNS & Infrastructure ──────────────────────────────
@@ -82,6 +98,16 @@ class ReconCommandPlanner:
                     ("shuffledns", "-d", scope.base_domain, "-w", str(wl),
                      "-r", str(resolvers) if resolvers.exists() else "8.8.8.8,1.1.1.1"),
                     raw_dir / "shuffledns.txt", timeout_seconds=self.timeout, parser_hint="lines"))
+                cmds.append(ReconCommand("puredns", "dns_infrastructure",
+                    ("puredns", "bruteforce", str(wl), scope.base_domain,
+                     "-r", str(resolvers) if resolvers.exists() else "8.8.8.8",
+                     "-q", "--write", str(raw_dir / "puredns.txt")),
+                    raw_dir / "puredns.txt", timeout_seconds=self.timeout, parser_hint="lines"))
+        # cdncheck classifies which resolved hosts sit behind a CDN/WAF so the
+        # runtime governor (Zeta) and Beta can avoid wasting budget on edge IPs.
+        cmds.append(ReconCommand("cdncheck", "dns_infrastructure",
+            ("cdncheck", "-l", str(subdomain_file), "-resp", "-json", "-silent"),
+            raw_dir / "cdncheck.jsonl", timeout_seconds=self.timeout, parser_hint="jsonl"))
         return cmds
 
     def port_commands(self, scope: ReconScope, raw_dir: Path, hosts_file: Path) -> list[ReconCommand]:
@@ -95,6 +121,12 @@ class ReconCommandPlanner:
                 raw_dir / "naabu.jsonl", timeout_seconds=self.timeout, parser_hint="jsonl"),
         ]
         if scope.scan_mode == ScanMode.AGGRESSIVE:
+            cmds.append(ReconCommand("masscan", "dns_infrastructure",
+                ("masscan", "-iL", str(hosts_file), "-p", "1-65535", "--rate", rps,
+                 "-oJ", str(raw_dir / "masscan.json")),
+                raw_dir / "masscan.stdout.txt", timeout_seconds=self.timeout * 2,
+                parser_hint="json", metadata={"json_file": str(raw_dir / "masscan.json"),
+                    "note": "Requires raw-socket privileges; safe to skip without them."}))
             cmds.append(ReconCommand("nmap", "dns_infrastructure",
                 ("nmap", "-sV", "-sC", "--top-ports", "1000", "-oX",
                  str(raw_dir / "nmap_scan.xml"), "-iL", str(hosts_file), "--min-rate", rps),
@@ -105,19 +137,32 @@ class ReconCommandPlanner:
     def tls_commands(self, scope: ReconScope, raw_dir: Path, hosts_file: Path) -> list[ReconCommand]:
         if scope.scan_mode == ScanMode.PASSIVE_ONLY:
             return []
-        return [
+        cmds = [
             ReconCommand("tlsx", "dns_infrastructure",
                 ("tlsx", "-l", str(hosts_file), "-san", "-cn", "-so", "-wc",
                  "-ss", "-mm", "-re", "-un", "-json", "-silent"),
                 raw_dir / "tlsx.jsonl", timeout_seconds=self.timeout, parser_hint="jsonl"),
         ]
+        # testssl.sh does a deep TLS/cipher/vuln audit — aggressive only, one
+        # host at a time to stay within budget.
+        if scope.scan_mode == ScanMode.AGGRESSIVE and scope.base_domain:
+            cmds.append(ReconCommand("testssl", "dns_infrastructure",
+                ("testssl.sh", "--jsonfile", str(raw_dir / "testssl.json"),
+                 "--quiet", "--color", "0", scope.base_domain),
+                raw_dir / "testssl.stdout.txt", timeout_seconds=self.timeout * 2,
+                parser_hint="json", metadata={"json_file": str(raw_dir / "testssl.json")}))
+        return cmds
 
     # ── Phase 3: HTTP & Browser Intelligence ──────────────────────
 
     def http_commands(self, scope: ReconScope, raw_dir: Path, hosts_file: Path) -> list[ReconCommand]:
         if scope.scan_mode == ScanMode.PASSIVE_ONLY:
             return []
-        return [
+        cmds = [
+            ReconCommand("httprobe", "http_browser_intelligence",
+                ("httprobe", "-c", "50", "-p", "https:443", "-p", "http:80"),
+                raw_dir / "httprobe.txt", timeout_seconds=self.timeout, parser_hint="lines",
+                stdin=self._read_hosts_stdin(hosts_file)),
             ReconCommand("httpx", "http_browser_intelligence",
                 ("httpx", "-l", str(hosts_file), "-tech-detect", "-status-code",
                  "-title", "-content-length", "-response-time", "-server",
@@ -130,11 +175,48 @@ class ReconCommandPlanner:
                  "-depth", str(scope.max_depth), "-jsonl", "-silent",
                  "-rate-limit", str(scope.max_rps)),
                 raw_dir / "katana.jsonl", timeout_seconds=self.timeout, parser_hint="jsonl"),
+            ReconCommand("gospider", "http_browser_intelligence",
+                ("gospider", "-S", str(hosts_file), "-d", str(scope.max_depth),
+                 "-c", "10", "-t", "5", "--json", "--subs",
+                 "--delay", "0", "-q"),
+                raw_dir / "gospider.jsonl", timeout_seconds=self.timeout, parser_hint="jsonl"),
             ReconCommand("hakrawler", "http_browser_intelligence",
                 ("hakrawler", "-d", str(scope.max_depth), "-subs", "-insecure"),
                 raw_dir / "hakrawler.txt", timeout_seconds=self.timeout, parser_hint="lines",
                 stdin="\n".join(f"https://{scope.base_domain}") + "\n"),
         ]
+        if scope.scan_mode in {ScanMode.STANDARD, ScanMode.AGGRESSIVE}:
+            cmds.append(ReconCommand("wafw00f", "http_browser_intelligence",
+                ("wafw00f", "-i", str(hosts_file), "-o", str(raw_dir / "wafw00f.json"), "-f", "json"),
+                raw_dir / "wafw00f.stdout.txt", timeout_seconds=self.timeout,
+                parser_hint="json", metadata={"json_file": str(raw_dir / "wafw00f.json")}))
+            cmds.append(ReconCommand("whatweb", "http_browser_intelligence",
+                ("whatweb", "-i", str(hosts_file), "--log-json", str(raw_dir / "whatweb.json"), "--no-errors"),
+                raw_dir / "whatweb.stdout.txt", timeout_seconds=self.timeout,
+                parser_hint="json", metadata={"json_file": str(raw_dir / "whatweb.json")}))
+            # Parameter discovery (arjun = active probing, paramspider = passive archive mining)
+            cmds.append(ReconCommand("arjun", "http_browser_intelligence",
+                ("arjun", "-i", str(hosts_file), "-oJ", str(raw_dir / "arjun.json"),
+                 "-t", "10", "--rate-limit", str(scope.max_rps)),
+                raw_dir / "arjun.stdout.txt", timeout_seconds=self.timeout,
+                parser_hint="json", metadata={"json_file": str(raw_dir / "arjun.json")}))
+            ps_script = self.tool_root / "ParamSpider" / "paramspider.py"
+            if ps_script.exists() and scope.base_domain:
+                cmds.append(ReconCommand("paramspider", "http_browser_intelligence",
+                    ("python", str(ps_script), "-d", scope.base_domain,
+                     "-o", str(raw_dir / "paramspider.txt")),
+                    raw_dir / "paramspider.txt", timeout_seconds=self.timeout, parser_hint="urls"))
+        return cmds
+
+    @staticmethod
+    def _read_hosts_stdin(hosts_file: Path) -> str:
+        """Return the host list as a newline-joined stdin payload (empty if missing)."""
+        try:
+            if hosts_file.exists():
+                return hosts_file.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+        return ""
 
     def js_analysis_commands(self, scope: ReconScope, raw_dir: Path, js_files: list[str]) -> list[ReconCommand]:
         """Generate LinkFinder/SecretFinder commands for discovered JS files."""
@@ -249,6 +331,13 @@ class ReconCommandPlanner:
             ("gowitness", "file", "-f", str(hosts_file), "--json", "--screenshot-path",
              str(raw_dir / "screenshots")),
             raw_dir / "gowitness.json", timeout_seconds=self.timeout, parser_hint="json"))
+        # aquatone consumes the same host list over stdin and produces a visual
+        # cluster report + screenshots (complementary to gowitness).
+        cmds.append(ReconCommand("aquatone", "visual_documentation",
+            ("aquatone", "-out", str(raw_dir / "aquatone"), "-silent"),
+            raw_dir / "aquatone" / "aquatone_session.json", timeout_seconds=self.timeout,
+            parser_hint="json", stdin=self._read_hosts_stdin(hosts_file),
+            metadata={"json_file": str(raw_dir / "aquatone" / "aquatone_session.json")}))
         return cmds
 
     # ── Phase 7: Template Validation ──────────────────────────────
@@ -272,6 +361,20 @@ class ReconCommandPlanner:
         cmds.append(ReconCommand("nuclei", "template_validation",
             tuple(nuclei_args), raw_dir / "nuclei.jsonl",
             timeout_seconds=self.timeout * 3, parser_hint="jsonl"))
+
+        # dalfox does focused, scope-bound XSS validation on URLs that carry
+        # parameters (aggressive only — it actively probes reflected/DOM XSS).
+        if scope.scan_mode == ScanMode.AGGRESSIVE:
+            param_urls = [h for h in live_hosts if "?" in h and "=" in h]
+            if param_urls:
+                dalfox_input = raw_dir / "dalfox_targets.txt"
+                dalfox_input.write_text("\n".join(param_urls[:100]) + "\n", encoding="utf-8")
+                cmds.append(ReconCommand("dalfox", "template_validation",
+                    ("dalfox", "file", str(dalfox_input), "--format", "json",
+                     "-o", str(raw_dir / "dalfox.json"), "--no-color", "--silence",
+                     "--delay", "100", "--worker", "10"),
+                    raw_dir / "dalfox.json", timeout_seconds=self.timeout * 2,
+                    parser_hint="json", metadata={"json_file": str(raw_dir / "dalfox.json")}))
         return cmds
 
     def interactsh_commands(self, raw_dir: Path) -> list[ReconCommand]:

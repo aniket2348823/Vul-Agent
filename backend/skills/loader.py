@@ -76,6 +76,22 @@ def _slugify(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
 
 
+def validate_skill_format(fm: dict[str, Any], body: str) -> tuple[bool, list[str]]:
+    """Validate a parsed SKILL.md against the expected format (Architecture
+    §5.3.6 "validate skill format"). Returns (ok, problems). Skills that fail
+    validation are still ingested but flagged, so the catalog records coverage
+    gaps instead of silently dropping skills."""
+    problems: list[str] = []
+    name = fm.get("name")
+    if not name or not str(name).strip():
+        problems.append("missing 'name' in frontmatter")
+    if not (fm.get("description") or fm.get("metadata")):
+        problems.append("missing 'description'/'metadata'")
+    if not body or not body.strip():
+        problems.append("empty skill body")
+    return (len(problems) == 0), problems
+
+
 def _parse_frontmatter(content: str) -> tuple[dict[str, Any], str]:
     """Split a SKILL.md file into (frontmatter dict, body)."""
     if content.startswith("---"):
@@ -100,6 +116,9 @@ def _meta_from_skill_md(path: Path) -> Optional[SkillMeta]:
         return None
 
     fm, body = _parse_frontmatter(content)
+    valid, problems = validate_skill_format(fm, body)
+    if not valid:
+        logger.debug("[SkillLoader] %s format issues: %s", path, "; ".join(problems))
     name = str(fm.get("name") or path.parent.name)
     description = str(fm.get("description") or "")
     metadata = fm.get("metadata", {}) if isinstance(fm.get("metadata"), dict) else {}
@@ -113,6 +132,17 @@ def _meta_from_skill_md(path: Path) -> Optional[SkillMeta]:
     risk = classify_risk(corpus)
     offensive = is_offensive(corpus)
     network = needs_network(corpus)
+
+    def _as_list(*vals):
+        """Coerce frontmatter fields (str or list) into a clean list."""
+        for v in vals:
+            if not v:
+                continue
+            if isinstance(v, str):
+                return [p.strip() for p in re.split(r"[,;]", v) if p.strip()]
+            if isinstance(v, (list, tuple)):
+                return [str(x).strip() for x in v if str(x).strip()]
+        return []
 
     skill_id = _slugify(name)
     meta = SkillMeta(
@@ -128,9 +158,9 @@ def _meta_from_skill_md(path: Path) -> Optional[SkillMeta]:
         requires_network=network,
         changes_remote_state=risk in (RiskClass.INTRUSIVE_VALIDATION, RiskClass.DISABLED_BY_DEFAULT),
         requires_approval=risk in (RiskClass.INTRUSIVE_VALIDATION,),
-        attack=list(metadata.get("attack", []) or fm.get("attack", []) or []),
-        owasp=list(metadata.get("owasp", []) or fm.get("owasp", []) or []),
-        nist=list(metadata.get("nist", []) or fm.get("nist", []) or []),
+        attack=_as_list(metadata.get("attack"), fm.get("attack"), fm.get("mitre_attack")),
+        owasp=_as_list(metadata.get("owasp"), fm.get("owasp")),
+        nist=_as_list(metadata.get("nist"), fm.get("nist"), fm.get("nist_csf")),
         agent_targets=agents_for_domain(domain),
         promotion_state=PromotionState.ACTIVE if str(path).find("generated_skills") == -1 else PromotionState.CANDIDATE,
         version=str(metadata.get("version") or fm.get("version") or "1.0.0"),
@@ -148,31 +178,83 @@ class SkillLoader:
         self.catalog = catalog or skill_catalog
 
     def load_all(self) -> int:
-        """Ingest every SKILL.md under the configured roots. Returns count."""
+        """Ingest every SKILL.md under the configured roots. Returns count.
+
+        Also processes index.json and the mappings/ folder per Architecture §5.3,
+        merging ATT&CK/OWASP/NIST mappings into the matching catalog entries."""
         count = 0
+        pending_maps: dict[str, dict] = {}
         for root in self.roots:
             if not root.exists():
                 continue
-            # Optional index.json (Architecture §5.3 / §5.3.6).
+            # index.json (Architecture §5.3 / §5.3.6).
             index = root / "index.json"
             if index.exists():
-                self._load_index(index)
+                pending_maps.update(self._read_index(index))
+            # mappings/ folder (ATT&CK/OWASP/NIST coverage files, §5.3).
+            mappings_dir = root / "mappings"
+            if mappings_dir.is_dir():
+                pending_maps.update(self._read_mappings(mappings_dir))
             for skill_md in root.rglob("SKILL.md"):
                 meta = _meta_from_skill_md(skill_md)
                 if meta:
                     self.catalog.upsert(meta)
                     count += 1
-        logger.info("[SkillLoader] ingested %d skills into catalog", count)
+        # Merge mappings into matching catalog entries (by skill_id or name).
+        if pending_maps:
+            self._apply_mappings(pending_maps)
+        logger.info("[SkillLoader] ingested %d skills into catalog (%d mapping entries)",
+                    count, len(pending_maps))
         return count
 
-    def _load_index(self, index_path: Path) -> None:
+    @staticmethod
+    def _read_index(index_path: Path) -> dict[str, dict]:
+        """Read index.json → {skill_key: {attack, owasp, nist, ...}}."""
         try:
             data = json.loads(index_path.read_text(encoding="utf-8"))
         except Exception:
-            return
-        # index.json may carry ATT&CK/OWASP mappings keyed by skill name; we
-        # merge those into any matching catalog entries after loading.
-        self._pending_index = data if isinstance(data, dict) else {}
+            return {}
+        out: dict[str, dict] = {}
+        # Accept either {"skills": [ {name, attack, owasp, ...} ]} or a flat map.
+        entries = data.get("skills") if isinstance(data, dict) else None
+        if isinstance(entries, list):
+            for e in entries:
+                if isinstance(e, dict) and e.get("name"):
+                    out[_slugify(str(e["name"]))] = e
+        elif isinstance(data, dict):
+            for k, v in data.items():
+                if isinstance(v, dict):
+                    out[_slugify(k)] = v
+        return out
+
+    @staticmethod
+    def _read_mappings(mappings_dir: Path) -> dict[str, dict]:
+        """Read mappings/*.json|*.md files → {skill_key: {attack/owasp/nist}}."""
+        out: dict[str, dict] = {}
+        for f in mappings_dir.rglob("*"):
+            if f.suffix.lower() == ".json":
+                try:
+                    data = json.loads(f.read_text(encoding="utf-8"))
+                except Exception:
+                    continue
+                if isinstance(data, dict):
+                    for k, v in data.items():
+                        if isinstance(v, dict):
+                            out.setdefault(_slugify(k), {}).update(v)
+        return out
+
+    def _apply_mappings(self, maps: dict[str, dict]) -> None:
+        for meta in self.catalog.all():
+            entry = maps.get(meta.skill_id) or maps.get(_slugify(meta.name))
+            if not entry:
+                continue
+            if entry.get("attack"):
+                meta.attack = list(set(meta.attack) | set(entry["attack"]))
+            if entry.get("owasp"):
+                meta.owasp = list(set(meta.owasp) | set(entry["owasp"]))
+            if entry.get("nist"):
+                meta.nist = list(set(meta.nist) | set(entry["nist"]))
+            self.catalog.upsert(meta)
 
 
 # Global loader.

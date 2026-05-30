@@ -6,9 +6,10 @@ PayloadDeliveryEngine delivers an authorized validation payload across the
 correct channel instead of forcing everything into a GET parameter.
 
 Delivery vectors (Architecture §5.2, §29.6):
-  query, json_body, form_body, header, cookie, path
-  (multipart/file, browser, websocket, graphql vectors are delivered by the
-   browser/API agents; this engine covers the HTTP vectors.)
+  query, json_body, form_body, header, cookie, path  (core HTTP, via deliver())
+  graphql, multipart                                 (API vectors, via deliver())
+  websocket                                          (via deliver_websocket())
+  (browser-form submission is delivered by the browser agents.)
 
 PayloadBandit (Architecture §6 "real, not fake"): an epsilon-greedy multi-armed
 bandit keyed by (vuln_class, vector, payload_family). The reward is the REAL
@@ -32,6 +33,10 @@ from backend.core.scope import ScopePolicy, ScopeViolation, scope_guard
 logger = logging.getLogger("vigilagent.payload_delivery")
 
 HTTP_VECTORS = ("query", "json_body", "form_body", "header", "cookie", "path")
+# Extended API vectors (Architecture §5.2, §29.6). multipart/file requires
+# explicit approval; graphql targets a /graphql endpoint; websocket uses ws/wss.
+API_VECTORS = ("graphql", "multipart")
+ALL_HTTP_VECTORS = HTTP_VECTORS + API_VECTORS
 
 
 def payload_family(payload: str) -> str:
@@ -178,6 +183,18 @@ class PayloadDeliveryEngine:
             elif vector == "cookie":
                 existing = headers.get("Cookie", "")
                 headers["Cookie"] = (existing + "; " if existing else "") + f"{cookie_name}={payload}"
+            elif vector == "graphql":
+                # GraphQL: deliver the payload inside a query variable (Architecture §5.2).
+                method = "POST"
+                kwargs["json"] = {
+                    "query": "query($v:String){__typename}",
+                    "variables": {"v": payload},
+                }
+                headers["Content-Type"] = "application/json"
+            elif vector == "multipart":
+                # Multipart/file upload (Architecture §5.2 — approved scope only).
+                method = "POST"
+                kwargs["data"] = {param: payload, "filename": f"va_{param}.txt"}
             else:
                 return None
 
@@ -218,6 +235,82 @@ class PayloadDeliveryEngine:
             )
         except Exception as exc:
             return DeliveryResult("baseline", "", "baseline", 0, "", 0.0, target_url, error=str(exc))
+
+    # Benign/sham values used as negative controls (Architecture §17, §29.6).
+    _NEGATIVE_CONTROLS = {
+        "sqli": "vigilagent_benign_value_123",
+        "xss": "vigilagent_plain_text_123",
+        "ssti": "vigilagent_no_template_123",
+        "traversal": "vigilagent_normal_path",
+        "cmdi": "vigilagent_safe_token",
+        "generic": "vigilagent_control_value",
+    }
+
+    async def negative_control(self, target_url: str, payload: str, vector: str, *,
+                               param: str = "q", header_name: str = "X-Vigilagent-Test",
+                               cookie_name: str = "va_test", session=None,
+                               base_headers: dict[str, str] | None = None) -> DeliveryResult | None:
+        """Deliver a BENIGN value over the SAME vector as the test payload.
+
+        If this benign request triggers the same divergence the malicious payload
+        did, the divergence is environmental noise, not a vulnerability
+        (Architecture §17 negative control)."""
+        family = payload_family(payload)
+        control_value = self._NEGATIVE_CONTROLS.get(family, self._NEGATIVE_CONTROLS["generic"])
+        try:
+            self.scope.assert_allowed(target_url, action="validate")
+        except ScopeViolation:
+            return None
+        return await self._deliver_one(
+            target_url, control_value, vector, "control",
+            param, header_name, cookie_name, session, base_headers or {})
+
+    async def repeat(self, target_url: str, payload: str, vector: str, *, times: int = 2,
+                     param: str = "q", header_name: str = "X-Vigilagent-Test",
+                     cookie_name: str = "va_test", session=None,
+                     base_headers: dict[str, str] | None = None) -> list[DeliveryResult]:
+        """Re-deliver the SAME test payload N times for a repeatability check
+        (Architecture §17). Stability across repeats raises confidence."""
+        family = payload_family(payload)
+        results: list[DeliveryResult] = []
+        try:
+            self.scope.assert_allowed(target_url, action="validate")
+        except ScopeViolation:
+            return results
+        for _ in range(max(1, times)):
+            res = await self._deliver_one(
+                target_url, payload, vector, family,
+                param, header_name, cookie_name, session, base_headers or {})
+            if res:
+                results.append(res)
+        return results
+
+    async def deliver_websocket(self, ws_url: str, payload: str, *, timeout: float = 10.0) -> DeliveryResult:
+        """Deliver a payload over a WebSocket frame (Architecture §5.2, §29.6).
+
+        Scope-checked like every other vector. Uses aiohttp's WS client; returns
+        the first received frame as the response body for differential analysis."""
+        family = payload_family(payload)
+        try:
+            self.scope.assert_allowed(ws_url, action="validate")
+        except ScopeViolation as exc:
+            return DeliveryResult("websocket", payload, family, 0, "", 0.0, ws_url, error=str(exc))
+        try:
+            import aiohttp
+            start = time.perf_counter()
+            async with aiohttp.ClientSession() as s:
+                async with s.ws_connect(ws_url, timeout=timeout) as ws:
+                    await ws.send_str(payload)
+                    body = ""
+                    try:
+                        msg = await ws.receive(timeout=timeout)
+                        body = str(getattr(msg, "data", ""))
+                    except Exception:
+                        pass
+            latency = (time.perf_counter() - start) * 1000
+            return DeliveryResult("websocket", payload, family, 101, body, latency, ws_url)
+        except Exception as exc:
+            return DeliveryResult("websocket", payload, family, 0, "", 0.0, ws_url, error=str(exc))
 
 
 # Global instances.

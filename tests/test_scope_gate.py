@@ -9,8 +9,8 @@ Tests for:
 - Wildcard subdomain matching
 """
 import pytest
-from backend.agents.alpha_v6.scope_gate import ScopeGate, ScopeGateViolation
-from backend.agents.alpha_v6.models import ReconScope, ScanMode
+from backend.agents.alpha_recon.scope_gate import ScopeGate, ScopeGateViolation
+from backend.agents.alpha_recon.models import ReconScope, ScanMode
 
 
 def _make_scope(base_domain="example.com", mode=ScanMode.PASSIVE_ONLY,

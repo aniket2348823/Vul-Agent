@@ -150,6 +150,38 @@ class SemanticSecurityMemoryProvider(BaseMemoryProvider):
                 pass
 
 
+class SkillMemoryProvider(BaseMemoryProvider):
+    """skill_memory — skills created/improved from prior scans (Architecture §13.1).
+
+    Recalls relevant skills from the skill catalog so agents can reuse learned
+    playbooks before planning."""
+
+    name = "skill_memory"
+
+    async def prefetch(self, query: dict) -> list[str]:
+        try:
+            from backend.skills import skill_catalog
+        except Exception:
+            return []
+        vuln_class = (query.get("vuln_class") or "").lower()
+        domain = (query.get("domain") or "").lower()
+        out: list[str] = []
+        try:
+            for meta in skill_catalog.all():
+                blob = f"{meta.name} {meta.description} {meta.domain}".lower()
+                if (not vuln_class and not domain) or vuln_class in blob or domain in (meta.domain or "").lower():
+                    out.append(f"skill[{meta.promotion_state.value}]: {meta.name} "
+                               f"(domain={meta.domain}, risk={meta.risk_class.value})")
+        except Exception:
+            return []
+        return out[:8]
+
+    async def sync(self, outcome: dict) -> None:
+        # Skill creation/promotion is handled by the skills.creator pipeline;
+        # nothing to persist here beyond what the catalog already records.
+        return None
+
+
 class ToolReliabilityMemoryProvider(BaseMemoryProvider):
     """tool_reliability_memory — tool success/failure/rate-limit history (§13.1)."""
 
@@ -279,6 +311,7 @@ def build_default_memory_manager() -> MemoryManager:
         mgr.register(SemanticSecurityMemoryProvider(store))
     except Exception:
         mgr.register(SemanticSecurityMemoryProvider(None))
+    mgr.register(SkillMemoryProvider())
     mgr.register(ToolReliabilityMemoryProvider())
     mgr.register(AgentPerformanceMemoryProvider())
     return mgr

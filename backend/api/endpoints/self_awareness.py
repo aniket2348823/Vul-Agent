@@ -25,6 +25,51 @@ tracer = get_tracer()
 
 
 # ============================================================================
+# ROOT SUMMARY (Architecture §15, §22 — GET /api/self-awareness)
+# ============================================================================
+
+@router.get("")
+@router.get("/")
+@rate_limit()
+async def get_self_awareness_summary():
+    """Self-awareness summary (Architecture §15 outputs, §22 API surface).
+
+    Returns the capability map / health snapshot: agent + tool reliability,
+    staged self-improvement changes, and recommended next action. Degrades
+    gracefully when subsystems are unavailable so the endpoint always answers.
+    """
+    summary: dict = {
+        "product": "Vigilagent",
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "capability_map": {},
+        "self_improvement": {},
+        "skills": {},
+        "recommended_next_action": "idle",
+    }
+    # Agent/tool reliability + staged improvements (Architecture §13.4, §15.1).
+    try:
+        from backend.core.self_improvement_engine import self_improvement_engine
+        summary["self_improvement"] = self_improvement_engine.stats()
+        summary["capability_map"] = {
+            aid: {
+                "routing_weight": p.routing_weight,
+                "success_rate": p.success_rate,
+                "false_positive_rate": p.false_positive_rate,
+            }
+            for aid, p in self_improvement_engine.profiles.items()
+        }
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.debug("self-improvement stats unavailable: %s", exc)
+    # Skill catalog coverage (Architecture §5.3).
+    try:
+        from backend.skills.catalog import skill_catalog
+        summary["skills"] = skill_catalog.stats()
+    except Exception as exc:  # pragma: no cover
+        logger.debug("skill stats unavailable: %s", exc)
+    return JSONResponse(content=summary)
+
+
+# ============================================================================
 # PERFORMANCE METRICS ENDPOINTS
 # ============================================================================
 

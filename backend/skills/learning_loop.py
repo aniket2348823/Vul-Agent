@@ -60,6 +60,7 @@ class LearningOutputs:
     tool_reliability_deltas: dict[str, float] = field(default_factory=dict)
     agent_routing_deltas: dict[str, float] = field(default_factory=dict)
     payload_vector_preferences: dict[str, str] = field(default_factory=dict)
+    agent_mistakes: list[dict] = field(default_factory=list)
     lessons: list[str] = field(default_factory=list)
     promoted: list[str] = field(default_factory=list)
 
@@ -83,8 +84,34 @@ class PerScanLearningLoop:
             except Exception:
                 self._mm = None
 
+    @staticmethod
+    def _identify_mistakes(outcome: ScanOutcome) -> list[dict]:
+        """Classify agent mistakes from false positives + failures into the
+        §14.1 mistake categories so they can drive routing/skill revision."""
+        mistakes: list[dict] = []
+        for fp in outcome.false_positives:
+            mistakes.append({
+                "category": "false_positive",
+                "agent": fp.get("agent", ""),
+                "detail": fp.get("reason", ""),
+            })
+        for fail in outcome.failures:
+            cat = fail.get("category") or fail.get("type") or "bad_tool_choice"
+            if cat not in MISTAKE_CATEGORIES:
+                cat = "bad_tool_choice"
+            mistakes.append({
+                "category": cat,
+                "agent": fail.get("agent", ""),
+                "detail": fail.get("detail") or fail.get("error", ""),
+            })
+        return mistakes
+
     async def run(self, outcome: ScanOutcome) -> LearningOutputs:
         out = LearningOutputs()
+
+        # 0. Identify agent mistakes from false positives + failures
+        #    (Architecture §13.3 "Identify agent mistakes", §14.1 categories).
+        out.agent_mistakes = self._identify_mistakes(outcome)
 
         # 1. Update tool reliability (Architecture §13.3).
         for tr in outcome.tool_runs:
@@ -168,6 +195,7 @@ class PerScanLearningLoop:
                         "new_skills": out.new_candidate_skills,
                         "promoted": out.promoted,
                         "vector_prefs": out.payload_vector_preferences,
+                        "agent_mistakes": out.agent_mistakes,
                         "lessons": out.lessons[-10:],
                         "ts": time.time(),
                     },

@@ -60,9 +60,31 @@ class BetaAgent(BrowserEnabledAgent):
     async def setup(self):
         self.bus.subscribe(EventType.JOB_ASSIGNED, self.handle_job)
         self.bus.subscribe(EventType.VULN_CANDIDATE, self.handle_candidate)
+        # Architecture §5.2 / §29.4: Beta consumes Sigma's payload shipments via
+        # JOB_COMPLETED, and reacts to Zeta's runtime governor (THROTTLE/RESUME).
+        # These subscribes used to be stranded after a `return` inside
+        # _skill_recommendations and silently never fired — fixed.
         self.bus.subscribe(EventType.JOB_COMPLETED, self.handle_sigma_payloads)
-        # Governance: respond to Zeta's control signals
         self.bus.subscribe(EventType.CONTROL_SIGNAL, self.handle_control_signal)
+
+    def _skill_recommendations(self, target_url: str, vuln_class: str) -> list:
+        """Consume skill recommendations for this vuln class (Architecture §29.9:
+        skills consumed by Beta). Cached per (target, class) to avoid rework."""
+        key = (target_url, vuln_class)
+        cache = getattr(self, "_skill_rec_cache", None)
+        if cache is None:
+            cache = self._skill_rec_cache = {}
+        if key in cache:
+            return cache[key]
+        recs = []
+        try:
+            from backend.core.skill_library import skill_library
+            recs = skill_library.get_recommendations(
+                target_url=target_url, vuln_class=vuln_class, limit=5)
+        except Exception:
+            recs = []
+        cache[key] = recs
+        return recs
 
     async def handle_control_signal(self, event: HiveEvent):
         """Respond to Zeta governance signals."""
@@ -233,6 +255,11 @@ class BetaAgent(BrowserEnabledAgent):
         # Bandit selects the most promising vector (explore/exploit).
         vector = self.bandit.select_vector(vuln_class, family, HTTP_VECTORS)
 
+        # Consume skill recommendations for this vuln class (Architecture §29.9).
+        skill_recs = self._skill_recommendations(target_url, vuln_class)
+        if skill_recs:
+            print(f"[{self.name}] [SKILLS] {len(skill_recs)} recommendation(s) for {vuln_class}")
+
         # Differential baseline.
         baseline = await self.delivery.baseline(target_url, session=session)
         results = await self.delivery.deliver(
@@ -245,11 +272,24 @@ class BetaAgent(BrowserEnabledAgent):
         res = results[0]
         base_status = baseline.status if baseline else 200
         base_body = baseline.body if baseline else ""
-        verified, confidence, signals = MultiLayerVerifier.verify(
-            {"status": base_status, "response": base_body},
-            {"status": res.status, "body": res.body},
+
+        baseline_obj = {"status": base_status, "response": base_body}
+        test_obj = {"status": res.status, "body": res.body}
+
+        # Full §17 verification: baseline+test, negative control, repeatability.
+        neg = await self.delivery.negative_control(target_url, payload_str, vector, session=session)
+        neg_obj = {"status": neg.status, "body": neg.body} if neg else None
+        repeats = await self.delivery.repeat(target_url, payload_str, vector, times=2, session=session)
+        repeat_objs = [{"status": r.status, "body": r.body} for r in repeats]
+
+        verdict = MultiLayerVerifier.verify_full(
+            baseline_obj, test_obj, negative_control=neg_obj, repeats=repeat_objs,
         )
-        success = bool(verified and signals >= 2)
+        verified = verdict["verified"]
+        confidence = verdict["confidence"]
+        signals = verdict["signals"]
+        controls = verdict["controls_applied"]
+        success = bool(verified)
 
         # REAL reward feeds the bandit (not a log line).
         self.bandit.update(vuln_class, vector, family, success)
@@ -300,11 +340,17 @@ class BetaAgent(BrowserEnabledAgent):
                     "vector": vector,
                     "vuln_type": vuln_class.upper(),
                     "description": evidence[:1200],
-                    "evidence": (f"Differential verification passed via '{vector}' vector. "
-                                 f"Signals: {signals}, confidence: {confidence}%."),
+                    "confidence": confidence,
+                    "false_positive_controls": controls,
+                    "negative_control_passed": verdict["negative_control_passed"],
+                    "repeatable": verdict["repeatable"],
+                    "evidence": (f"Verification passed via '{vector}' vector. "
+                                 f"Signals: {signals}, confidence: {confidence}%. "
+                                 f"Controls: {', '.join(controls)}."),
                 }
             ))
-            print(f"[{self.name}] [HIT] {vuln_class} via {vector} on {target_url} ({signals} signals)")
+            print(f"[{self.name}] [HIT] {vuln_class} via {vector} on {target_url} "
+                  f"({signals} signals, controls={controls})")
         return success
 
     async def _execute_real_attack(self, url: str, payload_str: str, scan_id: str = None):

@@ -33,6 +33,14 @@ class OmegaAgent(BrowserEnabledAgent):
         self._confirmed_vulns = []   # Accumulator for mid-scan adaptation
         self._job_results = {}       # job_id -> result tracking
 
+        # Iterative reasoning-loop knobs (Hermes-style observe -> decide -> act).
+        # `_max_campaign_actions` is Omega's analog of Hermes's IterationBudget:
+        # the loop dispatches at most this many next-actions per campaign.
+        self._max_campaign_actions = 12   # action/iteration budget
+        self._min_action_value = 0.15     # value floor — stop when nothing clears it
+        self._defense_pressure_stop = 0.5  # WAF/block pressure that halts expansion
+        self._campaign_step_delay = 0.05  # yield so async evidence lands between steps
+
     async def setup(self):
         self.bus.subscribe(EventType.TARGET_ACQUIRED, self.handle_target)
         self.bus.subscribe(EventType.VULN_CONFIRMED, self.handle_confirmed_vuln)
@@ -153,6 +161,8 @@ class OmegaAgent(BrowserEnabledAgent):
             "RACE_CONDITION": "logic_chronomancer",
             "LOGIC_ESCALATION": "logic_escalator",
             "FINANCIAL_MANIPULATION": "logic_tycoon",
+            "COMMAND_INJECTION": "tech_cmdi",
+            "RCE": "tech_cmdi",
         }
         
         predictions = graph_engine.predict_next("TARGET_ACQUIRED", target_url)
@@ -169,6 +179,91 @@ class OmegaAgent(BrowserEnabledAgent):
         
         return modules
 
+    # --- ITERATIVE REASONING LOOP (Hermes observe -> decide -> act port) ---
+
+    def _gather_live_evidence(self, target_url: str, scan_id: str, recommendations: dict) -> dict:
+        """OBSERVE step: re-read live state before EVERY decision.
+
+        This is Omega's analog of Hermes re-reading the message/tool-result
+        history each iteration of ``run_conversation``. Rather than trusting a
+        static up-front plan, Omega re-reads the knowledge graph, the confirmed
+        findings accumulated so far, and the WAF/scope/budget pressure signals
+        before picking the next action."""
+        campaign = self._active_campaigns.get(scan_id, {})
+        return {
+            # Fresh attack-graph predictions (recomputed each iteration).
+            "graph_predictions": graph_engine.predict_next("TARGET_ACQUIRED", target_url),
+            # Confirmed findings that landed since the last decision.
+            "confirmed_vulns": list(campaign.get("confirmed_vulns", [])),
+            # WAF / rate-limit / block pressure derived from the live transcript.
+            "defense_pressure": self._defense_pressure(scan_id),
+            # Skill recommendations consumed for planning (skill_library read path).
+            "skills": recommendations.get("skills", []) or [],
+            # Learned high-value vuln classes for this target.
+            "priority_vulns": recommendations.get("priority_vulns", []) or [],
+            # Modules already fired this campaign (avoid redundant re-dispatch).
+            "dispatched_modules": set(campaign.get("dispatched_modules", [])),
+        }
+
+    def _decide_next_action(self, evidence: dict, base_modules: list):
+        """DECIDE step: pick the SINGLE highest-value next action from evidence.
+
+        Deterministic, evidence-weighted scoring (NOT random / fake-Nash / fake
+        RL — Architecture §25). Candidate modules are scored against current
+        attack-graph confidence, learned success rates, base-strategy weight and
+        skill relevance, with a diminishing-returns penalty for vuln classes that
+        are already confirmed. Returns the best not-yet-dispatched action as
+        ``(module_id, value, reasons)`` or ``None`` when nothing remains."""
+        scores: dict[str, list] = {}  # module -> [value, [reasons]]
+
+        def _bump(module: str, value: float, reason: str):
+            if not module:
+                return
+            slot = scores.setdefault(module, [0.0, []])
+            slot[0] += value
+            slot[1].append(reason)
+
+        # 1. Attack-graph predictions (historical chain confidence).
+        for pred in evidence["graph_predictions"][:5]:
+            module = self._resolve_module_from_type(str(pred.get("suggestion", "")).upper())
+            conf = float(pred.get("confidence", 0) or 0) / 100.0
+            _bump(module, 0.5 + conf, f"graph {conf:.0%}")
+
+        # 2. Learned priority vulns (success-rate weighted).
+        for rec in evidence["priority_vulns"][:5]:
+            module = self._resolve_module_from_type(str(rec.get("type", "")).upper())
+            sr = float(rec.get("success_rate", 0) or 0)
+            _bump(module, 0.4 + sr, f"learned {sr:.0%}")
+
+        # 3. Base strategy modules (floor weight so the chosen strategy matters).
+        for module in base_modules:
+            _bump(module, 0.2, "strategy")
+
+        # 4. Skill recommendations boost the modules they relate to.
+        for skill in evidence["skills"][:8]:
+            text = (f"{skill.get('skill_type', '')} {skill.get('name', '')} "
+                    f"{skill.get('description', '')}").lower()
+            for module in list(scores.keys()):
+                if any(tok and tok in text for tok in module.split("_")[1:]):
+                    _bump(module, float(skill.get("score", 0) or 0) * 0.3, "skill")
+
+        # Diminishing returns: deprioritize modules whose vuln class is already
+        # confirmed (stop low-value, redundant re-runs — requirement 3).
+        confirmed_types = {str(v.get("type", "")).upper() for v in evidence["confirmed_vulns"]}
+        for ct in confirmed_types:
+            m = self._resolve_module_from_type(ct)
+            if m in scores:
+                scores[m][0] *= 0.3
+                scores[m][1].append("already-confirmed")
+
+        candidates = [(m, slot[0], slot[1]) for m, slot in scores.items()
+                      if m not in evidence["dispatched_modules"]]
+        if not candidates:
+            return None
+        # Deterministic tie-break: highest value, then module name.
+        candidates.sort(key=lambda c: (c[1], c[0]), reverse=True)
+        return candidates[0]
+
     # --- EVENT HANDLERS ---
 
     async def handle_target(self, event: HiveEvent):
@@ -184,7 +279,9 @@ class OmegaAgent(BrowserEnabledAgent):
             "target_url": target_url,
             "strategy": None,
             "dispatched_jobs": [],
+            "dispatched_modules": [],   # modules already fired (avoid re-dispatch)
             "confirmed_vulns": [],
+            "actions_taken": 0,         # iterative-loop action counter (budget)
             "adapted": False
         }
         
@@ -270,6 +367,8 @@ class OmegaAgent(BrowserEnabledAgent):
             "FINANCIAL_MANIPULATION": "logic_tycoon",
             "DATA_LEAK": "tech_fuzzer",
             "UNAUTHORIZED_ACCESS": "logic_skipper",
+            "COMMAND_INJECTION": "tech_cmdi",
+            "RCE": "tech_cmdi",
         }
         return TYPE_TO_MODULE.get(vuln_type)
 
@@ -281,7 +380,30 @@ class OmegaAgent(BrowserEnabledAgent):
         # 1. GET LEARNING ENGINE RECOMMENDATIONS
         from backend.core.learning_engine import learning_engine
         recommendations = await learning_engine.get_recommendations(target_url, {"scan_id": scan_id})
-        
+
+        # 1b. CONSUME SKILL LIBRARY RECOMMENDATIONS (Architecture §29.9: skills
+        # consumed by Omega; §29.12: query skills before every meaningful plan).
+        try:
+            from backend.core.skill_library import skill_library
+            skill_recs = skill_library.get_recommendations(target_url=target_url, limit=8)
+            if skill_recs:
+                recommendations.setdefault("skills", skill_recs)
+                print(f"[{self.name}] [SKILLS] {len(skill_recs)} skill recommendation(s) for planning")
+        except Exception as _ke:
+            pass
+
+        # 1c. PREFETCH FENCED MEMORY CONTEXT before planning (Architecture §13.1:
+        # Memory Manager prefetch + context fencing, used in agent execution).
+        try:
+            from backend.core.memory_manager import memory_manager
+            mem_ctx = await memory_manager.build_context(
+                {"scan_id": scan_id, "query": target_url, "vuln_class": ""})
+            if mem_ctx:
+                recommendations["memory_context"] = mem_ctx
+                print(f"[{self.name}] [MEMORY] prefetched fenced memory context ({len(mem_ctx)} chars)")
+        except Exception:
+            pass
+
         if recommendations.get("confidence", 0) > 0.5:
             print(f"[{self.name}] [LEARNING] Using learned patterns (confidence: {recommendations['confidence']:.2f})")
             print(f"[{self.name}] [LEARNING] Priority vulns: {[v['type'] for v in recommendations['priority_vulns'][:3]]}")
@@ -364,38 +486,62 @@ class OmegaAgent(BrowserEnabledAgent):
                 payload={"message": f"Omega campaign initiated: strategy={strategy_name}, target={target_url}"}
             ))
 
-        # 4. RESOLVE MODULES (Enhanced with learned priorities)
+        # 4. RESOLVE BASE MODULE SET (strategy + graph + learned priorities).
+        #    This is now only the candidate pool the iterative loop scores
+        #    against each step — NOT a static dispatch list.
         if strategy_name == "GRAPH_DRIVEN":
-            modules = self._build_graph_driven_modules(target_url)
-            print(f"[{self.name}] [GRAPH AI] Predicted modules: {modules}")
+            base_modules = self._build_graph_driven_modules(target_url)
+            print(f"[{self.name}] [GRAPH AI] Predicted modules: {base_modules}")
         else:
-            modules = profile["modules"].copy()
-        
-        # Prioritize modules based on learned patterns
-        if recommendations.get("priority_vulns"):
-            learned_modules = []
-            for vuln_rec in recommendations["priority_vulns"][:3]:
-                vuln_type = vuln_rec["type"]
-                module = self._resolve_module_from_type(vuln_type.upper())
-                if module and module not in learned_modules:
-                    learned_modules.append(module)
-            
-            # Prepend learned modules to ensure they run first
-            for module in reversed(learned_modules):
-                if module in modules:
-                    modules.remove(module)
-                modules.insert(0, module)
-            
-            print(f"[{self.name}] [LEARNING] Prioritized modules: {learned_modules}")
+            base_modules = profile["modules"].copy()
 
-        # 5. DISPATCH JOBS
+        for vuln_rec in recommendations.get("priority_vulns", [])[:3]:
+            module = self._resolve_module_from_type(str(vuln_rec.get("type", "")).upper())
+            if module and module not in base_modules:
+                base_modules.append(module)
+        if "sigma_forge" not in base_modules:
+            base_modules.append("sigma_forge")  # novel-vector discovery candidate
+
+        # 5. ITERATIVE REASON -> ACT -> OBSERVE -> RE-PLAN LOOP
+        #    (Hermes ``run_conversation`` pattern, Architecture §5.2/§6.5).
+        #    Instead of dispatching a static batch, Omega re-reads live evidence
+        #    each step, picks the single highest-value next action, acts, then
+        #    re-observes — stopping early on unsafe (WAF) or low-value paths.
         target = TaskTarget(url=target_url)
-        
-        for module_id in modules:
-            agent_id = AgentID.SIGMA
-            if module_id.startswith("beta_"):
-                agent_id = AgentID.BETA
+        campaign = self._active_campaigns.get(scan_id, {})
 
+        while campaign.get("actions_taken", 0) < self._max_campaign_actions:
+            # OBSERVE: re-read graph state, confirmed findings, defense pressure.
+            evidence = self._gather_live_evidence(target_url, scan_id, recommendations)
+
+            # STOP (unsafe): defense pressure crossed the halt threshold. Hand
+            # off to LOW_AND_SLOW adaptation rather than keep hammering a WAF.
+            if evidence["defense_pressure"] >= self._defense_pressure_stop:
+                print(f"[{self.name}] [STOP] Defense pressure "
+                      f"{evidence['defense_pressure']:.2f} ≥ {self._defense_pressure_stop} — "
+                      f"halting expansion (stealth handoff).")
+                await self.bus.publish(HiveEvent(
+                    type=EventType.LOG, source=self.name, scan_id=scan_id,
+                    payload={"message": f"👑 OMEGA: halting expansion under WAF pressure "
+                                        f"({evidence['defense_pressure']:.2f}); deferring to stealth."}
+                ))
+                break
+
+            # DECIDE: pick the single highest-value next action from evidence.
+            decision = self._decide_next_action(evidence, base_modules)
+            if not decision:
+                print(f"[{self.name}] [STOP] No remaining candidate actions.")
+                break
+            module_id, value, reasons = decision
+
+            # STOP (low value): nothing clears the value floor — don't waste budget.
+            if value < self._min_action_value:
+                print(f"[{self.name}] [STOP] Best next action '{module_id}' value "
+                      f"{value:.2f} < floor {self._min_action_value} — ending campaign.")
+                break
+
+            # ACT: dispatch the single chosen action.
+            agent_id = AgentID.BETA if module_id.startswith("beta_") else AgentID.SIGMA
             packet = JobPacket(
                 priority=profile["priority"],
                 target=target,
@@ -407,24 +553,19 @@ class OmegaAgent(BrowserEnabledAgent):
                     params={"attack_hypothesis": selected_hypothesis, "strategy": strategy_name}
                 )
             )
+            print(f"[{self.name}] [STEP {campaign.get('actions_taken', 0) + 1}] "
+                  f"→ {module_id} (value={value:.2f}; {', '.join(reasons[:3])})")
             await self.dispatch_job(packet, scan_id)
 
-        # 6. Always add a Sigma Generative payload for novel vector discovery
-        if "sigma_generative_blast" not in modules:
-            sigma_packet = JobPacket(
-                priority=TaskPriority.NORMAL,
-                target=target,
-                config=ModuleConfig(
-                    module_id="sigma_forge",
-                    agent_id=AgentID.SIGMA,
-                    aggression=profile["aggression"],
-                    ai_mode=True,
-                    params={"attack_hypothesis": selected_hypothesis}
-                )
-            )
-            await self.dispatch_job(sigma_packet, scan_id)
+            # Record the action so the next OBSERVE step won't re-pick it.
+            campaign.setdefault("dispatched_modules", []).append(module_id)
+            campaign["actions_taken"] = campaign.get("actions_taken", 0) + 1
 
-        # 7. Learn from this campaign dispatch (feed the graph)
+            # Yield so async evidence (confirmed findings, transcript events)
+            # can land before the next observe step — keeps the loop reactive.
+            await asyncio.sleep(self._campaign_step_delay)
+
+        # 6. Learn from this campaign dispatch (feed the graph)
         await graph_engine.learn_from_chain([
             {"payload": {"type": "TARGET_ACQUIRED", "url": target_url}},
             {"payload": {"type": strategy_name, "url": target_url}}

@@ -90,7 +90,7 @@ class TestLiveHTTPProbe:
     @pytest.mark.asyncio
     async def test_http_probe_finds_services(self, local_server):
         """Probe should discover all live endpoints on the local server."""
-        from backend.agents.alpha_v6.alpha_orchestrator import AlphaOrchestrator
+        from backend.agents.alpha_recon.alpha_orchestrator import AlphaOrchestrator
         from backend.core.hive import EventBus
         from backend.core.scope import ScopePolicy
         from backend.modules.tech.http_client import http_client
@@ -122,7 +122,7 @@ class TestLiveHTTPProbe:
     @pytest.mark.asyncio
     async def test_service_to_endpoint_conversion(self, local_server):
         """Each HTTPServiceFinding should convert to an EndpointFinding."""
-        from backend.agents.alpha_v6.alpha_orchestrator import AlphaOrchestrator
+        from backend.agents.alpha_recon.alpha_orchestrator import AlphaOrchestrator
         from backend.core.hive import EventBus
         from backend.core.scope import ScopePolicy
         from backend.modules.tech.http_client import http_client
@@ -148,8 +148,8 @@ class TestLiveHTTPProbe:
     @pytest.mark.asyncio
     async def test_scoring_pipeline(self, local_server):
         """Score all probed endpoints and verify priority ordering."""
-        from backend.agents.alpha_v6.alpha_orchestrator import AlphaOrchestrator
-        from backend.agents.alpha_v6.scoring import score_endpoint
+        from backend.agents.alpha_recon.alpha_orchestrator import AlphaOrchestrator
+        from backend.agents.alpha_recon.scoring import score_endpoint
         from backend.core.hive import EventBus
         from backend.core.scope import ScopePolicy
         from backend.modules.tech.http_client import http_client
@@ -188,8 +188,8 @@ class TestLiveHTTPProbe:
     @pytest.mark.asyncio
     async def test_dedup_removes_duplicates(self, local_server):
         """Verify the dedup pipeline removes exact duplicates."""
-        from backend.agents.alpha_v6.alpha_orchestrator import AlphaOrchestrator
-        from backend.agents.alpha_v6.scoring import score_endpoint
+        from backend.agents.alpha_recon.alpha_orchestrator import AlphaOrchestrator
+        from backend.agents.alpha_recon.scoring import score_endpoint
         from backend.core.hive import EventBus
         from backend.core.scope import ScopePolicy
         from backend.modules.tech.http_client import http_client
@@ -217,7 +217,7 @@ class TestLiveHTTPProbe:
     @pytest.mark.asyncio
     async def test_tech_detection(self, local_server):
         """Verify technology detection from server headers."""
-        from backend.agents.alpha_v6.alpha_orchestrator import AlphaOrchestrator
+        from backend.agents.alpha_recon.alpha_orchestrator import AlphaOrchestrator
         from backend.core.hive import EventBus
         from backend.core.scope import ScopePolicy
         from backend.modules.tech.http_client import http_client
@@ -241,8 +241,8 @@ class TestLiveHTTPProbe:
     @pytest.mark.asyncio
     async def test_sensitive_file_detection(self, local_server):
         """Verify that sensitive files like .env and .git/config are found."""
-        from backend.agents.alpha_v6.alpha_orchestrator import AlphaOrchestrator
-        from backend.agents.alpha_v6.scoring import score_endpoint
+        from backend.agents.alpha_recon.alpha_orchestrator import AlphaOrchestrator
+        from backend.agents.alpha_recon.scoring import score_endpoint
         from backend.core.hive import EventBus
         from backend.core.scope import ScopePolicy
         from backend.modules.tech.http_client import http_client
@@ -271,8 +271,8 @@ class TestLiveHTTPProbe:
     @pytest.mark.asyncio
     async def test_auth_endpoint_detection(self, local_server):
         """Verify auth-required endpoints (401/403) are flagged."""
-        from backend.agents.alpha_v6.alpha_orchestrator import AlphaOrchestrator
-        from backend.agents.alpha_v6.scoring import score_endpoint
+        from backend.agents.alpha_recon.alpha_orchestrator import AlphaOrchestrator
+        from backend.agents.alpha_recon.scoring import score_endpoint
         from backend.core.hive import EventBus
         from backend.core.scope import ScopePolicy
         from backend.modules.tech.http_client import http_client
@@ -297,7 +297,7 @@ class TestLiveHTTPProbe:
     @pytest.mark.asyncio
     async def test_openapi_swagger_detection(self, local_server):
         """Verify Swagger/OpenAPI endpoints are found and tech-tagged."""
-        from backend.agents.alpha_v6.alpha_orchestrator import AlphaOrchestrator
+        from backend.agents.alpha_recon.alpha_orchestrator import AlphaOrchestrator
         from backend.core.hive import EventBus
         from backend.core.scope import ScopePolicy
         from backend.modules.tech.http_client import http_client

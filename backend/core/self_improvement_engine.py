@@ -244,6 +244,36 @@ class SelfImprovementEngine:
     def routing_weight(self, agent_id: str) -> float:
         return self.profile(agent_id).routing_weight
 
+    def record_false_positive(self, *, agent_id: str, vuln_class: str,
+                              scan_id: str = "GLOBAL", reason: str = "") -> ImprovementChange:
+        """Record a Gamma false-positive rejection against the source agent
+        (Architecture §15.1). Raises the agent's FP rate, nudges its routing
+        weight down, and stages an auditable confidence-tuning change so the
+        source agent becomes less aggressive for this vuln class."""
+        prof = self.profile(agent_id)
+        # Update FP rate (exponential moving average toward 1.0 on each FP).
+        prof.false_positive_rate = round(min(1.0, prof.false_positive_rate * 0.8 + 0.2), 4)
+        old_weight = prof.routing_weight
+        prof.routing_weight = max(0.1, round(old_weight - 0.1, 4))
+        mode = f"too_aggressive:{vuln_class.lower()}"
+        if mode not in prof.common_failure_modes:
+            prof.common_failure_modes.append(mode)
+        change = ImprovementChange(
+            change_id=f"chg-{uuid.uuid4().hex[:10]}",
+            agent_id=agent_id, kind="routing",
+            what=f"confidence down for {vuln_class}; routing_weight {old_weight:.2f}->{prof.routing_weight:.2f}",
+            why=f"Gamma rejected a {vuln_class} candidate as false positive: {reason[:120]}",
+            scan_id=scan_id,
+            evidence={"vuln_class": vuln_class, "fp_rate": prof.false_positive_rate, "reason": reason},
+            expected_benefit="fewer false positives from this agent/vuln-class",
+            rollback={"routing_weight": old_weight},
+        )
+        self.changes.append(change)
+        self._save()
+        logger.info("[SelfImprovement] FP recorded: %s %s (fp_rate=%.2f)",
+                    agent_id, vuln_class, prof.false_positive_rate)
+        return change
+
     def get_audit(self, limit: int = 50) -> list[dict[str, Any]]:
         return [c.to_dict() for c in self.changes[-limit:]]
 

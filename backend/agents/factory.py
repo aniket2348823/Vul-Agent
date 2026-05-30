@@ -16,6 +16,7 @@ AGENT_MODULES = [
     "backend.agents.delta",
     "backend.agents.prism",
     "backend.agents.chi",
+    "backend.agents.lambda_agent",
     "backend.agents.commanders.network_commander",
 ]
 

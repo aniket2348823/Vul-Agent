@@ -25,6 +25,7 @@ from backend.api.endpoints.data import router as data_router
 from backend.api.endpoints.self_awareness import router as self_awareness_router
 from backend.api.endpoints.skills import router as skills_router
 from backend.api.endpoints.bridge import router as bridge_router
+from backend.api.endpoints.scans import router as scans_router
 from backend.api import defense
 from backend.core.task_manager import TaskManager
 from backend.core.rate_limiter import start_cleanup_task
@@ -171,6 +172,24 @@ async def health_check():
             "spy_connected": manager.is_spy_online(),
             "extensions_active": len(manager.spy_connections)}
 
+
+@app.get("/api/tools")
+async def list_tools():
+    """Recon tool inventory + availability (Architecture §7, §22)."""
+    try:
+        from backend.tools.recon.registry import RECON_TOOLS, check_tool_availability
+        tools = []
+        for name, spec in RECON_TOOLS.items():
+            avail = check_tool_availability(name)
+            tools.append({"name": name, "phase": spec.get("phase"),
+                          "binary": spec.get("binary"), "modes": spec.get("modes", []),
+                          "installed": avail.get("installed", False),
+                          "source": avail.get("source", ""), "reason": avail.get("reason", "")})
+        installed = sum(1 for t in tools if t["installed"])
+        return {"tools": tools, "total": len(tools), "installed": installed}
+    except Exception as e:
+        return {"tools": [], "error": str(e)}
+
 app.include_router(recon.router, prefix="/api/recon", tags=["Recon"])
 app.include_router(attack.router, prefix="/api/attack", tags=["Attack"])
 app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
@@ -182,9 +201,10 @@ app.include_router(data_router, prefix="/api/data", tags=["Data"])
 app.include_router(self_awareness_router, prefix="/api/self-awareness", tags=["Self-Awareness"])
 app.include_router(skills_router, prefix="/api/skills", tags=["Skills"])
 app.include_router(bridge_router, prefix="/bridge", tags=["Extension Bridge"])
+app.include_router(scans_router, prefix="/api/scans", tags=["Scans"])
 
 # Alpha Recon API
-from backend.agents.alpha_v6.api_routes import router as alpha_recon_router
+from backend.agents.alpha_recon.api_routes import router as alpha_recon_router
 app.include_router(alpha_recon_router, tags=["Alpha Recon"])
 
 @app.websocket("/stream")

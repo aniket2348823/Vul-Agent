@@ -45,6 +45,22 @@ class SkillMeta:
     author: str = ""
     raw_frontmatter: dict[str, Any] = field(default_factory=dict)
 
+    def prompt_snippet(self) -> str:
+        """Generate an LLM prompt snippet at runtime (Architecture §5.3.6).
+
+        Built on demand and never persisted, so source skill files stay
+        read-only. Used by agents to inject a skill into their reasoning."""
+        tools = ", ".join(self.required_tools) or "agent-native tooling"
+        attack = ", ".join(self.attack) if self.attack else "n/a"
+        return (
+            f"Skill: {self.name} (id={self.skill_id})\n"
+            f"Goal: {self.goal or self.description or self.name}\n"
+            f"Domain: {self.domain} | Risk: {self.risk_class.value}\n"
+            f"Suggested tools: {tools}\n"
+            f"ATT&CK: {attack}\n"
+            "Constraints: stay in scope; non-destructive unless approved; capture evidence."
+        )
+
     def to_dict(self) -> dict[str, Any]:
         d = {
             "skill_id": self.skill_id,

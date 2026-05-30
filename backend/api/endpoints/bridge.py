@@ -14,7 +14,7 @@ Endpoints (Architecture §19):
   POST /bridge/storage   - storage observations
   POST /bridge/ws        - WebSocket metadata
   GET  /bridge/commands  - approved instructions for the extension
-  WS   /bridge/live      - live status (handled by socket_manager elsewhere)
+  WS   /bridge/live      - live operator-visible status stream
 
 All ingest is additive and governed; out-of-scope or disallowed captures are
 rejected with a clear reason (never silently stored).
@@ -24,7 +24,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 
 from backend.core.scope import scope_guard, ScopeViolation
@@ -136,3 +136,33 @@ async def bridge_commands():
             "allowed_captures": sorted(scope_guard.extension_capture_allowlist),
         },
     })
+
+
+@router.websocket("/live")
+async def bridge_live(websocket: WebSocket):
+    """Live operator-visible status stream for the extension (Architecture §19
+    'WS /bridge/live'). Passive bridge channel: the extension receives scope and
+    capture-pause status and may push scope-checked heartbeats. It is never an
+    autonomous-exploitation channel — only governed status is exchanged."""
+    from backend.api.socket_manager import manager
+
+    await manager.connect(websocket, client_type="ui")
+    try:
+        # Send the initial scope/status snapshot so the extension can render
+        # operator-visible state and honor the capture-paused flag.
+        await websocket.send_json({
+            "type": "BRIDGE_STATUS",
+            "payload": {
+                "authorized": scope_guard.is_authorized(),
+                "capture_paused": False,
+                "allowed_captures": sorted(scope_guard.extension_capture_allowlist),
+            },
+        })
+        while True:
+            # Inbound frames are treated as untrusted heartbeats/acks only.
+            await websocket.receive_text()
+            await manager.mark_spy_alive()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception:  # pragma: no cover - defensive cleanup
+        manager.disconnect(websocket)

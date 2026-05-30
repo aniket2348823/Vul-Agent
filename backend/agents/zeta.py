@@ -42,6 +42,15 @@ class ZetaAgent(BrowserEnabledAgent):
         self.browser_memory_threshold = 500 * 1024 * 1024  # 500MB
         self.max_browser_contexts = 5
 
+        # ===== RUNTIME GOVERNOR STATE (Architecture §5.1/§5.2/§29.4) =====
+        # Zeta actively controls RPS, concurrency, backoff, and WAF pressure.
+        self.base_rps = 5.0          # nominal requests-per-second target
+        self.min_rps = 0.5           # floor when heavily throttled
+        self.base_concurrency = command_lane.max_concurrent
+        self.throttled = False       # current governor throttle state
+        self.waf_pressure = 0        # rolling 403/429/5xx burst pressure (0..10)
+        self._skill_rec_cache: Dict[str, Any] = {}
+
     async def setup(self):
         self.bus.subscribe(EventType.JOB_COMPLETED, self.handle_job_completion)
         self.bus.subscribe(EventType.RECON_PACKET, self.handle_recon_packet)
@@ -49,9 +58,32 @@ class ZetaAgent(BrowserEnabledAgent):
     async def handle_recon_packet(self, event: HiveEvent):
         status = str(event.payload.get("status", event.payload.get("http_status", "")))
         evidence = str(event.payload.get("evidence", "")).lower()
-        if status in {"403", "429"} or "forbidden" in evidence or "rate limit" in evidence:
+        is_5xx = status.startswith("5") and len(status) == 3
+        if status in {"403", "429"} or is_5xx or "forbidden" in evidence or "rate limit" in evidence:
             self.error_window.append(True)
             self.error_budget_current = max(0, self.error_budget_current - 2)
+            # WAF/instability pressure rises on each block burst; decays in lifecycle.
+            self.waf_pressure = min(10, self.waf_pressure + 1)
+            # Recall WAF/rate-limiting/anomaly skills for this target (Architecture §5.3.5).
+            self._recall_governance_skills(str(event.payload.get("url", "")))
+
+    def _recall_governance_skills(self, target_url: str = "") -> list:
+        """Kappa-style skill recall (Architecture §5.3.5, §29.9): Zeta receives
+        rate-limiting, anomaly-detection, detection-of-scan, WAF-pressure, and
+        runtime-governance skills. Cached per target to avoid rework."""
+        cache = self._skill_rec_cache
+        if target_url in cache:
+            return cache[target_url]
+        recs = []
+        try:
+            from backend.core.skill_library import skill_library
+            for vuln_class in ("rate-limit", "waf", "anomaly", "runtime-governance"):
+                recs.extend(skill_library.get_recommendations(
+                    target_url=target_url, vuln_class=vuln_class, limit=3))
+        except Exception:
+            recs = []
+        cache[target_url] = recs
+        return recs
 
     async def handle_job_completion(self, event: HiveEvent):
         payload = event.payload
@@ -124,6 +156,25 @@ class ZetaAgent(BrowserEnabledAgent):
                 "reason": f"CommandLane pressure active={telemetry['active_count']} timed_out={telemetry['total_timed_out']}"
             })
 
+        # 5. RUNTIME GOVERNOR DECISION (Architecture §5.2/§29.4)
+        # Decide whether to slow/pause or resume based on aggregate instability,
+        # then pace the swarm to the recommended RPS/concurrency.
+        if self.should_throttle():
+            if not self.throttled:
+                self.throttled = True
+                await self.broadcast_signal("THROTTLE", {
+                    "level": "HIGH",
+                    "reason": f"Governor pacing: rps={self.recommended_rps():.2f} waf_pressure={self.waf_pressure}"
+                })
+        else:
+            # Target is stable again: decay WAF pressure and resume normal pacing.
+            self.waf_pressure = max(0, self.waf_pressure - 1)
+            if self.throttled and self.waf_pressure == 0:
+                self.throttled = False
+                await self.broadcast_signal("RESUME", {
+                    "reason": f"Governor resume: stability recovered, rps={self.recommended_rps():.2f}"
+                })
+
     def detect_anomalies(self) -> tuple[bool, str]:
         """SOTA: Z-Score Statistical Anomaly Detection for WAF/Firewall triggers."""
         if len(self.latency_window) > 15:
@@ -138,6 +189,62 @@ class ZetaAgent(BrowserEnabledAgent):
             if z_score > 3.0: # 3 standard deviations = anomaly (e.g. sudden WAF tarpit)
                 return True, f"Latency Spike Anomaly (Z-Score: {z_score:.2f})"
         return False, ""
+
+    # ===== RUNTIME GOVERNOR INTERFACE (Architecture §5.1/§5.2/§29.4) =====
+    # Public, documented control surface other agents/the orchestrator can query
+    # to pace work. Zeta is the Runtime Governor: it controls RPS, concurrency,
+    # backoff, and WAF pressure and slows/pauses when the target is unstable.
+
+    def should_throttle(self) -> bool:
+        """Return True when the swarm should slow down or pause.
+
+        Triggers on depleted error budget, sustained block/instability bursts
+        (403/429/5xx tracked as WAF pressure), high recent block rate, or
+        CommandLane saturation/timeouts.
+        """
+        if self.error_budget_current < 10:
+            return True
+        if self.waf_pressure >= 3:
+            return True
+        if self.error_window:
+            block_rate = sum(1 for x in self.error_window if x is True) / len(self.error_window)
+            if block_rate > 0.10:
+                return True
+        telemetry = command_lane.telemetry
+        if telemetry["total_timed_out"] > 0:
+            return True
+        return False
+
+    def recommended_rps(self) -> float:
+        """Recommended requests-per-second for the swarm right now.
+
+        Scales the nominal RPS down as WAF pressure and error-budget depletion
+        rise, never falling below the configured floor.
+        """
+        rps = self.base_rps
+        # WAF pressure halves throughput roughly every ~3 pressure points.
+        rps *= 0.5 ** (self.waf_pressure / 3.0)
+        # Error budget below half starts trimming throughput linearly.
+        if self.error_budget_max:
+            budget_ratio = self.error_budget_current / self.error_budget_max
+            if budget_ratio < 0.5:
+                rps *= max(0.1, budget_ratio * 2.0)
+        return round(max(self.min_rps, rps), 3)
+
+    def recommended_concurrency(self) -> int:
+        """Recommended concurrent execution slots, derived from current pacing."""
+        if not self.base_rps:
+            return 1
+        factor = self.recommended_rps() / self.base_rps
+        return max(1, int(round(self.base_concurrency * factor)))
+
+    def recommended_backoff(self) -> float:
+        """Recommended backoff (seconds) before the next request burst.
+
+        Grows with WAF pressure; combined with adaptive jitter for human-like
+        pacing.
+        """
+        return round(self.calculate_jitter() * (1 + self.waf_pressure), 3)
 
     def calculate_jitter(self):
         """

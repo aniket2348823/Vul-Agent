@@ -8,6 +8,8 @@ Responsibilities (Architecture §8):
   - Execute local commands where safe.
   - Execute Docker-isolated commands by default for Linux-native toolchains.
   - Support timeouts and no-output watchdogs.
+  - Stream stdout in real time to a callback/WebSocket sink (§8).
+  - Manage background/long-running processes with clean interrupt/cancellation.
   - Capture stdout, stderr, exit code, duration, hash, truncation status.
   - Enforce command allowlists (argv-only, no shell strings).
   - Enforce scope extraction from command arguments.
@@ -25,15 +27,18 @@ guardrail validator that rejects shell metacharacters.
 """
 from __future__ import annotations
 
+import asyncio
 import hashlib
+import inspect
 import logging
 import os
 import shutil
 import time
+import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Awaitable, Callable, Sequence
 from urllib.parse import urlparse
 
 from backend.core.iteration_budget import IterationBudget
@@ -48,10 +53,88 @@ logger = logging.getLogger("vigilagent.terminal")
 _DEFAULT_OUTPUT_CAP = 10 * 1024 * 1024  # 10 MB (config/tools.yaml output_cap_bytes)
 _STDERR_TAIL = 16 * 1024
 
+# Real-time output sink: invoked with each stdout chunk as it arrives so an
+# orchestrator can relay it to the WebSocket event stream (Architecture §8
+# "Stream output to WebSocket"). May be a plain or async callable.
+StreamCallback = Callable[[str], Any]
+
 
 class TerminalBackend(str, Enum):
     LOCAL = "local"
     DOCKER = "docker"
+
+
+class CancellationToken:
+    """Cooperative cancel handle for a governed execution.
+
+    Mirrors the intent of Hermes ``tools/interrupt.py`` (per-session interrupt
+    signalling) but scoped to a single Terminal Engine run instead of a thread.
+    Setting the token causes the streaming executor's watchdog to terminate the
+    process tree at the next tick.
+    """
+
+    __slots__ = ("_event",)
+
+    def __init__(self) -> None:
+        self._event = asyncio.Event()
+
+    def cancel(self) -> None:
+        self._event.set()
+
+    @property
+    def cancelled(self) -> bool:
+        return self._event.is_set()
+
+    async def wait(self) -> None:
+        await self._event.wait()
+
+
+@dataclass
+class _ExecOutcome:
+    """Internal result of a streaming subprocess run."""
+
+    stdout: str
+    stderr: str
+    exit_code: int | None
+    timed_out: bool
+    cancelled: bool = False
+
+
+@dataclass
+class BackgroundProcess:
+    """A tracked long-running governed process (Hermes process_registry pattern).
+
+    Background runs return a handle immediately; their output streams into
+    ``output`` and the final :class:`TerminalResult` lands in ``result`` when
+    the process exits, is cancelled, or trips the no-output watchdog.
+    """
+
+    process_id: str
+    tool: str
+    argv: list[str]
+    scan_id: str
+    agent: str
+    token: CancellationToken
+    backend: str = ""
+    started_at: float = field(default_factory=time.time)
+    output: list[str] = field(default_factory=list)
+    status: str = "running"  # running -> finished|failed|timeout|cancelled
+    result: TerminalResult | None = None
+    task: asyncio.Task | None = field(default=None, repr=False)
+
+    def snapshot(self) -> dict[str, Any]:
+        return {
+            "process_id": self.process_id,
+            "tool": self.tool,
+            "argv": self.argv,
+            "backend": self.backend,
+            "scan_id": self.scan_id,
+            "agent": self.agent,
+            "status": self.status,
+            "uptime_seconds": int(time.time() - self.started_at),
+            "output_preview": "".join(self.output)[-2000:],
+            "exit_code": self.result.exit_code if self.result else None,
+        }
 
 
 @dataclass
@@ -80,6 +163,8 @@ class TerminalResult:
     def status(self) -> str:
         if self.blocked:
             return "blocked"
+        if self.metadata.get("cancelled"):
+            return "cancelled"
         if self.timed_out:
             return "timeout"
         if self.exit_code == 0:
@@ -133,9 +218,13 @@ class TerminalEngine:
             "blocked": 0,
             "timeouts": 0,
             "failures": 0,
+            "cancelled": 0,
             "docker_runs": 0,
             "local_runs": 0,
+            "background_runs": 0,
         }
+        # Registry of live long-running/background processes (Hermes pattern).
+        self._processes: dict[str, BackgroundProcess] = {}
 
     # ── Backend selection (Architecture §7 rule 3) ───────────────────────────
 
@@ -178,6 +267,8 @@ class TerminalEngine:
         cwd: str | Path | None = None,
         prefer_docker: bool | None = None,
         metadata: dict[str, Any] | None = None,
+        on_output: StreamCallback | None = None,
+        cancel_token: CancellationToken | None = None,
     ) -> TerminalResult:
         argv = [str(part) for part in argv]
         tool = os.path.basename(argv[0]) if argv else "unknown"
@@ -226,10 +317,15 @@ class TerminalEngine:
 
         try:
             if backend is TerminalBackend.DOCKER:
-                result = await self._run_docker(argv, scan_id, timeout_seconds)
+                result = await self._run_docker(
+                    argv, scan_id, timeout_seconds,
+                    output_path=out_path or None, stdin=stdin,
+                    on_output=on_output, cancel_token=cancel_token,
+                )
             else:
                 result = await self._run_local(
-                    argv, stdin=stdin, cwd=cwd, timeout_seconds=timeout_seconds, priority=priority
+                    argv, stdin=stdin, cwd=cwd, timeout_seconds=timeout_seconds,
+                    priority=priority, on_output=on_output, cancel_token=cancel_token,
                 )
         except Exception as exc:  # pragma: no cover - defensive
             self.telemetry["failures"] += 1
@@ -241,7 +337,7 @@ class TerminalEngine:
                 scan_id=scan_id, agent=agent, parser_hint=parser_hint, metadata=meta,
             )
 
-        stdout, stderr, exit_code, timed_out = result
+        stdout, stderr, exit_code, timed_out, cancelled = result
         duration_ms = int((time.time() - started) * 1000)
 
         # 6. Output watchdog / cap + persist artifact
@@ -249,13 +345,25 @@ class TerminalEngine:
         sha256 = hashlib.sha256(watched.content.encode("utf-8", errors="replace")).hexdigest()
         out_bytes = len(watched.content.encode("utf-8", errors="replace"))
         if out_path:
-            try:
-                Path(out_path).write_text(watched.content, encoding="utf-8", errors="replace")
-            except Exception as exc:
-                logger.warning("[TERMINAL] could not write artifact %s: %s", out_path, exc)
+            # In the Docker backend a tool may write its artifact DIRECTLY to the
+            # mounted /scan path (e.g. `-o file.json`) and emit nothing to
+            # stdout. Don't clobber a real on-disk artifact with empty stdout.
+            artifact_written = (
+                backend is TerminalBackend.DOCKER
+                and not watched.content.strip()
+                and Path(out_path).exists()
+                and Path(out_path).stat().st_size > 0
+            )
+            if not artifact_written:
+                try:
+                    Path(out_path).write_text(watched.content, encoding="utf-8", errors="replace")
+                except Exception as exc:
+                    logger.warning("[TERMINAL] could not write artifact %s: %s", out_path, exc)
 
         if timed_out:
             self.telemetry["timeouts"] += 1
+        elif cancelled:
+            self.telemetry["cancelled"] += 1
         elif exit_code not in (0, None):
             self.telemetry["failures"] += 1
 
@@ -270,7 +378,7 @@ class TerminalEngine:
             stderr_tail=stderr[-_STDERR_TAIL:], timed_out=timed_out,
             duration_ms=duration_ms, sha256=sha256, output_bytes=out_bytes,
             scan_id=scan_id, agent=agent, parser_hint=parser_hint,
-            metadata={**meta, "truncated": watched.truncated},
+            metadata={**meta, "truncated": watched.truncated, "cancelled": cancelled},
         )
 
     async def _run_local(
@@ -281,36 +389,417 @@ class TerminalEngine:
         cwd: str | Path | None,
         timeout_seconds: int,
         priority: LanePriority,
-    ) -> tuple[str, str, int | None, bool]:
+        on_output: StreamCallback | None = None,
+        cancel_token: CancellationToken | None = None,
+    ) -> tuple[str, str, int | None, bool, bool]:
         # Resolve binary from PATH first, then tool root (Architecture §7 rule 2).
+        no_output_ms = min(timeout_seconds * 1000, 30_000)
+        max_ms = timeout_seconds * 1000
         async with command_lane.slot(priority):
+            # When real-time streaming or cancellation is requested, use the
+            # streaming executor (Architecture §8 "Stream output to WebSocket").
+            # Otherwise preserve the exact ProcessRunner path used by existing
+            # recon callers.
+            if on_output is not None or cancel_token is not None:
+                outcome = await self._run_streamed_exec(
+                    argv, stdin=stdin, cwd=cwd,
+                    no_output_timeout_ms=no_output_ms, max_runtime_ms=max_ms,
+                    on_output=on_output, cancel_token=cancel_token,
+                )
+                return (outcome.stdout, outcome.stderr, outcome.exit_code,
+                        outcome.timed_out, outcome.cancelled)
             proc = await ProcessRunner.run_exec(
                 argv,
                 stdin=stdin,
                 cwd=cwd,
-                no_output_timeout_ms=min(timeout_seconds * 1000, 30_000),
-                max_runtime_ms=timeout_seconds * 1000,
+                no_output_timeout_ms=no_output_ms,
+                max_runtime_ms=max_ms,
             )
-        return proc.stdout, proc.stderr, proc.exit_code, proc.timed_out
+        return proc.stdout, proc.stderr, proc.exit_code, proc.timed_out, False
 
     async def _run_docker(
         self,
         argv: list[str],
         scan_id: str,
         timeout_seconds: int,
-    ) -> tuple[str, str, int | None, bool]:
-        # DockerSandbox runs a single shell-quoted command inside an isolated
-        # container. We pass the argv joined safely; the sandbox enforces
-        # resource limits and network policy.
-        from backend.core.sandbox import quote_command
+        *,
+        output_path: str | Path | None = None,
+        stdin: str | None = None,
+        on_output: StreamCallback | None = None,
+        cancel_token: CancellationToken | None = None,
+    ) -> tuple[str, str, int | None, bool, bool]:
+        """Run a recon tool inside the bundled recon image (Architecture §7 r3).
 
+        When the tool is part of the recon arsenal and the recon image is ready,
+        we run it in that image with the scan dir mounted read-write and the
+        tool root mounted read-only, with host paths rewritten to container
+        paths. Otherwise we fall back to the generic isolated DockerSandbox
+        (network=none) used for non-recon commands.
+        """
+        from backend.tools.recon.docker_runtime import (
+            DOCKER_RECON_TOOLS, build_docker_argv, build_exec_argv,
+            docker_recon_ready, running_recon_container, EXEC_WORKDIR,
+        )
+
+        tool = os.path.basename(argv[0]) if argv else ""
+        tool_key = self._recon_tool_key(tool)
+
+        if tool_key in DOCKER_RECON_TOOLS and docker_recon_ready() and output_path:
+            raw_dir = Path(output_path).resolve().parent
+            tool_root = Path(getattr(__import__("backend.core.config", fromlist=["settings"]).settings,
+                                     "ALPHA_TOOL_ROOT", r"D:\projects"))
+
+            # Prefer exec-into-a-running-container when one exists. Works around
+            # the Docker Desktop overlay bug where fresh `docker run` of the image
+            # fails with "cannot execute binary file" while a long-lived container
+            # from the same image runs fine (also faster: no per-tool spin-up).
+            container = running_recon_container()
+            if container:
+                proc = await self._run_docker_in_container(
+                    argv, container=container, raw_dir=raw_dir, tool_root=tool_root,
+                    output_path=Path(output_path), stdin=stdin,
+                    timeout_seconds=timeout_seconds, on_output=on_output,
+                    cancel_token=cancel_token,
+                )
+                return proc
+
+            docker_argv = build_docker_argv(
+                argv, raw_dir=raw_dir, tool_root=tool_root,
+                scan_id=scan_id,
+            )
+            proc = await self._run_docker_exec(
+                docker_argv, stdin=stdin, timeout_seconds=timeout_seconds,
+                on_output=on_output, cancel_token=cancel_token,
+            )
+            return proc
+
+        # Fallback: generic isolated sandbox for non-recon commands.
+        # The DockerSandbox path has no live-stream hook; surface any buffered
+        # output through the callback once after completion so the WebSocket
+        # relay still observes it.
+        from backend.core.sandbox import quote_command
         command = quote_command(argv)
         sandbox_res = await self._sandbox.run(command, engagement_id=scan_id, timeout=timeout_seconds)
         timed_out = sandbox_res.exit_code == 124
-        return sandbox_res.stdout, sandbox_res.stderr, sandbox_res.exit_code, timed_out
+        if on_output and sandbox_res.stdout:
+            await self._emit(on_output, sandbox_res.stdout)
+        return sandbox_res.stdout, sandbox_res.stderr, sandbox_res.exit_code, timed_out, False
+
+    @staticmethod
+    def _recon_tool_key(binary: str) -> str:
+        """Map a binary basename back to its recon registry key for image lookup."""
+        b = binary.lower()
+        if b.endswith(".exe"):
+            b = b[:-4]
+        alias = {
+            "kr": "kiterunner",
+            "testssl.sh": "testssl",
+            "interactsh-client": "interactsh",
+        }
+        return alias.get(b, b)
+
+    async def _run_docker_exec(
+        self,
+        docker_argv: list[str],
+        *,
+        stdin: str | None,
+        timeout_seconds: int,
+        on_output: StreamCallback | None = None,
+        cancel_token: CancellationToken | None = None,
+    ) -> tuple[str, str, int | None, bool, bool]:
+        """Execute a prepared `docker run ...` argv with watchdog + timeout."""
+        no_output_ms = min(timeout_seconds * 1000, 60_000)
+        max_ms = timeout_seconds * 1000
+        async with command_lane.slot():
+            if on_output is not None or cancel_token is not None:
+                outcome = await self._run_streamed_exec(
+                    docker_argv, stdin=stdin, cwd=None,
+                    no_output_timeout_ms=no_output_ms, max_runtime_ms=max_ms,
+                    on_output=on_output, cancel_token=cancel_token,
+                )
+                return (outcome.stdout, outcome.stderr, outcome.exit_code,
+                        outcome.timed_out, outcome.cancelled)
+            proc = await ProcessRunner.run_exec(
+                docker_argv,
+                stdin=stdin,
+                no_output_timeout_ms=no_output_ms,
+                max_runtime_ms=max_ms,
+            )
+        return proc.stdout, proc.stderr, proc.exit_code, proc.timed_out, False
+
+    async def _run_docker_in_container(
+        self,
+        argv: list[str],
+        *,
+        container: str,
+        raw_dir: Path,
+        tool_root: Path,
+        output_path: Path,
+        stdin: str | None,
+        timeout_seconds: int,
+        on_output: StreamCallback | None = None,
+        cancel_token: CancellationToken | None = None,
+    ) -> tuple[str, str, int | None, bool, bool]:
+        """Run a recon tool by ``docker exec`` into a RUNNING recon container.
+
+        Output files the tool writes under the container scan dir are copied back
+        to the host artifact path via ``docker cp`` so the parser registry sees
+        them exactly as with the bind-mounted run path.
+        """
+        from backend.tools.recon.docker_runtime import build_exec_argv, EXEC_WORKDIR
+        import asyncio as _asyncio
+
+        out_name = output_path.name
+        container_out = f"{EXEC_WORKDIR}/{out_name}"
+        exec_argv = build_exec_argv(
+            argv, container=container, raw_dir=raw_dir, tool_root=tool_root,
+            container_out=container_out,
+        )
+        result = await self._run_docker_exec(
+            exec_argv, stdin=stdin, timeout_seconds=timeout_seconds,
+            on_output=on_output, cancel_token=cancel_token,
+        )
+        # Copy the tool's output file back to the host artifact path (best effort)
+        # so file-emitting tools (-o file.json) are ingested by the parsers.
+        try:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            cp = await _asyncio.create_subprocess_exec(
+                "docker", "cp", f"{container}:{container_out}", str(output_path),
+                stdout=_asyncio.subprocess.PIPE, stderr=_asyncio.subprocess.PIPE,
+            )
+            await _asyncio.wait_for(cp.communicate(), timeout=30)
+        except Exception as exc:
+            logger.debug("[TERMINAL] docker cp back failed for %s: %s", out_name, exc)
+        return result
+
+    # ── Streaming executor + cancellation (Hermes lifecycle) ────────────────
+
+    @staticmethod
+    async def _emit(on_output: StreamCallback | None, chunk: str) -> None:
+        """Deliver an output chunk to the stream sink (sync or async)."""
+        if not on_output or not chunk:
+            return
+        try:
+            res = on_output(chunk)
+            if inspect.isawaitable(res):
+                await res
+        except Exception as exc:  # never let a sink error kill the run
+            logger.debug("[TERMINAL] stream callback error: %s", exc)
+
+    async def _run_streamed_exec(
+        self,
+        argv: Sequence[str],
+        *,
+        stdin: str | None,
+        cwd: str | Path | None,
+        no_output_timeout_ms: int,
+        max_runtime_ms: int,
+        on_output: StreamCallback | None,
+        cancel_token: CancellationToken | None,
+    ) -> _ExecOutcome:
+        """Run a subprocess, streaming stdout chunks live to ``on_output``.
+
+        Adopts the Hermes execution lifecycle: a no-output watchdog kills stalled
+        processes, a max-runtime ceiling bounds total duration, and a cooperative
+        cancellation token allows clean interrupt. The process tree is always
+        reaped so no zombies leak (cf. Hermes reader-loop ``finally``).
+        """
+        argv = [str(part) for part in argv]
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *argv,
+                cwd=str(cwd) if cwd else None,
+                stdin=asyncio.subprocess.PIPE if stdin is not None else None,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+        except Exception as exc:
+            logger.error("[TERMINAL] failed to spawn %s: %s", argv[:1], exc)
+            return _ExecOutcome("", str(exc), -1, False, False)
+
+        stdout_chunks: list[str] = []
+        stderr_chunks: list[str] = []
+        timed_out = False
+        cancelled = False
+        killed = False
+        last_output_at = time.monotonic()
+
+        async def _read_stdout() -> None:
+            nonlocal last_output_at
+            assert proc.stdout is not None
+            while True:
+                line = await proc.stdout.readline()
+                if not line:
+                    break
+                last_output_at = time.monotonic()
+                text = line.decode("utf-8", errors="replace")
+                stdout_chunks.append(text)
+                await self._emit(on_output, text)
+
+        async def _read_stderr() -> None:
+            nonlocal last_output_at
+            assert proc.stderr is not None
+            while True:
+                line = await proc.stderr.readline()
+                if not line:
+                    break
+                last_output_at = time.monotonic()
+                stderr_chunks.append(line.decode("utf-8", errors="replace"))
+
+        async def _write_stdin() -> None:
+            if stdin is None or proc.stdin is None:
+                return
+            try:
+                proc.stdin.write(stdin.encode("utf-8") if isinstance(stdin, str) else stdin)
+                await proc.stdin.drain()
+                proc.stdin.close()
+            except Exception:
+                pass
+
+        def _terminate() -> None:
+            try:
+                proc.kill()
+            except ProcessLookupError:
+                pass
+
+        async def _supervisor() -> None:
+            """No-output watchdog + max-runtime ceiling + cancellation."""
+            nonlocal timed_out, cancelled, killed
+            deadline = time.monotonic() + max_runtime_ms / 1000.0
+            while proc.returncode is None:
+                await asyncio.sleep(0.25)
+                now = time.monotonic()
+                if cancel_token is not None and cancel_token.cancelled:
+                    cancelled = True
+                    killed = True
+                    logger.info("[TERMINAL] cancellation requested; killing process.")
+                    _terminate()
+                    return
+                if (now - last_output_at) * 1000 > no_output_timeout_ms:
+                    timed_out = True
+                    killed = True
+                    logger.warning("[TERMINAL] no-output watchdog tripped (%sms).",
+                                   no_output_timeout_ms)
+                    _terminate()
+                    return
+                if now >= deadline:
+                    timed_out = True
+                    killed = True
+                    logger.warning("[TERMINAL] max runtime exceeded (%sms).", max_runtime_ms)
+                    _terminate()
+                    return
+
+        readers = asyncio.gather(_read_stdout(), _read_stderr(), _write_stdin())
+        supervisor = asyncio.ensure_future(_supervisor())
+        try:
+            await proc.wait()
+        finally:
+            supervisor.cancel()
+            try:
+                await readers
+            except Exception:
+                pass
+            # Always reap to avoid zombies (Hermes reader-loop finally).
+            try:
+                await asyncio.wait_for(proc.wait(), timeout=5)
+            except Exception:
+                pass
+
+        return _ExecOutcome(
+            stdout="".join(stdout_chunks),
+            stderr="".join(stderr_chunks),
+            exit_code=proc.returncode if not killed else None,
+            timed_out=timed_out,
+            cancelled=cancelled,
+        )
+
+    # ── Background / long-running process control (Hermes registry) ─────────
+
+    def run_background(
+        self,
+        argv: Sequence[str],
+        *,
+        scan_id: str = "GLOBAL",
+        agent: str = "terminal",
+        output_path: str | Path | None = None,
+        timeout_seconds: int = 3600,
+        budget: IterationBudget | None = None,
+        parser_hint: str = "lines",
+        priority: LanePriority = LanePriority.NORMAL,
+        stdin: str | None = None,
+        cwd: str | Path | None = None,
+        prefer_docker: bool | None = None,
+        metadata: dict[str, Any] | None = None,
+        on_output: StreamCallback | None = None,
+    ) -> BackgroundProcess:
+        """Launch a governed command as a tracked background process.
+
+        Returns a :class:`BackgroundProcess` handle immediately while the run
+        proceeds on the event loop. Output streams into the handle (and the
+        optional ``on_output`` sink); the final :class:`TerminalResult` is stored
+        on ``handle.result`` when the process exits, is cancelled, or trips the
+        watchdog. Mirrors Hermes ``terminal(background=true)`` + process_registry.
+        """
+        argv = [str(part) for part in argv]
+        tool = os.path.basename(argv[0]) if argv else "unknown"
+        token = CancellationToken()
+        handle = BackgroundProcess(
+            process_id=f"proc_{uuid.uuid4().hex[:12]}",
+            tool=tool, argv=argv, scan_id=scan_id, agent=agent, token=token,
+            backend=self.choose_backend(prefer_docker).value,
+        )
+
+        def _sink(chunk: str) -> Any:
+            handle.output.append(chunk)
+            return self._emit(on_output, chunk)
+
+        async def _drive() -> None:
+            try:
+                result = await self.run(
+                    argv, scan_id=scan_id, agent=agent, output_path=output_path,
+                    timeout_seconds=timeout_seconds, budget=budget,
+                    parser_hint=parser_hint, priority=priority, stdin=stdin,
+                    cwd=cwd, prefer_docker=prefer_docker, metadata=metadata,
+                    on_output=_sink, cancel_token=token,
+                )
+                handle.result = result
+                handle.status = result.status
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.error("[TERMINAL] background %s failed: %s", tool, exc)
+                handle.status = "failed"
+
+        self.telemetry["background_runs"] += 1
+        self._processes[handle.process_id] = handle
+        handle.task = asyncio.ensure_future(_drive())
+        return handle
+
+    def get_process(self, process_id: str) -> BackgroundProcess | None:
+        return self._processes.get(process_id)
+
+    def list_processes(self) -> list[dict[str, Any]]:
+        return [p.snapshot() for p in self._processes.values()]
+
+    async def cancel_process(self, process_id: str, *, wait: bool = True) -> dict[str, Any]:
+        """Request clean cancellation of a tracked background process."""
+        handle = self._processes.get(process_id)
+        if handle is None:
+            return {"status": "not_found", "process_id": process_id}
+        if handle.result is not None or handle.status != "running":
+            return {"status": "already_finished", "process_id": process_id,
+                    "final_status": handle.status}
+        handle.token.cancel()
+        if wait and handle.task is not None:
+            try:
+                await asyncio.wait_for(asyncio.shield(handle.task), timeout=10)
+            except Exception:
+                pass
+        return {"status": "cancelled", "process_id": process_id,
+                "final_status": handle.status}
 
     def get_telemetry(self) -> dict[str, Any]:
-        return {**self.telemetry, "docker_available": self._docker_ok, "prefer_docker": self.prefer_docker}
+        return {**self.telemetry, "docker_available": self._docker_ok,
+                "prefer_docker": self.prefer_docker,
+                "live_processes": sum(1 for p in self._processes.values() if p.status == "running")}
 
 
 # Global governed terminal engine, bound to the active scope guard.

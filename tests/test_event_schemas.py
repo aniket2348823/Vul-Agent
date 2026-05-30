@@ -5,7 +5,7 @@ Tests that all event schemas validate correctly and reject invalid data.
 """
 import pytest
 import time
-from backend.agents.alpha_v6.event_schemas import (
+from backend.agents.alpha_recon.event_schemas import (
     PhaseStartedEvent, PhaseCompletedEvent,
     ToolStartedEvent, ToolCompletedEvent, ToolSkippedEvent,
     EntityDiscoveredEvent, VulnCandidateEvent, SecretFoundEvent,

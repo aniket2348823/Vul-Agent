@@ -117,7 +117,8 @@ class SkillCreatorAgent:
         )
         return candidate
 
-    def persist(self, candidate: SkillCandidate, *, description: str = "") -> Path:
+    def persist(self, candidate: SkillCandidate, *, description: str = "",
+                evaluation: "EvaluationResult | None" = None) -> Path:
         """Write the candidate skill artifact tree (Architecture §13.2)."""
         skill_dir = _GENERATED_ROOT / candidate.domain / candidate.slug
         skill_dir.mkdir(parents=True, exist_ok=True)
@@ -142,6 +143,14 @@ class SkillCreatorAgent:
         )
         (skill_dir / "SKILL.md").write_text(frontmatter, encoding="utf-8")
         (skill_dir / "metadata.json").write_text(json.dumps(candidate.metadata(), indent=2), encoding="utf-8")
+        if evaluation is not None:
+            # evaluation.json artifact (Architecture §13.2 artifact structure).
+            (skill_dir / "evaluation.json").write_text(json.dumps({
+                "passed": evaluation.passed,
+                "checks": evaluation.checks,
+                "failed_checks": evaluation.reasons,
+                "evaluated_at": time.time(),
+            }, indent=2), encoding="utf-8")
         (skill_dir / "provenance.json").write_text(json.dumps({
             "source_scan_ids": candidate.source_scan_ids,
             "created_by": candidate.created_by,
@@ -226,7 +235,7 @@ def create_and_evaluate(*, trigger: str, scan_id: str, name: str, description: s
 
     evaluation = skill_evaluator.evaluate(candidate)
     candidate.promotion_state = promotion_gate.decide(candidate, evaluation)
-    skill_dir = skill_creator.persist(candidate, description=description)
+    skill_dir = skill_creator.persist(candidate, description=description, evaluation=evaluation)
 
     # Register into the catalog as a non-active entry until promoted.
     meta = SkillMeta(

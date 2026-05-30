@@ -12,10 +12,11 @@ roots:
   - .agents/skills            # workspace-bundled skills (active by default)
   - generated_skills          # auto-created skills (start as candidate)
 
-# Optional external skill libraries (Architecture §5.3). Add the path to the
-# Anthropic-Cybersecurity-Skills checkout here when present on the host.
-external_roots:
-  - D:\projects\Anthropic-Cybersecurity-Skills
+# External skill libraries (Architecture §5.3). The Anthropic-Cybersecurity-Skills
+# library has been COPIED into .agents/skills (in-repo, read-only source of
+# truth), so no external path is scanned by default. Add a path here only to
+# ingest an additional out-of-repo library.
+external_roots: []
 
 # Promotion gate (Architecture §13.2). Generated skills must pass evaluation
 # before they can be used automatically.

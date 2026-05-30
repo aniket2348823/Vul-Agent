@@ -25,10 +25,16 @@ import urllib.parse
 import codecs
 import binascii
 import logging
+import sys
 from typing import Dict, Any, List, Set, Tuple
 
 logger = logging.getLogger("GI-5")
-logging.basicConfig(level=logging.INFO)
+# Route default logging to STDOUT (not stderr) so INFO startup banners are not
+# mistaken for errors by shells/CI that treat any stderr output as a failure
+# (e.g. PowerShell NativeCommandError). Only configure if the root logger has no
+# handlers yet, so an app/host that sets up its own logging is never overridden.
+if not logging.getLogger().handlers:
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
 
 class GeneralIntelligence5:

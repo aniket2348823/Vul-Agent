@@ -40,6 +40,7 @@ TMP_GRAPH_FILE = os.path.join(_DATA_DIR, "graph.json.tmp")
 # ══════════════════════════════════════════════════════════════════════════════
 
 class NodeKind(str, Enum):
+    ENGAGEMENT = "engagement"
     TARGET = "target"
     DOMAIN = "domain"
     HOST = "host"

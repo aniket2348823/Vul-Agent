@@ -147,29 +147,42 @@ class KappaAgent(BrowserEnabledAgent):
         if not query_vec: return []
 
         semantic_hits = memory_store.recall_semantic(query_vec, top_k=top_k)
+        sanitized_hits = []
         if semantic_hits:
-            sanitized_hits = []
-        for hit in semantic_hits:
-            if isinstance(hit, dict) and "payload" in hit:
-                hit["payload"] = content_boundary.sanitize_control_tokens(str(hit["payload"]))
-            sanitized_hits.append(hit)
+            for hit in semantic_hits:
+                if isinstance(hit, dict) and "payload" in hit:
+                    hit["payload"] = content_boundary.sanitize_control_tokens(str(hit["payload"]))
+                sanitized_hits.append(hit)
         return sanitized_hits
 
-        async with TempWorkspace(prefix="kappa-recall") as workspace:
-            workspace.write_file("query.txt", query)
-            with open(self.memory_file, "r") as f:
-                data = json.load(f)
-            workspace.write_file("memory_record_count.txt", str(len(data)))
+    async def recall_skills(self, *, target_url: str = "", vuln_class: str = "", top_k: int = 5):
+        """Active skill recall for Omega/Sigma (Architecture §5.2, §29.9):
+        Kappa surfaces learned/created skill recommendations, not just passive
+        vector memory."""
+        recs = []
+        try:
+            from backend.core.skill_library import skill_library
+            recs = skill_library.get_recommendations(
+                target_url=target_url, vuln_class=vuln_class, limit=top_k)
+        except Exception:
+            recs = []
+        try:
+            from backend.skills import skill_catalog
+            needle = (vuln_class or "").lower()
+            for meta in skill_catalog.all():
+                blob = f"{meta.name} {meta.description} {meta.domain}".lower()
+                if not needle or needle in blob:
+                    recs.append({"skill_id": meta.skill_id, "name": meta.name,
+                                 "domain": meta.domain, "promotion_state": meta.promotion_state.value,
+                                 "source": "catalog"})
+        except Exception:
+            pass
+        return recs[:top_k]
 
-            scored_records = []
-            for rec in data:
-                rec_vec = rec.get("vector", [])
-                if rec_vec:
-                    sim = self._cosine_similarity(query_vec, rec_vec)
-                    scored_records.append((sim, rec))
-
-        scored_records.sort(key=lambda x: x[0], reverse=True)
-        return [r for sim, r in scored_records[:top_k] if sim > 0.3]
+    async def _kappa_recall_legacy(self, query: str):
+        """Deprecated legacy recall path (kept as a no-op; superseded by
+        recall_tactics + recall_skills)."""
+        return []
 
     # ============ BROWSER SESSION PERSISTENCE (Phase 4) ============
     

@@ -8,7 +8,7 @@ Tests:
 - SeenSet behavior
 """
 import pytest
-from backend.agents.alpha_v6.dedupe import (
+from backend.agents.alpha_recon.dedupe import (
     SeenSet, normalize_url, normalize_endpoint_key, classify_path,
 )
 

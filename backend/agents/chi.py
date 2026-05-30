@@ -71,6 +71,28 @@ class AgentChi(BrowserEnabledAgent):
         # 3. Dynamic Token Harvester
         self.keyring = KeyringIntelligence()
 
+        # Skill recall cache (Architecture §5.3.5, §29.9)
+        self._skill_rec_cache = {}
+
+
+    def _recall_traffic_skills(self, target_url: str = "") -> list:
+        """Kappa-style skill recall (Architecture §5.3.5, §29.9): Chi receives
+        traffic-analysis, WebSocket, XHR/fetch, timing, and side-channel skills.
+        Cached per target to avoid rework."""
+        cache = self._skill_rec_cache
+        if target_url in cache:
+            return cache[target_url]
+        recs = []
+        try:
+            from backend.core.skill_library import skill_library
+            for vuln_class in ("traffic", "websocket", "timing", "side-channel"):
+                recs.extend(skill_library.get_recommendations(
+                    target_url=target_url, vuln_class=vuln_class, limit=3))
+        except Exception:
+            recs = []
+        cache[target_url] = recs
+        return recs
+
 
     async def setup(self):
         # Local Event Subscriptions
@@ -116,6 +138,9 @@ class AgentChi(BrowserEnabledAgent):
             return
 
         # print(f"[{self.name}] Chi Active. Intercepting Kinetic Event...")
+
+        # Surface traffic/timing/side-channel skills for this target.
+        self._recall_traffic_skills(packet.target.url)
         
         # [NEW] Token Extraction Pipeline
         event_data = packet.target.payload or {}

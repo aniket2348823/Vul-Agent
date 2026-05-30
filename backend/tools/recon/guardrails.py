@@ -98,13 +98,15 @@ def validate_command(argv: tuple[str, ...] | list[str], *, allow_shell: bool = F
             except Exception:
                 pass
 
-    # 5. Validate binary is a known recon tool
+    # 5. Validate binary is a known recon tool (Architecture §7, 39-tool matrix)
     known_binaries = {
-        "subfinder", "amass", "gau", "waybackurls", "dnsx", "httpx",
-        "katana", "hakrawler", "naabu", "nmap", "tlsx", "nuclei",
-        "ffuf", "feroxbuster", "gobuster", "gowitness", "kr",
-        "interactsh-client", "shuffledns", "cloudlist", "python",
-        "python3", "massdns",
+        "subfinder", "amass", "assetfinder", "gau", "waybackurls", "cloudlist",
+        "spiderfoot", "github-subdomains", "dnsx", "shuffledns", "puredns",
+        "cdncheck", "naabu", "masscan", "nmap", "tlsx", "testssl.sh",
+        "httpx", "httprobe", "whatweb", "wafw00f", "katana", "gospider",
+        "hakrawler", "arjun", "paramspider", "feroxbuster", "ffuf", "gobuster",
+        "kr", "gowitness", "aquatone", "nuclei", "dalfox", "interactsh-client",
+        "python", "python3", "massdns",
     }
     base_binary = os.path.basename(binary).lower()
     if base_binary not in known_binaries:

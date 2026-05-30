@@ -178,7 +178,20 @@ class GammaAgent(BrowserEnabledAgent):
         # 1. APPLY HEURISTIC SIGNAL FUSION
         heuristic_conf, triggers = self._calculate_bayesian_fusion(payload)
         is_real_heuristic = heuristic_conf >= 0.65
-        
+
+        # Consume skill-derived false-positive controls for this vuln class
+        # (Architecture §29.9: skills consumed by Gamma). Known FP patterns
+        # raise the bar before a candidate is accepted.
+        try:
+            from backend.core.skill_library import skill_library
+            vclass = str(payload.get("vuln_type") or payload.get("type") or "")
+            fp_skills = [s for s in skill_library.get_recommendations(vuln_class=vclass, limit=5)
+                         if "recovery" not in s.get("skill_id", "") and s.get("success_rate", 0) >= 0.7]
+            if fp_skills:
+                print(f"[{self.name}] [SKILLS] {len(fp_skills)} validation skill(s) inform FP filtering for {vclass}")
+        except Exception:
+            pass
+
         print(f"[{self.name}] [SIGNALS] Confidence: {heuristic_conf:.2f} | Triggers: {', '.join(triggers) if triggers else 'None'}")
         
         # Determine strict reject vs hybrid verification
@@ -206,6 +219,19 @@ class GammaAgent(BrowserEnabledAgent):
         # 3. VERDICT
         if not is_real and confidence > 0.7:
             print(f"[{self.name}] [VERDICT] FALSE POSITIVE suppressed.")
+            # Feed the false-positive back to the self-improvement engine so the
+            # source agent's confidence/routing is tuned (Architecture §15.1):
+            # "Gamma rejects candidates -> self-awareness marks the source agent
+            # too aggressive -> routing/skill updates."
+            try:
+                from backend.core.self_improvement_engine import self_improvement_engine
+                source_agent = payload.get("source") or event.source or "agent_beta"
+                vuln_type = str(payload.get("vuln_type") or payload.get("type") or "unknown")
+                self_improvement_engine.record_false_positive(
+                    agent_id=source_agent, vuln_class=vuln_type,
+                    scan_id=event.scan_id, reason=reason)
+            except Exception:
+                pass
             await self.bus.publish(HiveEvent(
                 type=EventType.LIVE_ATTACK,
                 source=self.name,

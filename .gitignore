@@ -101,3 +101,6 @@ dump.rdb
 
 # Graphify output
 graphify-out/
+
+# Recon tool binaries (built by scripts/install_recon_tools.py — do NOT commit binaries)
+tools/recon_bin/

@@ -113,9 +113,14 @@ class CredentialVault:
                 or os.getenv("FORENSIC_ENCRYPTION_KEY")
             )
             if not key_material:
-                logger.warning("[Vault] No vault key set; generating an ephemeral key (dev only).")
-                self.cipher = Fernet(Fernet.generate_key())
+                # No env-provided key: use a persisted local key so the vault is
+                # stable across restarts (dev). Production should set
+                # VIGILAGENT_VAULT_KEY. This is INFO, not WARNING — it is an
+                # expected dev fallback, not a fault (keeps stderr clean).
+                self.cipher = Fernet(self._load_or_create_local_key())
                 self.encryption_enabled = True
+                logger.info("[Vault] Using persisted local dev key "
+                            "(set VIGILAGENT_VAULT_KEY to override in production).")
                 return
             kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=_VAULT_SALT, iterations=100000)
             key = base64.urlsafe_b64encode(kdf.derive(key_material.encode()))
@@ -124,6 +129,30 @@ class CredentialVault:
         except Exception as exc:  # pragma: no cover
             logger.error("[Vault] encryption init failed: %s", exc)
             self.encryption_enabled = False
+
+    def _load_or_create_local_key(self) -> bytes:
+        """Load (or create once) a persisted local Fernet key for dev use.
+
+        Stored under the vault dir with owner-only permissions where supported.
+        This keeps the vault stable across restarts when no VIGILAGENT_VAULT_KEY
+        is set, instead of regenerating an ephemeral key each run. The key file
+        is gitignored via the scan_states/ data path."""
+        key_path = self.storage_dir / ".vault_key"
+        try:
+            if key_path.exists():
+                data = key_path.read_bytes().strip()
+                if data:
+                    return data
+            key = Fernet.generate_key()
+            key_path.write_bytes(key)
+            try:
+                os.chmod(key_path, 0o600)
+            except Exception:
+                pass  # best-effort on platforms without POSIX perms
+            return key
+        except Exception as exc:  # pragma: no cover - fall back to in-memory key
+            logger.debug("[Vault] local key persistence unavailable (%s); using in-memory key.", exc)
+            return Fernet.generate_key()
 
     def _encrypt(self, secret: str) -> str:
         if self.encryption_enabled and self.cipher:

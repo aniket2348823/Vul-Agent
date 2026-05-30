@@ -20,6 +20,7 @@ from backend.api.socket_manager import publish_request_event
 from backend.modules.tech.sqli import SQLInjectionProbe
 from backend.modules.tech.jwt import JWTTokenCracker
 from backend.modules.tech.auth_bypass import AuthBypassTester
+from backend.modules.tech.command_injection import CommandInjectionProbe
 from backend.modules.logic.tycoon import TheTycoon
 from backend.modules.logic.doppelganger import Doppelganger
 from backend.modules.logic.skipper import TheSkipper
@@ -58,6 +59,7 @@ class SigmaAgent(BrowserEnabledAgent):
             "tech_sqli": SQLInjectionProbe(),
             "tech_jwt": JWTTokenCracker(),
             "tech_auth_bypass": AuthBypassTester(),
+            "tech_cmdi": CommandInjectionProbe(),
             "logic_tycoon": TheTycoon(),
             "logic_doppelganger": Doppelganger(),
             "logic_skipper": TheSkipper(),
@@ -70,6 +72,34 @@ class SigmaAgent(BrowserEnabledAgent):
             "UNION SELECT {context_table}, password FROM users--",
             "{{{{cycler.__init__.__globals__.os.popen('{cmd}').read()}}}}"
         ]
+
+        # ── Technique↔tooling dispatch state (Architecture §5.2, §29.4) ──────
+        # Sigma is the tool/technique commander: per vuln hypothesis it decides
+        # built-in module vs browser action vs governed CLI tool. Mirrors the
+        # Hermes availability-aware dispatch (tools/registry.check_fn + TTL
+        # cache): a path is only chosen when it is actually runnable, in scope,
+        # and historically reliable.
+        #
+        # Technique → candidate governed CLI validators, in preference order.
+        # Only allowlisted recon binaries (backend/tools/recon/guardrails) can
+        # actually run; a missing entry means "no CLI path — use the module".
+        self._technique_tool_map = {
+            "tech_sqli": [],            # custom in-process module preferred
+            "tech_jwt": [],
+            "tech_auth_bypass": [],
+            "recon_nuclei": ["nuclei"],
+            "recon_httpx": ["httpx"],
+            "tech_xss": ["dalfox"],
+            "tech_cve": ["nuclei"],
+            "tech_fingerprint": ["httpx", "whatweb", "wafw00f"],
+        }
+        # Per-path reliability ledger (Architecture §29: "update tool
+        # reliability"). Keyed by path id, e.g. "cli:nuclei", "module:tech_sqli".
+        self._path_reliability: dict = {}
+        # Short-TTL tool availability cache (Hermes check_fn TTL pattern) so
+        # repeated dispatch decisions don't re-probe PATH/tool-root/Docker.
+        self._tool_avail_cache: dict = {}
+        self._tool_avail_ttl = 30.0
 
     async def setup(self):
         # Listen for requests to generate payloads (e.g. from Beta)
@@ -152,6 +182,138 @@ class SigmaAgent(BrowserEnabledAgent):
         except Exception as e:
             return target, ""
 
+    def _tool_available(self, tool: str) -> bool:
+        """Availability-aware check for a governed CLI tool, adopting the Hermes
+        registry pattern (tools/registry._check_fn_cached): probe the real
+        installer state once and TTL-cache the result so repeated dispatch
+        decisions are cheap. Resolves through the recon registry, which already
+        accounts for PATH, project bin, tool root, Go bin, pip scripts, and the
+        Docker recon image."""
+        now = time.time()
+        cached = self._tool_avail_cache.get(tool)
+        if cached and (now - cached[0]) < self._tool_avail_ttl:
+            return cached[1]
+        available = False
+        try:
+            from backend.tools.recon.registry import check_tool_availability
+            available = bool(check_tool_availability(tool).get("installed"))
+        except Exception:
+            available = False
+        self._tool_avail_cache[tool] = (now, available)
+        return available
+
+    def _path_reliability_score(self, path_id: str) -> float:
+        """Prior reliability for a path id (e.g. "cli:nuclei", "module:tech_sqli").
+        Architecture §29 self-improvement: "update tool reliability". Starts
+        neutral (0.5) and is nudged by observed outcomes via _record_path_outcome."""
+        stats = self._path_reliability.get(path_id)
+        if not stats or stats.get("runs", 0) <= 0:
+            return 0.5
+        return stats["successes"] / stats["runs"]
+
+    def _record_path_outcome(self, path_id: str, success: bool) -> None:
+        """Record a validation-path outcome so future dispatch favours paths
+        that have historically worked on this engagement."""
+        stats = self._path_reliability.setdefault(path_id, {"runs": 0, "successes": 0})
+        stats["runs"] += 1
+        if success:
+            stats["successes"] += 1
+
+    async def _select_validation_path(self, module_id: str, packet, scan_id: str) -> dict:
+        """Decide the RIGHT controlled validation path per vuln hypothesis:
+        built-in module vs browser action vs governed CLI tool (Architecture
+        §5.2 technique↔tooling bridge; §29.4 Sigma = tool/technique commander).
+
+        Adopts the Hermes availability-aware dispatch (tools/registry): a CLI
+        path is only chosen when the tool is actually runnable AND the target is
+        in scope AND its prior reliability beats the in-process module. Skill
+        recommendations (§29: "Sigma receives technique-selection skills") and
+        graph reliability bias the decision."""
+        recs = []
+        try:
+            from backend.core.skill_library import skill_library
+            vuln_class = module_id.replace("tech_", "").replace("logic_", "")
+            recs = skill_library.get_recommendations(
+                target_url=packet.target.url, vuln_class=vuln_class, limit=5)
+        except Exception:
+            recs = []
+
+        url = packet.target.url
+
+        # 1. Candidate CLI validators for this technique, filtered by REAL
+        #    availability (Hermes: only surface tools whose check_fn passes).
+        candidates = self._technique_tool_map.get(module_id, [])
+        available_tools = [t for t in candidates if self._tool_available(t)]
+
+        # 2. Scope is law (Architecture §10): a CLI validation touches the
+        #    network, so it must be in scope before it is even a candidate.
+        in_scope = True
+        try:
+            from backend.core.scope import scope_guard
+            in_scope = scope_guard.allows(url)
+        except Exception:
+            in_scope = True
+
+        # 3. Skill recommendations can steer toward tool orchestration when a
+        #    matching high-confidence skill is recalled.
+        skill_prefers_tool = any(
+            r.get("score", 0) >= 0.6 and "tool" in (r.get("skill_type", "") or "").lower()
+            for r in recs
+        )
+
+        if available_tools and in_scope:
+            # 4. Reliability-aware choice (Hermes prefers the path most likely
+            #    to succeed): pick the most reliable available tool and only
+            #    take the CLI path if it beats the in-process module — unless a
+            #    skill explicitly recommends tooling.
+            best_tool = max(available_tools, key=lambda t: self._path_reliability_score(f"cli:{t}"))
+            cli_score = self._path_reliability_score(f"cli:{best_tool}")
+            module_score = self._path_reliability_score(f"module:{module_id}")
+            if skill_prefers_tool or cli_score >= module_score:
+                return {"path": "cli_tool", "tool": best_tool, "skills": recs,
+                        "reason": "skill" if skill_prefers_tool else "reliability",
+                        "cli_score": round(cli_score, 3), "module_score": round(module_score, 3)}
+
+        # 5. In-process module is the default controlled validation path when it
+        #    exists; otherwise fall back to a browser action (DOM/SPA targets).
+        if module_id in self.arsenal:
+            return {"path": "module", "skills": recs,
+                    "unavailable_tools": [t for t in candidates if t not in available_tools]}
+        return {"path": "browser", "skills": recs}
+
+    async def _run_cli_validation(self, vp: dict, packet, scan_id: str) -> None:
+        """Run a CLI validation tool via the governed Terminal Engine
+        (Architecture §5.2, §8, §29.11 item 4: Sigma access to governed terminal
+        execution). argv-only, scope-checked, budgeted, audited."""
+        from backend.core.terminal_engine import terminal_engine
+        from backend.core.iteration_budget import budget_config
+        from pathlib import Path
+
+        tool = vp.get("tool")
+        url = packet.target.url
+        out = Path("data") / "scans" / scan_id / "sigma" / f"{tool}.out"
+        argv_map = {
+            "nuclei": ["nuclei", "-u", url, "-severity", "critical,high,medium", "-jsonl", "-silent"],
+            "httpx": ["httpx", "-u", url, "-tech-detect", "-status-code", "-json", "-silent"],
+            "dalfox": ["dalfox", "url", url, "--format", "json", "--silence"],
+            "whatweb": ["whatweb", "--log-json=-", url],
+            "wafw00f": ["wafw00f", url],
+        }
+        argv = argv_map.get(tool)
+        if not argv:
+            return
+        budget = budget_config.make("commander", label=f"sigma:{tool}")
+        result = await terminal_engine.run(
+            argv, scan_id=scan_id, agent=self.name, output_path=out,
+            timeout_seconds=180, budget=budget, parser_hint="jsonl")
+        # Reliability feedback (Architecture §29: "update tool reliability"):
+        # the governed result's status feeds the next dispatch decision.
+        self._record_path_outcome(f"cli:{tool}", success=(result.status == "finished"))
+        await self.bus.publish(HiveEvent(
+            type=EventType.LIVE_ATTACK, source=self.name, scan_id=scan_id,
+            payload={"url": url, "arsenal": f"Terminal:{tool}",
+                     "action": "Governed CLI validation", "payload": result.status}))
+
     async def handle_generation_request(self, event: HiveEvent):
         packet_dict = event.payload
         # ScanContext: record event for transcript causality
@@ -166,7 +328,22 @@ class SigmaAgent(BrowserEnabledAgent):
             return
 
         module_id = packet.config.module_id
-        
+
+        # SIGMA AS TECHNIQUE↔TOOLING BRIDGE (Architecture §5.2, §29.4):
+        # before executing, consult skill recommendations and decide whether a
+        # built-in module, browser action, or CLI tool is the right controlled
+        # validation path for this target.
+        validation_path = {"path": "module"}
+        try:
+            validation_path = await self._select_validation_path(module_id, packet, event.scan_id)
+            print(f"[{self.name}] [DISPATCH] '{module_id}' -> {validation_path.get('path')}"
+                  f"{(' (' + str(validation_path.get('tool')) + ')') if validation_path.get('tool') else ''}"
+                  f"{(' reason=' + validation_path.get('reason')) if validation_path.get('reason') else ''}")
+            if validation_path.get("path") == "cli_tool":
+                await self._run_cli_validation(validation_path, packet, event.scan_id)
+        except Exception as _se:
+            print(f"[{self.name}] technique-bridge skipped: {_se}")
+
         if module_id in self.arsenal:
             print(f"[{self.name}] [PLAN] Orchestrating '{module_id}' execution on {packet.target.url}")
             
@@ -249,6 +426,11 @@ class SigmaAgent(BrowserEnabledAgent):
             # 3. OBSERVE: Analyze interactions
             print(f"[{self.name}] [OBSERVE] Applying pure module evaluation...")
             vulns = await module.analyze_responses(list(results), packet)
+
+            # Reliability feedback for the in-process module path so future
+            # dispatch decisions (_select_validation_path) learn which technique
+            # path actually produces findings (Architecture §29).
+            self._record_path_outcome(f"module:{module_id}", success=bool(vulns))
             
             # REAL-TIME SYNC: Publish VULN_CONFIRMED if found
             if vulns:

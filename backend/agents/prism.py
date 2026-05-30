@@ -68,6 +68,28 @@ class AgentPrism(BrowserEnabledAgent):
         self.status_history = []
         self.max_history = 100
 
+        # Skill recall cache (Architecture §5.3.5, §29.9)
+        self._skill_rec_cache = {}
+
+
+    def _recall_dom_skills(self, target_url: str = "") -> list:
+        """Kappa-style skill recall (Architecture §5.3.5, §29.9): Prism receives
+        DOM, JavaScript, CSP, XSS, client-side route, and prompt-injection
+        skills. Cached per target to avoid rework."""
+        cache = self._skill_rec_cache
+        if target_url in cache:
+            return cache[target_url]
+        recs = []
+        try:
+            from backend.core.skill_library import skill_library
+            for vuln_class in ("dom", "csp", "xss", "prompt-injection", "client-side"):
+                recs.extend(skill_library.get_recommendations(
+                    target_url=target_url, vuln_class=vuln_class, limit=3))
+        except Exception:
+            recs = []
+        cache[target_url] = recs
+        return recs
+
 
     async def setup(self):
         # Local Event Subscriptions
@@ -111,6 +133,9 @@ class AgentPrism(BrowserEnabledAgent):
             return
 
         # print(f"[{self.name}] Prism Active. Analyzing DOM Snapshot...")
+
+        # Surface DOM/CSP/XSS/client-side skills for this target.
+        self._recall_dom_skills(packet.target.url)
         
         dom_content = packet.target.payload or {}
         analysis_result = await self.analyze_dom(dom_content)

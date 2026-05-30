@@ -10,8 +10,8 @@ Tests endpoint scoring taxonomy:
 - Multi-source bonus
 """
 import pytest
-from backend.agents.alpha_v6.scoring import score_endpoint, score_entity_priority
-from backend.agents.alpha_v6.models import EndpointFinding, EndpointParameter
+from backend.agents.alpha_recon.scoring import score_endpoint, score_entity_priority
+from backend.agents.alpha_recon.models import EndpointFinding, EndpointParameter
 
 
 def _make_endpoint(url="/api/v1/users", method="GET", status=200,

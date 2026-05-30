@@ -1,235 +1,5 @@
 [
   {
-    "timestamp": 1779814138.8699815,
-    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "640cef9f-e2f1-4736-9688-f398dcb5f377",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814138.9108472,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814138.9533477,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.0009465,
-    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "640cef9f-e2f1-4736-9688-f398dcb5f377",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.0445254,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.0855916,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.1274686,
-    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "640cef9f-e2f1-4736-9688-f398dcb5f377",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.1666687,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.2062614,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.2381036,
-    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "640cef9f-e2f1-4736-9688-f398dcb5f377",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.2746007,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.3216407,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.36578,
-    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "640cef9f-e2f1-4736-9688-f398dcb5f377",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.4105814,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.4521558,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.4972975,
-    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "640cef9f-e2f1-4736-9688-f398dcb5f377",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.5413368,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.5826948,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.6256769,
-    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "640cef9f-e2f1-4736-9688-f398dcb5f377",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.66801,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.7082198,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.7465398,
-    "scan_id": "5f043e70-4723-4c09-a907-aa7b96b456d6",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "640cef9f-e2f1-4736-9688-f398dcb5f377",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
-    "timestamp": 1779814139.7889075,
-    "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
-    "message": "Background job completed",
-    "payload": {
-      "job_id": "cd71ae8e-6085-4d20-9bae-2e59510d90a1",
-      "status": "SUCCESS",
-      "vulnerabilities": []
-    }
-  },
-  {
     "timestamp": 1779814139.8267643,
     "scan_id": "ba51acaf-6834-4533-96ef-4ac81038f355",
     "message": "Background job completed",
@@ -7426,6 +7196,409 @@
     "message": "Background job completed",
     "payload": {
       "job_id": "0ecd78a4-7b63-429e-a32e-59b7f3f86e5a",
+      "status": "SUCCESS",
+      "vulnerabilities": []
+    }
+  },
+  {
+    "timestamp": 1780155900.71582,
+    "scan_id": "DVWA-SWARM",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b80f75d9-4a07-4a6a-bcea-c66062c6d331",
+      "status": "VULN_FOUND",
+      "vulnerabilities": [
+        {
+          "name": "SQL Injection",
+          "severity": "CRITICAL",
+          "description": "Injection caused a material, repeatable response divergence.",
+          "evidence": "Target: http://host.docker.internal:8080/vulnerabilities/sqli/?id=1admin%27+%23&Submit=Submit\nDB-error signature: True; differential signals=3 confidence=70% (status 200->200, len 818->5204)",
+          "remediation": "Use parameterized queries (Prepared Statements)."
+        },
+        {
+          "name": "SQL Injection",
+          "severity": "CRITICAL",
+          "description": "Injection caused a material, repeatable response divergence.",
+          "evidence": "Target: http://host.docker.internal:8080/vulnerabilities/sqli/?id=1&Submit=Submit%27+OR+1%3D1--\nDB-error signature: True; differential signals=3 confidence=70% (status 200->200, len 818->5198)",
+          "remediation": "Use parameterized queries (Prepared Statements)."
+        },
+        {
+          "name": "SQL Injection",
+          "severity": "CRITICAL",
+          "description": "Injection caused a material, repeatable response divergence.",
+          "evidence": "Target: http://host.docker.internal:8080/vulnerabilities/sqli/?id=1&Submit=Submitadmin%27+%23\nDB-error signature: True; differential signals=3 confidence=70% (status 200->200, len 818->5196)",
+          "remediation": "Use parameterized queries (Prepared Statements)."
+        },
+        {
+          "name": "SQL Injection",
+          "severity": "CRITICAL",
+          "description": "Injection caused a material, repeatable response divergence.",
+          "evidence": "Target: http://host.docker.internal:8080/vulnerabilities/sqli/?id=1&Submit=Submit%27+UNION+SELECT+1%2C2%2C3--\nDB-error signature: True; differential signals=3 confidence=70% (status 200->200, len 818->5208)",
+          "remediation": "Use parameterized queries (Prepared Statements)."
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": 1780155901.0802305,
+    "scan_id": "DVWA-SWARM",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "9769417a-38ca-4a0c-874a-059e686166f2",
+      "status": "SUCCESS",
+      "vulnerabilities": []
+    }
+  },
+  {
+    "timestamp": 1780155901.6309624,
+    "scan_id": "DVWA-SWARM",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "b02a3fc2-c42f-47f0-9981-e72cd3db394d",
+      "status": "SUCCESS",
+      "vulnerabilities": []
+    }
+  },
+  {
+    "timestamp": 1780156040.5021665,
+    "scan_id": "DVWA-SWARM",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "aa4a30cd-1107-428f-abec-159ced956514",
+      "status": "VULN_FOUND",
+      "vulnerabilities": [
+        {
+          "name": "SQL Injection",
+          "severity": "CRITICAL",
+          "description": "Injection caused a material, repeatable response divergence.",
+          "evidence": "Target: http://host.docker.internal:8080/vulnerabilities/sqli/?id=1admin%27+%23&Submit=Submit\nDB-error signature: True; differential signals=3 confidence=70% (status 200->200, len 818->5204)",
+          "remediation": "Use parameterized queries (Prepared Statements)."
+        },
+        {
+          "name": "SQL Injection",
+          "severity": "CRITICAL",
+          "description": "Injection caused a material, repeatable response divergence.",
+          "evidence": "Target: http://host.docker.internal:8080/vulnerabilities/sqli/?id=1&Submit=Submit%27+OR+1%3D1--\nDB-error signature: True; differential signals=3 confidence=70% (status 200->200, len 818->5198)",
+          "remediation": "Use parameterized queries (Prepared Statements)."
+        },
+        {
+          "name": "SQL Injection",
+          "severity": "CRITICAL",
+          "description": "Injection caused a material, repeatable response divergence.",
+          "evidence": "Target: http://host.docker.internal:8080/vulnerabilities/sqli/?id=1&Submit=Submitadmin%27+%23\nDB-error signature: True; differential signals=3 confidence=70% (status 200->200, len 818->5196)",
+          "remediation": "Use parameterized queries (Prepared Statements)."
+        },
+        {
+          "name": "SQL Injection",
+          "severity": "CRITICAL",
+          "description": "Injection caused a material, repeatable response divergence.",
+          "evidence": "Target: http://host.docker.internal:8080/vulnerabilities/sqli/?id=1&Submit=Submit%27+UNION+SELECT+1%2C2%2C3--\nDB-error signature: True; differential signals=3 confidence=70% (status 200->200, len 818->5208)",
+          "remediation": "Use parameterized queries (Prepared Statements)."
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": 1780156041.0196943,
+    "scan_id": "DVWA-SWARM",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "4bcfe439-8def-4db0-8dc8-6eba1e5738c4",
+      "status": "SUCCESS",
+      "vulnerabilities": []
+    }
+  },
+  {
+    "timestamp": 1780156041.5926714,
+    "scan_id": "DVWA-SWARM",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "0aeed192-34ed-4f57-81f9-73fa7fcbae47",
+      "status": "SUCCESS",
+      "vulnerabilities": []
+    }
+  },
+  {
+    "timestamp": 1780156048.500393,
+    "scan_id": "DVWA-SWARM",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "7ae5134b-345c-4309-b2bd-440be1d5231a",
+      "status": "SUCCESS",
+      "target_url": "http://host.docker.internal:8080/vulnerabilities/xss_r/?name=test",
+      "data": {
+        "generated_payloads": [
+          "json",
+          "anNvbg==",
+          "0x6a0x730x6f0x6e",
+          "json",
+          "payloads\":[",
+          "cGF5bG9hZHMiOls=",
+          "0x700x610x790x6c0x6f0x610x640x730x220x3a0x5b",
+          "payloads%22%3A%5B",
+          "http://host.docker.internal:8080/vulnerabilities/xss_r/?name=test%27",
+          "aHR0cDovL2hvc3QuZG9ja2VyLmludGVybmFsOjgwODAvdnVsbmVyYWJpbGl0aWVzL3hzc19yLz9uYW1lPXRlc3QlMjc=",
+          "0x680x740x740x700x3a0x2f0x2f0x680x6f0x730x740x2e0x640x6f0x630x6b0x650x720x2e0x690x6e0x740x650x720x6e0x610x6c0x3a0x380x300x380x300x2f0x760x750x6c0x6e0x650x720x610x620x690x6c0x690x740x690x650x730x2f0x780x730x730x5f0x720x2f0x3f0x6e0x610x6d0x650x3d0x740x650x730x740x250x320x37",
+          "http%3A//host.docker.internal%3A8080/vulnerabilities/xss_r/%3Fname%3Dtest%2527"
+        ]
+      }
+    }
+  },
+  {
+    "timestamp": 1780156223.6755266,
+    "scan_id": "DVWA-SWARM",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "7260cb9b-fc75-40a8-ab50-b08573d94231",
+      "status": "VULN_FOUND",
+      "vulnerabilities": [
+        {
+          "name": "SQL Injection",
+          "severity": "CRITICAL",
+          "description": "Injection caused a material, repeatable response divergence.",
+          "evidence": "Target: http://host.docker.internal:8080/vulnerabilities/sqli/?id=1admin%27+%23&Submit=Submit\nDB-error signature: True; differential signals=3 confidence=70% (status 200->200, len 818->5204)",
+          "remediation": "Use parameterized queries (Prepared Statements)."
+        },
+        {
+          "name": "SQL Injection",
+          "severity": "CRITICAL",
+          "description": "Injection caused a material, repeatable response divergence.",
+          "evidence": "Target: http://host.docker.internal:8080/vulnerabilities/sqli/?id=1&Submit=Submit%27+OR+1%3D1--\nDB-error signature: True; differential signals=3 confidence=70% (status 200->200, len 818->5198)",
+          "remediation": "Use parameterized queries (Prepared Statements)."
+        },
+        {
+          "name": "SQL Injection",
+          "severity": "CRITICAL",
+          "description": "Injection caused a material, repeatable response divergence.",
+          "evidence": "Target: http://host.docker.internal:8080/vulnerabilities/sqli/?id=1&Submit=Submitadmin%27+%23\nDB-error signature: True; differential signals=3 confidence=70% (status 200->200, len 818->5196)",
+          "remediation": "Use parameterized queries (Prepared Statements)."
+        },
+        {
+          "name": "SQL Injection",
+          "severity": "CRITICAL",
+          "description": "Injection caused a material, repeatable response divergence.",
+          "evidence": "Target: http://host.docker.internal:8080/vulnerabilities/sqli/?id=1&Submit=Submit%27+UNION+SELECT+1%2C2%2C3--\nDB-error signature: True; differential signals=3 confidence=70% (status 200->200, len 818->5208)",
+          "remediation": "Use parameterized queries (Prepared Statements)."
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": 1780156224.2209601,
+    "scan_id": "DVWA-SWARM",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "a719a3b4-1420-4722-8a0d-447c414f0667",
+      "status": "SUCCESS",
+      "vulnerabilities": []
+    }
+  },
+  {
+    "timestamp": 1780156224.8190093,
+    "scan_id": "DVWA-SWARM",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c377fa86-b666-43b7-b792-beadc4ea9304",
+      "status": "SUCCESS",
+      "vulnerabilities": []
+    }
+  },
+  {
+    "timestamp": 1780156233.8119836,
+    "scan_id": "DVWA-SWARM",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "c773562f-dd53-40d8-8c97-a9da2960254f",
+      "status": "SUCCESS",
+      "target_url": "http://host.docker.internal:8080/vulnerabilities/xss_r/?name=test",
+      "data": {
+        "generated_payloads": [
+          "json",
+          "anNvbg==",
+          "0x6a0x730x6f0x6e",
+          "json",
+          "payloads\":[",
+          "cGF5bG9hZHMiOls=",
+          "0x700x610x790x6c0x6f0x610x640x730x220x3a0x5b",
+          "payloads%22%3A%5B",
+          "http://host.docker.internal:8080/vulnerabilities/xss_r/?name=test%2",
+          "aHR0cDovL2hvc3QuZG9ja2VyLmludGVybmFsOjgwODAvdnVsbmVyYWJpbGl0aWVzL3hzc19yLz9uYW1lPXRlc3QlMg==",
+          "0x680x740x740x700x3a0x2f0x2f0x680x6f0x730x740x2e0x640x6f0x630x6b0x650x720x2e0x690x6e0x740x650x720x6e0x610x6c0x3a0x380x300x380x300x2f0x760x750x6c0x6e0x650x720x610x620x690x6c0x690x740x690x650x730x2f0x780x730x730x5f0x720x2f0x3f0x6e0x610x6d0x650x3d0x740x650x730x740x250x32",
+          "http%3A//host.docker.internal%3A8080/vulnerabilities/xss_r/%3Fname%3Dtest%252"
+        ]
+      }
+    }
+  },
+  {
+    "timestamp": 1780156891.3212612,
+    "scan_id": "DVWA-FULL-OP",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "6b0f6c2b-ab1c-4b44-9874-a0af32d9c4f2",
+      "status": "FAILED",
+      "module_id": "alpha_v6_recon",
+      "error": "Scope violation for 'http://host.docker.internal:8080': private_network_requires_authorization:host.docker.internal"
+    }
+  },
+  {
+    "timestamp": 1780156891.694012,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "2a289866-bb90-4427-8760-c703ab5a8dde",
+      "status": "SUCCESS"
+    }
+  },
+  {
+    "timestamp": 1780156894.7304842,
+    "scan_id": "DVWA-FULL-OP",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "82d4b491-4d93-4d7e-9fb5-dc4ba9eef827",
+      "status": "SUCCESS",
+      "vulnerabilities": []
+    }
+  },
+  {
+    "timestamp": 1780156901.1483095,
+    "scan_id": "DVWA-FULL-OP",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "44dcb086-25f8-40f2-a067-17387001a582",
+      "status": "SUCCESS",
+      "target_url": "http://host.docker.internal:8080",
+      "data": {
+        "generated_payloads": [
+          "json",
+          "anNvbg==",
+          "0x6a0x730x6f0x6e",
+          "json",
+          "payloads\":[",
+          "cGF5bG9hZHMiOls=",
+          "0x700x610x790x6c0x6f0x610x640x730x220x3a0x5b",
+          "payloads%22%3A%5B",
+          "http://host.docker.internal:8080?id=2\",",
+          "aHR0cDovL2hvc3QuZG9ja2VyLmludGVybmFsOjgwODA/aWQ9MiIs",
+          "0x680x740x740x700x3a0x2f0x2f0x680x6f0x730x740x2e0x640x6f0x630x6b0x650x720x2e0x690x6e0x740x650x720x6e0x610x6c0x3a0x380x300x380x300x3f0x690x640x3d0x320x220x2c",
+          "http%3A//host.docker.internal%3A8080%3Fid%3D2%22%2C",
+          "http://host.docker.internal:",
+          "aHR0cDovL2hvc3QuZG9ja2VyLmludGVybmFsOg==",
+          "0x680x740x740x700x3a0x2f0x2f0x680x6f0x730x740x2e0x640x6f0x630x6b0x650x720x2e0x690x6e0x740x650x720x6e0x610x6c0x3a",
+          "http%3A//host.docker.internal%3A"
+        ]
+      }
+    }
+  },
+  {
+    "timestamp": 1780156901.7865262,
+    "scan_id": "DVWA-FULL-OP",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "fcf84f83-20b0-44d5-80b7-a1b9d0dd1fec",
+      "status": "SUCCESS",
+      "vulnerabilities": []
+    }
+  },
+  {
+    "timestamp": 1780156908.3077588,
+    "scan_id": "DVWA-FULL-OP",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "599a5af3-ead9-44d6-9feb-30c6e7908144",
+      "status": "SUCCESS",
+      "target_url": "http://host.docker.internal:8080",
+      "data": {
+        "generated_payloads": [
+          "json",
+          "anNvbg==",
+          "0x6a0x730x6f0x6e",
+          "json",
+          "payloads\":[",
+          "cGF5bG9hZHMiOls=",
+          "0x700x610x790x6c0x6f0x610x640x730x220x3a0x5b",
+          "payloads%22%3A%5B",
+          "http://host.docker.internal:8080?id=1\",",
+          "aHR0cDovL2hvc3QuZG9ja2VyLmludGVybmFsOjgwODA/aWQ9MSIs",
+          "0x680x740x740x700x3a0x2f0x2f0x680x6f0x730x740x2e0x640x6f0x630x6b0x650x720x2e0x690x6e0x740x650x720x6e0x610x6c0x3a0x380x300x380x300x3f0x690x640x3d0x310x220x2c",
+          "http%3A//host.docker.internal%3A8080%3Fid%3D1%22%2C",
+          "http://host.docker.internal:80",
+          "aHR0cDovL2hvc3QuZG9ja2VyLmludGVybmFsOjgw",
+          "0x680x740x740x700x3a0x2f0x2f0x680x6f0x730x740x2e0x640x6f0x630x6b0x650x720x2e0x690x6e0x740x650x720x6e0x610x6c0x3a0x380x30",
+          "http%3A//host.docker.internal%3A80"
+        ]
+      }
+    }
+  },
+  {
+    "timestamp": 1780156908.8093572,
+    "scan_id": "DVWA-FULL-OP",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "98b90805-ccf4-4230-93f3-9af87eb05058",
+      "status": "SUCCESS",
+      "vulnerabilities": []
+    }
+  },
+  {
+    "timestamp": 1780156909.2869935,
+    "scan_id": "DVWA-FULL-OP",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "970ce7c2-a64b-4dcf-8a94-728cf3798958",
+      "status": "VULN_FOUND",
+      "vulnerabilities": [
+        {
+          "name": "Workflow Bypass (Direct Access)",
+          "severity": "HIGH",
+          "description": "Accessed final step directly.",
+          "evidence": "Direct Access Successful. logic signals=2 [positive_marker, no_denial_marker]",
+          "remediation": "Enforce state machine checks at each workflow step."
+        },
+        {
+          "name": "Workflow Bypass (Referer Spoofing)",
+          "severity": "CRITICAL",
+          "description": "Accessed final step by spoofing Referer header.",
+          "evidence": "Referer: http://host.docker.internal:8080. logic signals=2 [positive_marker, no_denial_marker]",
+          "remediation": "Do not rely on Referer headers for authorization."
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": 1780156909.3307498,
+    "scan_id": "GLOBAL",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "568dfc05-3587-49d1-9dc7-18f8b6008ef7",
+      "status": "SUCCESS"
+    }
+  },
+  {
+    "timestamp": 1780157001.01771,
+    "scan_id": "DVWA-FULL-OP",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "80744ede-df9d-43d2-b3f9-08c96b535d7c",
+      "status": "SUCCESS",
+      "vulnerabilities": []
+    }
+  },
+  {
+    "timestamp": 1780157001.5154788,
+    "scan_id": "DVWA-FULL-OP",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "484541d3-3d8c-422a-9367-70686ad4209b",
+      "status": "SUCCESS",
+      "vulnerabilities": []
+    }
+  },
+  {
+    "timestamp": 1780157002.0888388,
+    "scan_id": "DVWA-FULL-OP",
+    "message": "Background job completed",
+    "payload": {
+      "job_id": "8d6e4434-8f94-4da6-9126-a03162ca8e64",
       "status": "SUCCESS",
       "vulnerabilities": []
     }

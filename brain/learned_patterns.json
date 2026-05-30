@@ -104,5 +104,81 @@
     "last_seen": 1779810153.4687314,
     "first_seen": 1779807489.4165595,
     "scan_count": 1
+  },
+  {
+    "pattern_id": "endpoint_pattern_00af3b511f08ba32",
+    "pattern_type": "endpoint_pattern",
+    "pattern_data": {
+      "vuln_type": "TECH_SQLI",
+      "url_pattern": "http://host.docker.internal:8080/vulnerabilities/sqli/",
+      "method": "GET"
+    },
+    "confidence": 1.0,
+    "success_count": 12,
+    "failure_count": 0,
+    "last_seen": 1780156237.2648404,
+    "first_seen": 1780155902.7297704,
+    "scan_count": 1
+  },
+  {
+    "pattern_id": "payload_success_d09c19debdd51305",
+    "pattern_type": "payload_success",
+    "pattern_data": {
+      "vuln_type": "TECH_SQLI",
+      "payload_features": {
+        "length": 4,
+        "has_script_tag": false,
+        "has_sql_keywords": false,
+        "has_template_injection": false,
+        "has_command_injection": false,
+        "has_encoding": false,
+        "has_special_chars": false
+      },
+      "payload_sample": "None"
+    },
+    "confidence": 1.0,
+    "success_count": 12,
+    "failure_count": 0,
+    "last_seen": 1780156237.2882564,
+    "first_seen": 1780155902.7315214,
+    "scan_count": 1
+  },
+  {
+    "pattern_id": "endpoint_pattern_f17f458a97e39a4a",
+    "pattern_type": "endpoint_pattern",
+    "pattern_data": {
+      "vuln_type": "LOGIC_SKIPPER",
+      "url_pattern": "http://host.docker.internal:8080",
+      "method": "GET"
+    },
+    "confidence": 0.2,
+    "success_count": 2,
+    "failure_count": 0,
+    "last_seen": 1780156915.9936414,
+    "first_seen": 1780156915.4359517,
+    "scan_count": 1
+  },
+  {
+    "pattern_id": "payload_success_9d2590d04434e2c4",
+    "pattern_type": "payload_success",
+    "pattern_data": {
+      "vuln_type": "LOGIC_SKIPPER",
+      "payload_features": {
+        "length": 4,
+        "has_script_tag": false,
+        "has_sql_keywords": false,
+        "has_template_injection": false,
+        "has_command_injection": false,
+        "has_encoding": false,
+        "has_special_chars": false
+      },
+      "payload_sample": "None"
+    },
+    "confidence": 0.2,
+    "success_count": 2,
+    "failure_count": 0,
+    "last_seen": 1780156915.994774,
+    "first_seen": 1780156915.4383075,
+    "scan_count": 1
   }
 ]

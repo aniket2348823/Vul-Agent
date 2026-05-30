@@ -391,25 +391,31 @@ class BaseAgent:
         self._init_self_awareness()
 
     def _init_self_awareness(self):
-        """Initialize self-awareness if enabled"""
+        """Initialize self-awareness if enabled.
+
+        Self-awareness is feature-flag-gated (defaults OFF). The dataclass uses
+        ``enable_self_awareness`` (master) and per-agent ``enable_self_awareness_<name>``
+        booleans rather than a generic ``is_enabled(...)`` method, so we read them
+        with ``getattr`` and short-circuit cleanly when disabled. This silences the
+        old import-error noise that fired for every agent on every startup.
+        """
         try:
-            from backend.core.feature_flags import feature_flags
+            from backend.core.feature_flags import get_feature_flags
             from backend.core.self_awareness_module import SelfAwarenessModule
             from backend.core.self_awareness_config import SelfAwarenessConfig
-            
-            # Check if self-awareness is enabled for this agent
-            if not feature_flags.is_enabled("self_awareness_enabled"):
+
+            flags = get_feature_flags()
+            if not getattr(flags, "enable_self_awareness", False):
                 return
-            
-            agent_flag = f"self_awareness_{self.name.lower()}"
-            if not feature_flags.is_enabled(agent_flag):
+
+            short = self.name.replace("agent_", "").lower()
+            agent_attr = f"enable_self_awareness_{short}"
+            if not getattr(flags, agent_attr, False):
                 return
-            
-            # Initialize self-awareness module
+
             config = SelfAwarenessConfig()
             self.self_awareness = SelfAwarenessModule(agent=self, config=config)
             logging.info(f"[BaseAgent] Self-awareness enabled for {self.name}")
-            
         except Exception as e:
             logging.error(f"[BaseAgent] Failed to initialize self-awareness: {e}")
             self.self_awareness = None

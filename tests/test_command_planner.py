@@ -11,7 +11,7 @@ Tests command planner without running any tools:
 import pytest
 from pathlib import Path
 from backend.tools.recon.commands import ReconCommand, ReconCommandPlanner
-from backend.agents.alpha_v6.models import ReconScope, ScanMode
+from backend.agents.alpha_recon.models import ReconScope, ScanMode
 
 
 @pytest.fixture

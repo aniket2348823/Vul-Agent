@@ -32,11 +32,11 @@ class TestAgentImports:
         assert AlphaAgent.__name__ == "AlphaAgent"
 
     def test_alpha_orchestrator_direct(self):
-        from backend.agents.alpha_v6.alpha_orchestrator import AlphaOrchestrator
+        from backend.agents.alpha_recon.alpha_orchestrator import AlphaOrchestrator
         assert AlphaOrchestrator.__name__ == "AlphaOrchestrator"
 
     def test_alpha_orchestrator_aliases(self):
-        from backend.agents.alpha_v6 import AlphaOrchestrator, AlphaV6ReconOrchestrator, AlphaV6DeepOrchestrator
+        from backend.agents.alpha_recon import AlphaOrchestrator, AlphaV6ReconOrchestrator, AlphaV6DeepOrchestrator
         assert AlphaOrchestrator is AlphaV6ReconOrchestrator
         assert AlphaOrchestrator is AlphaV6DeepOrchestrator
 
@@ -202,8 +202,8 @@ class TestAlphaReconPipeline:
     """Test the Alpha V6 recon engine components individually."""
 
     def test_scope_compilation(self):
-        from backend.agents.alpha_v6.alpha_orchestrator import AlphaOrchestrator
-        from backend.agents.alpha_v6.models import ScanMode
+        from backend.agents.alpha_recon.alpha_orchestrator import AlphaOrchestrator
+        from backend.agents.alpha_recon.models import ScanMode
         from backend.core.hive import EventBus
 
         orch = AlphaOrchestrator(EventBus())
@@ -214,8 +214,8 @@ class TestAlphaReconPipeline:
         assert scope.max_depth >= 2
 
     def test_scope_gate_allows_test_target(self):
-        from backend.agents.alpha_v6.scope_gate import ScopeGate
-        from backend.agents.alpha_v6.models import ReconScope, ScanMode
+        from backend.agents.alpha_recon.scope_gate import ScopeGate
+        from backend.agents.alpha_recon.models import ReconScope, ScanMode
 
         scope = ReconScope(
             base_domain="testphp.vulnweb.com",
@@ -227,8 +227,8 @@ class TestAlphaReconPipeline:
         gate.validate_target("http://testphp.vulnweb.com")
 
     def test_scope_gate_blocks_gov(self):
-        from backend.agents.alpha_v6.scope_gate import ScopeGate, ScopeGateViolation
-        from backend.agents.alpha_v6.models import ReconScope, ScanMode
+        from backend.agents.alpha_recon.scope_gate import ScopeGate, ScopeGateViolation
+        from backend.agents.alpha_recon.models import ReconScope, ScanMode
 
         scope = ReconScope(
             base_domain="whitehouse.gov",
@@ -241,8 +241,8 @@ class TestAlphaReconPipeline:
             gate.validate_target("https://whitehouse.gov")
 
     def test_scoring_engine(self):
-        from backend.agents.alpha_v6.scoring import score_endpoint
-        from backend.agents.alpha_v6.models import EndpointFinding
+        from backend.agents.alpha_recon.scoring import score_endpoint
+        from backend.agents.alpha_recon.models import EndpointFinding
 
         ep = EndpointFinding(
             url="http://testphp.vulnweb.com/api/v1/users",
@@ -258,7 +258,7 @@ class TestAlphaReconPipeline:
         assert len(scored.score_reasons) > 0
 
     def test_dedupe_engine(self):
-        from backend.agents.alpha_v6.dedupe import (
+        from backend.agents.alpha_recon.dedupe import (
             SeenSet, normalize_url, normalize_endpoint_key, classify_path
         )
 
@@ -278,7 +278,7 @@ class TestAlphaReconPipeline:
         assert risk != ""
 
     def test_entity_engine(self):
-        from backend.agents.alpha_v6.entity_engine import EntityEngine
+        from backend.agents.alpha_recon.entity_engine import EntityEngine
         from backend.parsers.recon.base import ParsedEntity
 
         engine = EntityEngine("TEST-SCAN")
@@ -303,14 +303,14 @@ class TestAlphaReconPipeline:
         assert isinstance(stats, dict)
 
     def test_artifact_store(self):
-        from backend.agents.alpha_v6.artifacts import ArtifactStore
+        from backend.agents.alpha_recon.artifacts import ArtifactStore
         store = ArtifactStore("TEST-ARTIFACTS")
         assert store.raw_dir is not None
         assert store.screenshots_dir is not None
 
     def test_phase_controller(self):
-        from backend.agents.alpha_v6.phase_controller import PhaseController
-        from backend.agents.alpha_v6.models import ReconScope, ScanMode
+        from backend.agents.alpha_recon.phase_controller import PhaseController
+        from backend.agents.alpha_recon.models import ReconScope, ScanMode
 
         scope = ReconScope(
             base_domain="example.com",
@@ -322,13 +322,13 @@ class TestAlphaReconPipeline:
         assert len(pc.PHASE_ORDER) >= 7
 
     def test_wordlist_builder(self):
-        from backend.agents.alpha_v6.wordlist_builder import WordlistBuilder
+        from backend.agents.alpha_recon.wordlist_builder import WordlistBuilder
         wb = WordlistBuilder()
         assert wb is not None
 
     def test_exporters(self):
         """Verify all exporter classes exist."""
-        from backend.agents.alpha_v6.exporters import (
+        from backend.agents.alpha_recon.exporters import (
             SARIFExporter, HackerOneExporter, MarkdownReportExporter
         )
         assert SARIFExporter is not None
@@ -337,7 +337,7 @@ class TestAlphaReconPipeline:
 
     def test_graph_exporters(self):
         """Verify graph exporter classes exist."""
-        from backend.agents.alpha_v6.graph_exporters import (
+        from backend.agents.alpha_recon.graph_exporters import (
             Neo4jExporter, STIXExporter, MaltegoExporter
         )
         assert Neo4jExporter is not None
@@ -352,7 +352,7 @@ class TestLiveRecon:
     @pytest.mark.asyncio
     async def test_http_probe(self):
         """Run the Alpha orchestrator's HTTP probe against the public test target."""
-        from backend.agents.alpha_v6.alpha_orchestrator import AlphaOrchestrator
+        from backend.agents.alpha_recon.alpha_orchestrator import AlphaOrchestrator
         from backend.core.hive import EventBus
         from backend.core.scope import ScopePolicy
         from backend.modules.tech.http_client import http_client
@@ -379,8 +379,8 @@ class TestLiveRecon:
     @pytest.mark.asyncio
     async def test_endpoint_scoring_live(self):
         """Probe + Score endpoints from the live target."""
-        from backend.agents.alpha_v6.alpha_orchestrator import AlphaOrchestrator
-        from backend.agents.alpha_v6.scoring import score_endpoint
+        from backend.agents.alpha_recon.alpha_orchestrator import AlphaOrchestrator
+        from backend.agents.alpha_recon.scoring import score_endpoint
         from backend.core.hive import EventBus
         from backend.core.scope import ScopePolicy
         from backend.modules.tech.http_client import http_client
@@ -416,8 +416,8 @@ class TestLiveRecon:
     @pytest.mark.asyncio
     async def test_dedup_pipeline(self):
         """Verify deduplication works on probe results."""
-        from backend.agents.alpha_v6.alpha_orchestrator import AlphaOrchestrator
-        from backend.agents.alpha_v6.scoring import score_endpoint
+        from backend.agents.alpha_recon.alpha_orchestrator import AlphaOrchestrator
+        from backend.agents.alpha_recon.scoring import score_endpoint
         from backend.core.hive import EventBus
         from backend.core.scope import ScopePolicy
         from backend.modules.tech.http_client import http_client
@@ -513,8 +513,8 @@ class TestReportingPipeline:
         """Test SARIF exporter class instantiation and export."""
         import tempfile
         from pathlib import Path
-        from backend.agents.alpha_v6.exporters import SARIFExporter
-        from backend.agents.alpha_v6.models import ReconRunResult, ReconRunSummary, ScanMode
+        from backend.agents.alpha_recon.exporters import SARIFExporter
+        from backend.agents.alpha_recon.models import ReconRunResult, ReconRunSummary, ScanMode
 
         result = ReconRunResult(
             scan_id="REPORT-TEST",
@@ -537,8 +537,8 @@ class TestReportingPipeline:
         """Test Markdown report exporter."""
         import tempfile
         from pathlib import Path
-        from backend.agents.alpha_v6.exporters import MarkdownReportExporter
-        from backend.agents.alpha_v6.models import ReconRunResult, ReconRunSummary, ScanMode
+        from backend.agents.alpha_recon.exporters import MarkdownReportExporter
+        from backend.agents.alpha_recon.models import ReconRunResult, ReconRunSummary, ScanMode
 
         result = ReconRunResult(
             scan_id="MD-REPORT-TEST",
